@@ -1,6 +1,6 @@
 # https://github.com/custom-components/pyscript
-from imports import *
-from entities.entity import Entity
+from imports_base import *
+from entities.switch import Switch
 
 
 def position_normalize(value):
@@ -9,7 +9,7 @@ def position_normalize(value):
     return value
 
 
-class Window(Entity):
+class Window(Switch):
     # noinspection PyMissingConstructor
     def __init__(self, *entity_ids, reverse=False, priority_mode=False, allow_unknown=False):
         self.entity_ids = entity_ids
@@ -40,3 +40,13 @@ class Window(Entity):
     def position_subtract(self, value):
         new_value = position_normalize(self.position() - value)
         return self.position_set(new_value)
+
+
+class Cover(Window):
+    # noinspection PyMissingConstructor
+    def __init__(self, *entity_ids, reverse=False, priority_mode=False, allow_unknown=False):
+        self.entity_ids = entity_ids
+        self._priority_mode = priority_mode
+        self._allow_unknown = allow_unknown
+        self.reverse = reverse
+        self.entity_init()

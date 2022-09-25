@@ -1,8 +1,8 @@
 # https://github.com/custom-components/pyscript
-from entities.switch import Switch
+from entities.entity import Entity
 
 
-class Light(Switch):
+class Sensor(Entity):
     # noinspection PyMissingConstructor
     def __init__(self, *entity_ids, priority_mode=False, allow_unknown=False):
         self.entity_ids = entity_ids

@@ -30,7 +30,7 @@ BEDROOM_AC_SMART = 'climate.bedroom_smart_thermostat'
 PC_ALERT = 'switch.wol_alert_pc'
 OFFICE_HUMIDIFIER = 'switch.office_humidifier'
 OFFICE_HUMIDIFIER_CLOUD = 'switch.office_humidifier_cloud'
-OFFICE_HUMIDITY = 'sensor.office_humidity_template'
+OFFICE_HUMIDITY = 'sensor.office_humidity'
 OFFICE_TEMPERATURE = 'sensor.office_temperature_template'
 OFFICE_WINDOW = 'cover.office_window'
 OFFICE_WINDOW_CLOUD = 'cover.office_window_cloud'
@@ -101,3 +101,9 @@ def SECRET(value):
 TELEGRAM_CHAT_ALERT_HA = SECRET('telegram_chat_alert_ha')
 TELEGRAM_CHAT_1 = SECRET('telegram_chat_1')
 SERVER_URL_EXTERNAL = SECRET('server_url_external')
+
+ROUTER_USERNAME = SECRET('router_username')
+ROUTER_PASSWORD = SECRET('router_password')
+ROUTER_URL = SECRET('router_url')
+
+SENSOR_DATETIME = 'sensor.datetime_full'
