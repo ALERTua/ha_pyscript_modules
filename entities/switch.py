@@ -10,14 +10,14 @@ class Switch(Entity):
         self._allow_unknown = allow_unknown
         self.entity_init()
 
-    def turn_on(self):
+    def turn_on(self, **kwargs):
         # noinspection PyUnresolvedReferences
-        return homeassistant.turn_on(entity_id=self.entity_id)
+        return homeassistant.turn_on(entity_id=self.entity_id, **kwargs)
 
-    def turn_off(self):
+    def turn_off(self, **kwargs):
         # noinspection PyUnresolvedReferences
-        return homeassistant.turn_off(entity_id=self.entity_id)
+        return homeassistant.turn_off(entity_id=self.entity_id, **kwargs)
 
-    def toggle(self):
+    def toggle(self, **kwargs):
         # noinspection PyUnresolvedReferences
-        return homeassistant.toggle(entity_id=self.entity_id)
+        return homeassistant.toggle(entity_id=self.entity_id, **kwargs)

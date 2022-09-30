@@ -1,18 +1,6 @@
 # https://hacs-pyscript.readthedocs.io/en/stable/reference.html
-from random import randint
-from typing import TYPE_CHECKING
-
-import pendulum
-
+from imports_base import *  # cyclic
 import common_tools as tools
-
-if TYPE_CHECKING:
-    from logging import Logger
-
-    log: Logger
-    from pyscript import State
-
-    state: State
 
 registered_telegram_callbacks = []
 

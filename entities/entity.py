@@ -83,29 +83,36 @@ class Entity:
         return tools.friendly_name(self.entity_id)
 
     def attrs(self):
-        return self.entity.attributes
+        entity_ = self.entity
+        return entity_.attributes
 
     def as_dict(self):
-        return self.entity.as_dict()
+        entity_ = self.entity
+        return entity_.as_dict()
 
     def state(self, attr=None):
         if attr:
             return self.attrs().get(attr)
 
-        return self.entity.state
+        entity_ = self.entity
+        return entity_.state
 
     def domain(self):
-        return self.entity.domain
+        entity_ = self.entity
+        return entity_.domain
 
     def object_id(self):
-        return self.entity.object_id
+        entity_ = self.entity
+        return entity_.object_id
 
     def last_changed(self):
-        last_changed = self.entity.last_changed
+        entity_ = self.entity
+        last_changed = entity_.last_changed
         timestamp = last_changed.timestamp()
         return pendulum.from_timestamp(timestamp)
 
     def last_updated(self):
-        last_changed = self.entity.last_updated
+        entity_ = self.entity
+        last_changed = entity_.last_updated
         timestamp = last_changed.timestamp()
         return pendulum.from_timestamp(timestamp)
