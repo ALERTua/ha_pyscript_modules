@@ -105,5 +105,7 @@ SERVER_URL_EXTERNAL = SECRET('server_url_external')
 ROUTER_USERNAME = SECRET('router_username')
 ROUTER_PASSWORD = SECRET('router_password')
 ROUTER_URL = SECRET('router_url')
+UISP_URL = SECRET('uisp_url')
+UISP_TOKEN = SECRET('uisp_token')
 
 SENSOR_DATETIME = 'sensor.datetime_full'
