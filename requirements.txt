@@ -1,2 +1,3 @@
 pendulum
 pathlib
+paramiko

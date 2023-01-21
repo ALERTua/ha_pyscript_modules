@@ -15,7 +15,11 @@ def select_entity_id(*entity_ids, priority_mode=False, allow_unknown=False):
     alive_entities = [entity_from_id(i) for i in entity_ids if i]
     # log.debug(f"alive_entities: {alive_entities}")
     if allow_unknown is False:
-        alive_entities = [i for i in alive_entities if i and i.state not in constants.UNK_O]
+        try:
+            alive_entities = [i for i in alive_entities if i and i.state not in constants.UNK_O]
+        except Exception as e:
+            log.error(f"Error selecting entity id from {entity_ids} with allow_unknown={allow_unknown}: {type(e)} {e}")
+
     # log.debug(f"alive_entities {alive_entities}")
     if alive_entities:
         if priority_mode is False:
@@ -27,6 +31,7 @@ def select_entity_id(*entity_ids, priority_mode=False, allow_unknown=False):
 
 def entity(*args, **kwargs):
     entity_ = Entity(*args, **kwargs)
+    entity_.entity_init()
     domain = entity_.domain()
     if domain == 'light':
         from entities.light import Light
@@ -52,6 +57,9 @@ class Entity:
 
     # noinspection PyMissingConstructor
     def __init__(self, *entity_ids, priority_mode=False, allow_unknown=False):
+        if entity_ids is None:
+            raise
+
         self.entity_ids = entity_ids
         self._priority_mode = priority_mode
         self._allow_unknown = allow_unknown
@@ -83,36 +91,36 @@ class Entity:
         return tools.friendly_name(self.entity_id)
 
     def attrs(self):
-        entity_ = self.entity
-        return entity_.attributes
+        return self.entity.attributes
 
     def as_dict(self):
-        entity_ = self.entity
-        return entity_.as_dict()
+        return self.entity.as_dict()
 
     def state(self, attr=None):
         if attr:
             return self.attrs().get(attr)
 
-        entity_ = self.entity
-        return entity_.state
+        if self.entity is None:
+            return None
+
+        return self.entity.state
 
     def domain(self):
-        entity_ = self.entity
-        return entity_.domain
+        if self.entity is None:
+            return
+
+        return self.entity.domain
 
     def object_id(self):
-        entity_ = self.entity
-        return entity_.object_id
+        if self.entity is None:
+            return
+
+        return self.entity.object_id
 
     def last_changed(self):
-        entity_ = self.entity
-        last_changed = entity_.last_changed
-        timestamp = last_changed.timestamp()
-        return pendulum.from_timestamp(timestamp)
+        last_changed = self.entity.last_changed
+        return tools.dt_to_pd(last_changed)
 
     def last_updated(self):
-        entity_ = self.entity
-        last_changed = entity_.last_updated
-        timestamp = last_changed.timestamp()
-        return pendulum.from_timestamp(timestamp)
+        last_updated = self.entity.last_updated
+        return tools.dt_to_pd(last_updated)

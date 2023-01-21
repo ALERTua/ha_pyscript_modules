@@ -18,11 +18,15 @@ def state_bool(state_):
 
 
 def telegram_message_alert_ha(msg=None, disable_notification=False, **kwargs):
-    return telegram_message(msg=msg, disable_notification=disable_notification, target=constants.TELEGRAM_CHAT_ALERT_HA,
-                            **kwargs)
+    return telegram_message(
+        msg=msg,
+        disable_notification=disable_notification,
+        target=constants.TELEGRAM_CHAT_ALERT_HA_PRIVATE,
+        **kwargs
+    )
 
 
-def telegram_message(msg=None, disable_notification=False, **kwargs):
+def telegram_message(msg=None, disable_notification=True, **kwargs):
     # inline = [
     #     [
     #         ["Text btn1", "/button1"], 
@@ -37,32 +41,30 @@ def telegram_message(msg=None, disable_notification=False, **kwargs):
         log.error("Couldn't send telegram message: msg is None or empty")
         return
 
-    try:
-        return service.call('telegram_bot', 'send_message', message=msg, disable_notification=disable_notification,
-                            **kwargs)
-    except Exception as e:
-        log.exception("Error sending telegram message", exc_info=e)
+    return telegram_bot.send_message(message=msg, disable_notification=disable_notification, **kwargs)
 
 
-def telegram_video_url(url=None, caption=None, disable_notification=False, **kwargs):
+def telegram_video_url(url, caption=None, disable_notification=True, target=None, **kwargs):
     if not url:
         log.error("Couldn't send telegram video url: url is None or empty")
         return
 
-    return service.call('telegram_bot', 'send_video', url=url, caption=caption,
-                        disable_notification=disable_notification, **kwargs)
+    caption = caption or ''
+    target = target or constants.TELEGRAM_CHAT_ALERT_VIDEO
+    return telegram_bot.send_video(url=url, caption=caption, supports_streaming=True,
+                                   disable_notification=disable_notification, target=target, verify_ssl=False, **kwargs)
 
 
-def telegram_photo(url=None, caption=None, disable_notification=False, **kwargs):
+def telegram_photo(url, caption=None, disable_notification=True, **kwargs):
     if not url:
         log.error("Couldn't send telegram video url: url is None or empty")
         return
 
-    return service.call('telegram_bot', 'send_photo', url=url, caption=caption,
-                        disable_notification=disable_notification, **kwargs)
+    caption = caption or ''
+    return telegram_bot.send_photo(url=url, caption=caption, disable_notification=disable_notification, **kwargs)
 
 
-def discord_message(msg=None):
+def discord_message(msg):
     if not msg:
         log.error("Couldn't send discord message: msg is None or empty")
         return
@@ -96,18 +98,36 @@ def task_wait(func, *args, **kwargs):
     task.wait([task_id])
 
 
-def wait_speaker_idle(entity_id, state_check_now=True, state_hold=0.5, timeout=None):
+def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=1.0, timeout=None):
     """
     https://hacs-pyscript.readthedocs.io/en/stable/reference.html#task-waiting
     """
+    # log.info(f"wait_speaker_idle for {entity_ids}")
+    if not isinstance(entity_ids, List):
+        entity_ids = [entity_ids]
+    
+    statement = 'True'
+    waiting = False
+    for entity_id in entity_ids:
+        if (current_state := state.get(entity_id)) in ('off', ):
+            media_player.turn_on(entity_id=entity_id)
+        elif current_state in constants.UNK_O:
+            continue
+        elif current_state == 'idle':
+            continue
 
-    if (current_state := state.get(entity_id)) in ('off', ):
-        media_player.turn_on(entity_id=entity_id)
+        waiting = True
+        # log.info(f"{entity_id} state: {state.get(entity_id)}")
+        statement += f" and {entity_id} in ('idle', )"
+
+    if waiting:
+        log.debug(f"Waiting for {entity_ids} idle state with: {statement}")
+    else:
+        state_hold = None
+    return task.wait_until(statement, timeout=timeout, state_hold=state_hold, state_check_now=state_check_now)
 
     # log.debug(f"Entering {entity_id} idle state waiting. current state: {current_state}")
     # task.sleep(0.5)
-    return task.wait_until(f"{entity_id} == 'idle'", timeout=timeout, state_hold=state_hold,
-                           state_check_now=state_check_now)
 
 
 def quiet_hours():
@@ -173,6 +193,21 @@ def func_name():
     return traceback.extract_stack(None, 2)[0][2]
 
 
+def dt_to_pd(dt, timezone="local"):
+    timestamp = dt.timestamp()
+    return pendulum.from_timestamp(timestamp, tz=timezone)
+
+def pd_diff(pd, timezone="local"):
+    now = pendulum.now(tz=timezone)
+    if now > pd:
+        return now - pd
+
+    return pd - now
+
+def pd_words(pd, locale='uk_ua'):
+    return pd.in_words(locale=locale)
+
+
 def print_var(var):
     log.debug(f"print_var type: {type(var)}")
     try:
@@ -191,3 +226,34 @@ def try_execute(action):
 action: {action}
 exception: {type(e)} {e}""")
 
+
+def speak_language_from_code(lang_code):
+    if lang_code in ('ua', ):
+        voice = choice(
+            (
+                'uk-UA-PolinaNeural', 
+                'uk-UA-OstapNeural'
+            )
+        )
+    else:
+        voice = choice(
+            (
+                'en-AU-NatashaNeural',
+                'en-AU-WilliamNeural',
+                'en-CA-ClaraNeural',
+                'en-CA-LiamNeural',
+                'en-GB-LibbyNeural',
+                'en-GB-MaisieNeural',
+                'en-GB-RyanNeural',
+                'en-GB-SoniaNeural',
+                'en-GB-ThomasNeural',
+                'en-US-AnaNeural',
+                'en-US-AriaNeural',
+                'en-US-ChristopherNeural',
+                'en-US-EricNeural',
+                'en-US-GuyNeural',
+                'en-US-JennyNeural',
+                'en-US-MichelleNeural',
+            )
+        )
+    return voice
