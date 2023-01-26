@@ -3,6 +3,10 @@ from imports_base import *
 import common_tools as tools
 import constants
 from entities.ha import HA
+# https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
+import homeassistant.helpers.template as template
+# https://github.com/home-assistant/core/blob/master/homeassistant/helpers/entity.py
+import homeassistant.helpers.entity as entity_helper
 
 
 def entity_from_id(entity_id):
@@ -117,6 +121,38 @@ class Entity:
 
         return self.entity.object_id
 
+    def device_id(self):
+        if self.entity is None:
+            return
+
+        return template.device_id(hass, self.entity_id)
+
+    def device_entities(self):
+        if self.entity is None:
+            return
+
+        return template.device_entities(hass, self.device_id())
+
+    def template_state(self):
+        if self.entity is None:
+            return
+
+        # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py#L880
+        # ['__annotations__', '__class__', '__delattr__', '__delitem__', '__dict__', '__dir__', '__doc__', '__eq__',
+        # '__format__', '__ge__', '__getattribute__', '__getitem__', '__gt__', '__hash__', '__init__',
+        # '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__',
+        # '__repr__', '__setattr__', '__setitem__', '__sizeof__', '__slots__', '__str__', '__subclasshook__',
+        # '__weakref__', '_as_dict', '_collect', '_collect_state', '_entity_id', '_hass', '_state', 'as_dict',
+        # 'attributes', 'context', 'domain', 'entity_id', 'expire', 'from_dict', 'last_changed', 'last_updated',
+        # 'name', 'object_id', 'state', 'state_with_unit']
+        return template.TemplateStateFromEntityId(hass, self.entity_id)
+
+    def template(self):
+        if self.entity is None:
+            return
+
+        return template.expand(hass, self.entity_id)[0]
+
     def last_changed(self):
         last_changed = self.entity.last_changed
         return tools.dt_to_pd(last_changed)
@@ -124,3 +160,40 @@ class Entity:
     def last_updated(self):
         last_updated = self.entity.last_updated
         return tools.dt_to_pd(last_updated)
+
+    def area_id(self):
+        if self.entity is None:
+            return
+
+        return template.area_id(hass, self.entity_id)
+
+    def area_name(self):
+        if self.entity is None:
+            return
+
+        return template.area_name(hass, self.entity_id)
+
+    def capability(self):
+        if self.entity is None:
+            return
+
+        return entity_helper.get_capability(hass, self.entity_id)
+
+    def device_class(self):
+        if self.entity is None:
+            return
+
+        return entity_helper.get_device_class(hass, self.entity_id)
+
+    def supported_features(self):
+        if self.entity is None:
+            return
+
+        return entity_helper.get_supported_features(hass, self.entity_id)
+
+    def unit_of_measurement(self):
+        if self.entity is None:
+            return
+
+        return entity_helper.get_unit_of_measurement(hass, self.entity_id)
+

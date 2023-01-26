@@ -2,6 +2,8 @@
 # https://hacs-pyscript.readthedocs.io/en/stable/
 import constants
 from imports_base import *
+# https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
+import homeassistant.helpers.template as template
 
 
 class HA:
@@ -29,12 +31,18 @@ class HA:
     def operating_system(self):
         return self.host_info().get('operating_system')
 
-    def datetime_dt(self):
+    def datetime_dt_old(self):
         from entities.entity import entity
         entity_ = entity(constants.SENSOR_DATETIME)
         state_ = entity_.state()
         dt = datetime.fromisoformat(state_)
         return dt
+
+    def datetime_dt(self):
+        return template.now(hass)
+
+    def datetime_dt_utc(self):
+        return template.utcnow(hass)
 
     def datetime_p(self):
         timestamp = self.datetime_dt().timestamp()

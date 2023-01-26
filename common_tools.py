@@ -106,19 +106,21 @@ def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=1.0, timeout=
     if not isinstance(entity_ids, List):
         entity_ids = [entity_ids]
     
+    idle_states = ('idle', 'on', 'off')
+    off_states = ('off', )
     statement = 'True'
     waiting = False
     for entity_id in entity_ids:
-        if (current_state := state.get(entity_id)) in ('off', ):
+        if (current_state := state.get(entity_id)) in off_states:
             media_player.turn_on(entity_id=entity_id)
         elif current_state in constants.UNK_O:
             continue
-        elif current_state == 'idle':
+        elif current_state in idle_states:
             continue
 
         waiting = True
         # log.info(f"{entity_id} state: {state.get(entity_id)}")
-        statement += f" and {entity_id} in ('idle', )"
+        statement += f" and {entity_id} in {idle_states}"
 
     if waiting:
         log.debug(f"Waiting for {entity_ids} idle state with: {statement}")
@@ -197,12 +199,14 @@ def dt_to_pd(dt, timezone="local"):
     timestamp = dt.timestamp()
     return pendulum.from_timestamp(timestamp, tz=timezone)
 
+
 def pd_diff(pd, timezone="local"):
     now = pendulum.now(tz=timezone)
     if now > pd:
         return now - pd
 
     return pd - now
+
 
 def pd_words(pd, locale='uk_ua'):
     return pd.in_words(locale=locale)
