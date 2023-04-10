@@ -64,16 +64,21 @@ def telegram_photo(url, caption=None, disable_notification=True, **kwargs):
     return telegram_bot.send_photo(url=url, caption=caption, disable_notification=disable_notification, **kwargs)
 
 
-def discord_message(msg):
+def discord_message(msg, target=None, **kwargs):
     if not msg:
         log.error("Couldn't send discord message: msg is None or empty")
         return
 
-    split = 1500
+    target = target or ["1093812584324530287"]
+    if not isinstance(target, list):
+        target = [target]
+
+    target = [int(_) for _ in target]
+    split = int(2000 * 0.9)
     messages = [msg[i: i + split] for i in range(0, len(msg), split)]
     for message in messages:
-        log.debug(f"Sending discord message len {len(message)}")
-        service.call('script', 'discord_say', message=message)
+        # log.debug(f"Sending discord message len {len(message)}")
+        notify.alert_iot(message=message, target=target, **kwargs)
 
 
 def expand_sound_data(sound_name):
