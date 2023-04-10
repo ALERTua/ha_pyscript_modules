@@ -112,35 +112,49 @@ def task_wait(func, *args, **kwargs):
     task.wait([task_id])
 
 
-def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=1.0, timeout=None):
+def wait_speaker_idle(entity_ids, state_check_now=False, state_hold=1.0, timeout=None):
     """
     https://hacs-pyscript.readthedocs.io/en/stable/reference.html#task-waiting
     """
     # log.info(f"wait_speaker_idle for {entity_ids}")
     if not isinstance(entity_ids, List):
         entity_ids = [entity_ids]
+    entity_ids = list(set(entity_ids))
     
-    idle_states = ('idle', 'on', 'off')
+    idle_states = ('idle', 'on',)
     off_states = ('off', )
     statement = 'True'
     waiting = False
+    output = []
     for entity_id in entity_ids:
         if (current_state := state.get(entity_id)) in off_states:
+            # task_wait(media_player.turn_on, entity_id=entity_id)
             media_player.turn_on(entity_id=entity_id)
         elif current_state in constants.UNK_O:
             continue
         elif current_state in idle_states:
+            # task_wait(media_player.turn_on, entity_id=entity_id)
+            media_player.turn_on(entity_id=entity_id)
+            output.append(entity_id)
             continue
+        # elif current_state == 'playing':
+        #     continue
 
+        output.append(entity_id)
         waiting = True
         # log.info(f"{entity_id} state: {state.get(entity_id)}")
         statement += f" and {entity_id} in {idle_states}"
+
+    if not output:
+        return output
 
     if waiting:
         log.debug(f"Waiting for {entity_ids} idle state with: {statement}")
     else:
         state_hold = None
-    return task.wait_until(statement, timeout=timeout, state_hold=state_hold, state_check_now=state_check_now)
+        state_check_now = True
+    task.wait_until(statement, timeout=timeout, state_hold=state_hold, state_check_now=state_check_now)
+    return output
 
     # log.debug(f"Entering {entity_id} idle state waiting. current state: {current_state}")
     # task.sleep(0.5)
@@ -275,6 +289,8 @@ def speak_language_from_code(lang_code):
             )
         )
     return voice
+
+
 """
 @conditional(
     "sensor.example1 == 'on'",
