@@ -81,6 +81,9 @@ class Entity:
         self.entity_id = self._entity_id()
 
     def _entity_id(self):
+        if not any(self.entity_ids):
+            return
+
         output = select_entity_id(*self.entity_ids, priority_mode=self._priority_mode,
                                   allow_unknown=self._allow_unknown)
         # log.debug(f"{self.__class__.__name__} entity_id chosen: "
@@ -158,10 +161,16 @@ class Entity:
         return template.expand(hass, self.entity_id)[0]
 
     def last_changed(self):
+        if self.entity is None:
+            return
+
         last_changed = self.entity.last_changed
         return tools.dt_to_pd(last_changed)
 
     def last_updated(self):
+        if self.entity is None:
+            return
+
         last_updated = self.entity.last_updated
         return tools.dt_to_pd(last_updated)
 
