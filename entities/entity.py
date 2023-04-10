@@ -70,6 +70,10 @@ class Entity:
         self.ha = HA()
         self.entity_init()
 
+    @pyscript_compile
+    def __eq__(self, other):
+        return isinstance(other, Entity) and self.entity_id == other.entity_id
+
     # noinspection PyAttributeOutsideInit
     def entity_init(self):
         # noinspection PyTypeChecker
