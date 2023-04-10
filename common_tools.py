@@ -21,6 +21,15 @@ def telegram_message_alert_ha(msg=None, disable_notification=False, **kwargs):
     return telegram_message(
         msg=msg,
         disable_notification=disable_notification,
+        target=constants.TELEGRAM_CHAT_ALERT_HA,
+        **kwargs
+    )
+
+
+def telegram_message_alert_ha_private(msg=None, disable_notification=False, **kwargs):
+    return telegram_message(
+        msg=msg,
+        disable_notification=disable_notification,
         target=constants.TELEGRAM_CHAT_ALERT_HA_PRIVATE,
         **kwargs
     )
