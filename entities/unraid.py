@@ -57,3 +57,16 @@ class Unraid:
         retval, _stdout, _stderr = self.ssh_cmd('bash /boot/config/_scripts/ups_reset.sh')
         log.debug(f"{self.__class__.__name__} UPS Reset result {retval}\n{_stdout}\n{_stderr}")
         return retval, _stdout, _stderr
+
+
+class VM:
+    def __init__(self, name):
+        self.name = name
+        self.unraid = Unraid()
+    
+    def turn_on(self):
+        self.unraid.ssh_cmd(f'virsh resume "{self.name}"')
+        self.unraid.ssh_cmd(f'virsh start "{self.name}"')
+
+    def turn_off(self):
+        self.unraid.ssh_cmd(f'virsh shutdown "{self.name}"')
