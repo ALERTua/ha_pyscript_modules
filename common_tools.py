@@ -275,3 +275,22 @@ def speak_language_from_code(lang_code):
             )
         )
     return voice
+"""
+@conditional(
+    "sensor.example1 == 'on'",
+    "sensor.example2 == 'off'",
+    "sensor.example3 == 'on'",
+)
+"""
+# Enable the automation only if all passed conditions are true
+def conditional(*conditions, and_=True):
+    def decorator(fn):
+        cond = 'all' if and_ else 'any'
+        conditions_str = ", ".join(conditions)
+        expr = f"{cond}([{conditions_str}])"
+        @functools.wraps(fn)
+        @state_active(expr)
+        def wrapper():
+            return fn()
+        return wrapper
+    return decorator
