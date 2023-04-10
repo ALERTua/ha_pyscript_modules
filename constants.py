@@ -19,7 +19,7 @@ HOLD_1W = HOLD_1D * 7
 QUIET_HOURS_START = 22
 QUIET_HOURS_END = 8
 
-SHOWER_HUMIDITY = 'sensor.shower_humidity_template'
+SHOWER_HUMIDITY = 'sensor.shower_humidity_latest'
 SHOWER_FAN = 'fan.shower'
 SHOWER_SPEAKER = 'media_player.shower_speaker'
 
@@ -40,8 +40,8 @@ PC_ALERT = 'switch.wol_alert_pc'
 PC_ALERT_SPEAKER = 'media_player.alert_white'
 OFFICE_HUMIDIFIER = 'switch.office_humidifier'
 OFFICE_HUMIDIFIER_CLOUD = 'switch.office_humidifier_cloud'
-OFFICE_HUMIDITY = 'sensor.office_humidity'
-OFFICE_TEMPERATURE = 'sensor.office_temperature_template'
+OFFICE_HUMIDITY = 'sensor.office_humidity_latest'
+OFFICE_TEMPERATURE = 'sensor.office_temperature_latest'
 OFFICE_WINDOW = 'cover.office_window'
 OFFICE_WINDOW_CLOUD = 'cover.office_window_cloud'
 OFFICE_SPEAKER = 'media_player.office_speaker'
@@ -60,11 +60,13 @@ KITCHEN_WINDOW = 'cover.kitchen_window'
 KITCHEN_WINDOW_CLOUD = 'cover.kitchen_window_cloud'
 KITCHEN_SPEAKER = 'media_player.kitchen_speaker'
 KITCHEN_AC = 'climate.ac_kitchen'
+DISHWASHER = 'switch.dishwasher'
+DISHWASHER_CLOUD = 'switch.dishwasher_cloud'
 
-LAUNDRY_HUMIDITY = 'sensor.laundry_humidity_template'
-LAUNDRY_TEMPERATURE = 'sensor.laundry_temperature_template'
-LAUNDRY_VENTS = 'switch.relay_laundry_l1'
-LAUNDRY_LIGHT = 'switch.relay_laundry_l2'
+LAUNDRY_HUMIDITY = 'sensor.laundry_humidity_latest'
+LAUNDRY_TEMPERATURE = 'sensor.laundry_temperature_latest'
+LAUNDRY_VENTS = 'fan.laundry'
+LAUNDRY_LIGHT = 'light.laundry'
 LAUNDRY_VALVE_COLD = 'switch.valve_cold'
 GROUP_LEAK = 'group.water_leak_group'
 GROUP_VALVES = 'group.water_valves'
@@ -83,14 +85,19 @@ ALL_SPEAKERS_GROUP = [
     BEDROOM_SPEAKER,
     OFFICE_SPEAKER,
     ROOM_SPEAKER,
-    HALLWAY_SPEAKER,
+    # HALLWAY_SPEAKER,
     KITCHEN_SPEAKER,
-    SHOWER_SPEAKER,
+    BATHROOM_SPEAKER,
     PC_ALERT_SPEAKER,
 ]
 SPEAKERS_BROADCAST = [
-    'media_player.broadcast_speakers',
+    # 'media_player.broadcast_speakers',
+    *ALL_SPEAKERS_GROUP,
+    'media_player.microusb_speaker',
 ]
+# SPEAKERS_BROADCAST = [
+#     'media_player.broadcast_speakers',
+# ]
 MEDIA_PATH_BASE = Path('/config/www/media')
 EXTERNAL_MEDIA_BASE = '/local/media/'
 
