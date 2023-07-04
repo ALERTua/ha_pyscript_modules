@@ -3,6 +3,7 @@ import constants
 from telegram_callback import register_telegram_callback
 from imports_base import *
 from entities.entity import entity
+from entities.msg_bucket import MsgBucket, DiscordMsgBucket
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
 import homeassistant.helpers.template as template
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/entity.py

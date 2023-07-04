@@ -2,6 +2,8 @@
 from imports_base import *
 
 HOLD_1M = 60
+HOLD_2M = HOLD_1M * 2
+HOLD_3M = HOLD_1M * 3
 HOLD_5M = HOLD_1M * 5
 HOLD_10M = HOLD_1M * 10
 HOLD_15M = HOLD_1M * 15
@@ -35,8 +37,12 @@ BEDROOM_CO2 = 'sensor.bedroom_co2'
 BEDROOM_AC = 'climate.ac_bedroom'
 BEDROOM_AC_SMART = 'climate.bedroom_smart_thermostat'
 BEDROOM_SPEAKER = 'media_player.bedroom_speaker'
+BEDROOM_HUMIDIFIER = 'switch.bedroom_humidifier'
+BEDROOM_HUMIDIFIER_CLOUD = 'switch.bedroom_humidifier_cloud'
 
 PC_ALERT = 'switch.wol_alert_pc'
+PC_ALERT_WIFI = 'switch.wol_alert_pc'
+PC_ALERT_COMBINED = 'switch.alert_pc_combined'
 PC_ALERT_SPEAKER = 'media_player.alert_white'
 OFFICE_HUMIDIFIER = 'switch.office_humidifier'
 OFFICE_HUMIDIFIER_CLOUD = 'switch.office_humidifier_cloud'
@@ -50,16 +56,22 @@ OFFICE_AC_SMART = 'climate.office_smart_thermostat'
 OFFICE_LIGHTS = 'light.office'
 
 PC_ROOM = 'switch.wol_catbird'
+PC_ROOM_COMBINED = 'switch.catbird_pc_group'
 ROOM_HUMIDIFIER = 'switch.room_humidifier'
-ROOM_HUMIDITY = 'sensor.ble_room_humidity'
+ROOM_HUMIDIFIER_CLOUD = 'switch.room_humidifier_cloud'
+ROOM_HUMIDITY = 'sensor.miot_ble_room_humidity'
 ROOM_WINDOW = 'cover.room_window'
 ROOM_SPEAKER = 'media_player.room_speaker'
 ROOM_AC = 'climate.ac_room'
+ROOM_TEMPERATURE = 'sensor.miot_ble_room_temperature'
 
 KITCHEN_WINDOW = 'cover.kitchen_window'
 KITCHEN_WINDOW_CLOUD = 'cover.kitchen_window_cloud'
 KITCHEN_SPEAKER = 'media_player.kitchen_speaker'
 KITCHEN_AC = 'climate.ac_kitchen'
+KITCHEN_HUMIDITY = 'sensor.kitchen_humidity'
+KITCHEN_TEMPERATURE = 'sensor.kitchen_temperature'
+
 DISHWASHER = 'switch.dishwasher'
 DISHWASHER_CLOUD = 'switch.dishwasher_cloud'
 
@@ -75,6 +87,8 @@ SERVER_TEMPERATURE = 'sensor.glances_package_id_0_temperature'
 LIGHT_SHOWER_TOP = 'light.shower'
 LIGHT_SHOWER_LED = 'light.shower_led'
 LIGHT_MAIN = 'light.main_switch'
+LIGHT_BATHROOM_TOP = 'light.bathroom'
+LIGHT_BATHROOM_LED = 'light.bathroom_led'
 
 HALLWAY_GATEWAY_LUMEN = 'sensor.xiaomi_gateway_illumination'
 HALLWAY_SPEAKER = 'media_player.hallway_speaker'
@@ -90,9 +104,8 @@ ALL_SPEAKERS_GROUP = [
     BATHROOM_SPEAKER,
     PC_ALERT_SPEAKER,
 ]
-SPEAKERS_BROADCAST = [
+SPEAKERS_BROADCAST = ALL_SPEAKERS_GROUP + [
     # 'media_player.broadcast_speakers',
-    *ALL_SPEAKERS_GROUP,
     'media_player.microusb_speaker',
 ]
 # SPEAKERS_BROADCAST = [
@@ -105,6 +118,9 @@ HUMIDIFIERS = [
     OFFICE_HUMIDIFIER,
     OFFICE_HUMIDIFIER_CLOUD,
     ROOM_HUMIDIFIER,
+    ROOM_HUMIDIFIER_CLOUD,
+    BEDROOM_HUMIDIFIER,
+    BEDROOM_HUMIDIFIER_CLOUD,
 ]
 
 TEST_BOOLEAN = 'input_boolean.test_boolean'

@@ -6,6 +6,7 @@ from functools import lru_cache, partial
 from datetime import datetime
 from typing import TYPE_CHECKING, Iterable, List, Dict, Collection, Callable, Any
 from copy import copy
+import functools
 
 
 if TYPE_CHECKING:

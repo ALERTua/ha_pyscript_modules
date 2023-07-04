@@ -27,7 +27,10 @@ def select_entity_id(*entity_ids, priority_mode=False, allow_unknown=False):
     # log.debug(f"alive_entities {alive_entities}")
     if alive_entities:
         if priority_mode is False:
-            alive_entities.sort(key=lambda i: pendulum.from_timestamp(i.last_changed.timestamp()))
+            try:
+                alive_entities.sort(key=lambda i: pendulum.from_timestamp(i.last_changed.timestamp()))
+            except:
+                pass
         output = alive_entities[0]
         # log.debug(f"Priority: {priority_mode} Returning {output}")
         return output
@@ -40,7 +43,7 @@ def entity(*args, **kwargs):
     if domain == 'light':
         from entities.light import Light
         return Light(*args, **kwargs)
-    elif domain == 'switch':
+    elif domain in ('switch', 'input_boolean'):
         from entities.switch import Switch
         return Switch(*args, **kwargs)
     elif domain == 'sensor':
@@ -52,6 +55,9 @@ def entity(*args, **kwargs):
     elif domain == 'cover':
         from entities.window import Cover
         return Cover(*args, **kwargs)
+    elif domain == 'climate':
+        from entities.climate import Climate
+        return Climate(*args, **kwargs)
     else:
         return entity_
 
@@ -88,12 +94,15 @@ class Entity:
                                   allow_unknown=self._allow_unknown)
         # log.debug(f"{self.__class__.__name__} entity_id chosen: "
         #           f"{type(output)} {tools.friendly_name(output.entity_id)} {output}")
-        if not output:
+        if not output or isinstance(output, str):
             log.error(f"Couldn't find alive entity among {self.entity_ids}")
             return
 
         self.entity = output  # type: State
         return output.entity_id
+
+    def exists(self):
+        return self.entity_id is not None
 
     def as_str(self):
         return f"[{self.__class__.__name__}]({self.entity_id}){self.friendly_name()}"
@@ -108,6 +117,9 @@ class Entity:
         return self.entity.as_dict()
 
     def state(self, attr=None):
+        if not self:
+            return None
+
         if attr:
             return self.attrs().get(attr)
 

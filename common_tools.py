@@ -161,10 +161,11 @@ def wait_speaker_idle(entity_ids, state_check_now=False, state_hold=1.0, timeout
 
 
 def quiet_hours():
-    now = pendulum.now()
-    hours = now.hour
-    output = hours > constants.QUIET_HOURS_START or hours < constants.QUIET_HOURS_END
-    return output
+    return state.get('binary_sensor.quiet_hours') == 'on'
+    # now = pendulum.now()
+    # hours = now.hour
+    # output = hours > constants.QUIET_HOURS_START or hours < constants.QUIET_HOURS_END
+    # return output
 
 
 def friendly_name(entity_id):
@@ -291,19 +292,21 @@ def speak_language_from_code(lang_code):
     return voice
 
 
-"""
-@conditional(
-    "sensor.example1 == 'on'",
-    "sensor.example2 == 'off'",
-    "sensor.example3 == 'on'",
-)
-"""
 # Enable the automation only if all passed conditions are true
 def conditional(*conditions, and_=True):
+    """
+    @conditional(
+        "sensor.example1 == 'on'",
+        "sensor.example2 == 'off'",
+        "sensor.example3 == 'on'",
+    )
+    """
+
     def decorator(fn):
         cond = 'all' if and_ else 'any'
         conditions_str = ", ".join(conditions)
         expr = f"{cond}([{conditions_str}])"
+
         @functools.wraps(fn)
         @state_active(expr)
         def wrapper():
