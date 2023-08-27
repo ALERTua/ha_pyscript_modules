@@ -1,4 +1,6 @@
 # https://github.com/custom-components/pyscript
+import logging
+
 from imports_base import *
 import common_tools as tools
 import constants
@@ -37,13 +39,16 @@ def select_entity_id(*entity_ids, priority_mode=False, allow_unknown=False):
 
 
 def entity(*args, **kwargs):
+    if args is None or len(args) == 0 or args[0] in ('', None):
+        raise Exception(f"entity with empty args: {args} {kwargs}")
+
     entity_ = Entity(*args, **kwargs)
     entity_.entity_init()
     domain = entity_.domain()
     if domain == 'light':
         from entities.light import Light
         return Light(*args, **kwargs)
-    elif domain in ('switch', 'input_boolean'):
+    elif domain in ('switch', 'input_boolean', 'fan'):
         from entities.switch import Switch
         return Switch(*args, **kwargs)
     elif domain == 'sensor':
@@ -67,8 +72,8 @@ class Entity:
 
     # noinspection PyMissingConstructor
     def __init__(self, *entity_ids, priority_mode=False, allow_unknown=False):
-        if entity_ids is None:
-            raise
+        if entity_ids is None or len(entity_ids) == 0 or entity_ids[0] in ('', None):
+            raise Exception
 
         self.entity_ids = entity_ids
         self._priority_mode = priority_mode
@@ -221,4 +226,3 @@ class Entity:
             return
 
         return entity_helper.get_unit_of_measurement(hass, self.entity_id)
-

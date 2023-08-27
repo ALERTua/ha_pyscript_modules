@@ -4,7 +4,10 @@ import common_tools as tools
 
 
 class MsgBucket:
-    def __init__(self, name=None, separator='\n', *args, **kwargs):
+    def __init__(self, *args, **kwargs):
+        self._init_(*args, **kwargs)
+
+    def _init_(self, name=None, separator='\n', *args, **kwargs):
         self.name = name or self.__class__.__name__
         self.msgs = []
         self.separator = separator
@@ -12,16 +15,16 @@ class MsgBucket:
         self.kwargs = kwargs
 
     def add(self, msg):
-        log.debug(f"Adding msg to {self.__class__.__name__}: {msg}")
+        # log.debug(f"Adding msg to {self.__class__.__name__}: {msg}")
         self.msgs.append(msg)
 
     def _str(self):
         output = ''
-        i = 0
+        first = True
         for msg in self.msgs:
-            i += 1
-            if i == 1:
+            if first:
                 msg_str = f"{msg}"
+                first = False
             else:
                 msg_str = f"{self.separator}{msg}"
             output += msg_str
@@ -35,31 +38,32 @@ class MsgBucket:
             log.debug(f"{self.name}: Nothing to send")
             return
 
-        log.debug(f"{self.name}: Sending msg: {self._str()}")
+        log.debug(f"{self.name}: Sending msg:\n{self._str()}")
         self._send()
 
 
 class TelegramMsgBucket(MsgBucket):
-    def __init__(self, name=None, separator='\n', *args, **kwargs):
-        self.name = name or self.__class__.__name__
-        self.msgs = []
-        self.separator = separator
-        self.args = args
-        self.kwargs = kwargs
+    # noinspection PyMissingConstructor
+    def __init__(self, *args, **kwargs):
+        self._init_(*args, **kwargs)
 
     def _send(self):
         tools.telegram_message(msg=self._str(), *self.args, **self.kwargs)
 
 
-
 class DiscordMsgBucket(MsgBucket):
-    def __init__(self, name=None, separator='\n', *args, **kwargs):
-        self.name = name or self.__class__.__name__
-        self.msgs = []
-        self.separator = separator
-        self.args = args
-        self.kwargs = kwargs
+    # noinspection PyMissingConstructor
+    def __init__(self, *args, **kwargs):
+        self._init_(*args, **kwargs)
 
     def _send(self):
         # log.debug(f"sending {self.__class__.__name__} with args: {self.args}, kwargs: {self.kwargs}")
         tools.discord_message(msg=self._str(), *self.args, **self.kwargs)
+
+
+# @time_trigger  # test
+# noinspection PyUnusedLocal
+def __msgbucket_test(trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs):
+    bucket = DiscordMsgBucket()
+    bucket.add('msgbucket_test')
+    bucket.send()

@@ -31,7 +31,7 @@ class Window(Switch):
         if self.reverse:
             value = 100 - int(value)
         # noinspection PyUnresolvedReferences
-        cover.set_cover_position(entity_id=self.entity_id, position=value)
+        return cover.set_cover_position(entity_id=self.entity_id, position=value)
 
     def position_add(self, value):
         new_value = position_normalize(self.position() + value)
@@ -40,6 +40,9 @@ class Window(Switch):
     def position_subtract(self, value):
         new_value = position_normalize(self.position() - value)
         return self.position_set(new_value)
+
+    def stop(self):
+        return cover.stop_cover(entity_id=self.entity_id)
 
 
 class Cover(Window):

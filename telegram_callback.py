@@ -5,8 +5,8 @@ import common_tools as tools
 registered_telegram_callbacks = []
 
 
-def register_telegram_callback(action, remove_markup=False, add_text=None):
-    log.debug(f"{__name__}: {tools.func_name()}: {action}")
+def register_telegram_callback(actions, remove_markup=False, add_text=None):
+    log.debug(f"{__name__}: {tools.func_name()}: {actions}")
     timestamp = str(pendulum.now('local').timestamp).replace('.', '')
     task_name = f"tg_cb_{timestamp}_{randint(0, 99999)}"
 
@@ -18,7 +18,12 @@ def register_telegram_callback(action, remove_markup=False, add_text=None):
             # log.debug(f"cannot process {task_name}. no button_action")
             return
 
-        tools.try_execute(action)
+        if not isinstance(actions, Iterable):
+            actions = [actions]
+
+        for action in actions:
+            tools.try_execute(action)
+
         id_ = kwargs.get('id')
         if id_:
             telegram_bot.answer_callback_query(callback_query_id=id_, message="Done", show_alert=False)

@@ -88,7 +88,6 @@ class HA:
         return self.config.time_zone
 
     def time_zone_pytz(self):
-        time_zone_str = self.time_zone_str()
         # noinspection PyUnresolvedReferences
         from pendulum.pendulum import pytz
-        return pytz.timezone(time_zone_str)
+        return pytz.timezone(hass.config.time_zone)

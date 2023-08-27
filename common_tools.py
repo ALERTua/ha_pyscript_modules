@@ -2,7 +2,11 @@
 from imports_base import *
 import constants
 import traceback
+import unicodedata as ud
+
 from mutagen.mp3 import MP3
+
+latin_letters = {}
 
 
 def state_bool(state_):
@@ -313,3 +317,24 @@ def conditional(*conditions, and_=True):
             return fn()
         return wrapper
     return decorator
+
+
+def fstr(template):
+    output = eval(f"f'''{template}'''")
+    return output
+
+
+def is_latin(uchr):
+    try:
+        return latin_letters[uchr]
+    except KeyError:
+        return latin_letters.setdefault(uchr, 'LATIN' in ud.name(uchr))
+
+
+def only_roman_chars(unistr):
+    for uchr in unistr:
+        if uchr.isalpha() and not is_latin(uchr):
+            return False
+
+    return True
+    # return all(is_latin(uchr) for uchr in unistr if uchr.isalpha())
