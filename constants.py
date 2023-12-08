@@ -1,6 +1,4 @@
 # https://hacs-pyscript.readthedocs.io/en/stable/reference.html
-from imports_base import *
-
 HOLD_1M = 60
 HOLD_2M = HOLD_1M * 2
 HOLD_3M = HOLD_1M * 3
@@ -24,6 +22,8 @@ QUIET_HOURS_END = 8
 SHOWER_HUMIDITY = 'sensor.shower_humidity_latest'
 SHOWER_FAN = 'fan.shower'
 SHOWER_SPEAKER = 'media_player.shower_speaker'
+SHOWER_FLOOR = 'climate.shower_thermostat'
+SHOWER_FLOOR_CLOUD = 'climate.shower_thermostat_cloud'
 
 BATHROOM_HUMIDITY = 'sensor.ble_bathroom_humidity'
 BATHROOM_FAN = 'fan.bathroom'
@@ -37,48 +37,51 @@ BEDROOM_PM25 = 'sensor.bedroom_pm25'
 BEDROOM_CO2 = 'sensor.bedroom_co2'
 BEDROOM_AC = 'climate.ac_bedroom'
 BEDROOM_AUTO_AC = 'input_boolean.bedroom_auto_ac'
-BEDROOM_AC_SMART = 'climate.bedroom_smart_thermostat'
 BEDROOM_SPEAKER = 'media_player.bedroom_speaker'
 BEDROOM_HUMIDIFIER = 'switch.bedroom_humidifier'
-BEDROOM_HUMIDIFIER_CLOUD = 'switch.bedroom_humidifier_cloud'
+BEDROOM_HUMIDIFIER_POWER = 'sensor.bedroom_humidifier_power'
+# BEDROOM_HUMIDIFIER_CLOUD = 'switch.bedroom_humidifier_cloud'
+# BEDROOM_HUMIDIFIER_SS = 'switch.bedroom_humidifier_ss'
 BEDROOM_WINDOW = 'cover.bedroom_window'
 BEDROOM_WINDOW_CLOUD = 'cover.bedroom_window_cloud'
 BEDROOM_WINDOW_REED = 'binary_sensor.bedroom_window_reed_contact'
+BEDROOM_WANTED_TEMP = 'input_number.bedroom_wanted_temperature'
+BEDROOM_ALLOWED_MODES = 'input_select.bedroom_auto_ac_allowed_modes'
+BEDROOM_VALVE = 'climate.valve_bedroom'
 
 PC_ALERT = 'switch.wol_alert_pc'
 PC_ALERT_WIFI = 'switch.wol_alert_pc'
 PC_ALERT_COMBINED = 'switch.alert_pc_combined'
 PC_ALERT_SPEAKER = 'media_player.alert_white'
 OFFICE_HUMIDIFIER = 'switch.office_humidifier'
-OFFICE_HUMIDIFIER_CLOUD = 'switch.office_humidifier_cloud'
+OFFICE_HUMIDIFIER_POWER = 'sensor.office_humidifier_power'
 OFFICE_HUMIDITY = 'sensor.office_humidity_latest'
 OFFICE_TEMPERATURE = 'sensor.office_temperature_latest'
 OFFICE_WINDOW = 'cover.office_window'
 OFFICE_WINDOW_CLOUD = 'cover.office_window_cloud'
 OFFICE_SPEAKER = 'media_player.office_speaker'
 OFFICE_AC = 'climate.ac_office'
-OFFICE_AC_SMART = 'climate.office_smart_thermostat'
 OFFICE_LIGHTS = 'light.office'
+OFFICE_VALVE = 'climate.valve_office'
 
 PC_ROOM = 'switch.wol_catbird'
 PC_ROOM_COMBINED = 'switch.catbird_pc_group'
 ROOM_HUMIDIFIER = 'switch.room_humidifier'
 ROOM_HUMIDIFIER_CLOUD = 'switch.room_humidifier_cloud'
-ROOM_HUMIDITY = 'sensor.miot_ble_room_humidity'
+ROOM_HUMIDITY = 'sensor.room_humidity_latest'
+ROOM_TEMPERATURE = 'sensor.room_temperature_latest'
 ROOM_WINDOW = 'cover.room_window'
 ROOM_SPEAKER = 'media_player.room_speaker'
 ROOM_AC = 'climate.ac_room'
-ROOM_TEMPERATURE = 'sensor.miot_ble_room_temperature'
+ROOM_VALVE = 'climate.valve_room'
 
 KITCHEN_WINDOW = 'cover.kitchen_window'
 KITCHEN_WINDOW_CLOUD = 'cover.kitchen_window_cloud'
 KITCHEN_SPEAKER = 'media_player.kitchen_speaker'
 KITCHEN_AC = 'climate.ac_kitchen'
-KITCHEN_HUMIDITY = 'sensor.kitchen_humidity'
-KITCHEN_TEMPERATURE = 'sensor.kitchen_temperature'
-
-DISHWASHER = 'switch.dishwasher'
-DISHWASHER_CLOUD = 'switch.dishwasher_cloud'
+KITCHEN_HUMIDITY = 'sensor.kitchen_humidity_latest'
+KITCHEN_TEMPERATURE = 'sensor.kitchen_temperature_latest'
+KITCHEN_VALVE = 'climate.valve_kitchen'
 
 LAUNDRY_HUMIDITY = 'sensor.laundry_humidity_latest'
 LAUNDRY_TEMPERATURE = 'sensor.laundry_temperature_latest'
@@ -87,7 +90,7 @@ LAUNDRY_LIGHT = 'light.laundry'
 LAUNDRY_VALVE_COLD = 'switch.valve_cold'
 GROUP_LEAK = 'group.water_leak_group'
 GROUP_VALVES = 'group.water_valves'
-SERVER_TEMPERATURE = 'sensor.glances_package_id_0_temperature'
+SERVER_TEMPERATURE = 'sensor.server_cpu_temperature'
 
 LIGHT_SHOWER_TOP = 'light.shower'
 LIGHT_SHOWER_LED = 'light.shower_led'
@@ -116,24 +119,17 @@ SPEAKERS_BROADCAST = ALL_SPEAKERS_GROUP + [
 # SPEAKERS_BROADCAST = [
 #     'media_player.broadcast_speakers',
 # ]
-MEDIA_PATH_BASE = Path('/config/www/media')
-EXTERNAL_MEDIA_BASE = '/local/media/'
 
 HUMIDIFIERS = [
     OFFICE_HUMIDIFIER,
-    OFFICE_HUMIDIFIER_CLOUD,
+    # OFFICE_HUMIDIFIER_CLOUD,
     ROOM_HUMIDIFIER,
     ROOM_HUMIDIFIER_CLOUD,
     BEDROOM_HUMIDIFIER,
-    BEDROOM_HUMIDIFIER_CLOUD,
+    # BEDROOM_HUMIDIFIER_CLOUD,
 ]
 
 TEST_BOOLEAN = 'input_boolean.test_boolean'
-UNK_O = ('unavailable', 'unknown', 'null', None, 'none', 'None')
-UNK_S = str(UNK_O)
-
-UNK_O_OFF = (*UNK_O, 'off')
-UNK_S_OFF = str(UNK_O_OFF)
 
 EMPTY_SOUND = 'silence-1sec.mp3'
 MEDIA_CONTENT_TYPE = 'audio/mp3'

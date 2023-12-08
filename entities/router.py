@@ -8,9 +8,9 @@ KEY_SESSION_ID = 'beaker.session.id'
 class Router:  # Edgerouter
     def __init__(self):
         self.session = requests.Session()
-        self.url = constants.ROUTER_URL
-        self.username = constants.ROUTER_USERNAME
-        self.password = constants.ROUTER_PASSWORD
+        self.url = ROUTER_URL
+        self.username = ROUTER_USERNAME
+        self.password = ROUTER_PASSWORD
         self.data = {
             'username': self.username,
             'password': self.password,

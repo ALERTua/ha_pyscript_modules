@@ -4,11 +4,11 @@ import paramiko
 
 class Unraid:
     def __init__(self):
-        self.ssh_host = constants.UNRAID_SSH_HOST
-        self.ssh_port = constants.UNRAID_SSH_PORT
-        self.ssh_username = constants.UNRAID_SSH_USERNAME
-        self.ssh_password = constants.UNRAID_SSH_PASSWORD
-        self.ssh_key_path = constants.UNRAID_SSH_KEY_PATH
+        self.ssh_host = UNRAID_SSH_HOST
+        self.ssh_port = UNRAID_SSH_PORT
+        self.ssh_username = UNRAID_SSH_USERNAME
+        self.ssh_password = UNRAID_SSH_PASSWORD
+        self.ssh_key_path = UNRAID_SSH_KEY_PATH
 #         log.debug(f"""{self.__class__.__name__}
 # host: {self.ssh_host}
 # port: {self.ssh_port}
@@ -65,8 +65,13 @@ class VM:
         self.unraid = Unraid()
     
     def turn_on(self):
-        self.unraid.ssh_cmd(f'virsh resume "{self.name}"')
         self.unraid.ssh_cmd(f'virsh start "{self.name}"')
 
     def turn_off(self):
         self.unraid.ssh_cmd(f'virsh shutdown "{self.name}"')
+
+    def suspend(self):
+        self.unraid.ssh_cmd(f'virsh dompmsuspend "{self.name}"')
+
+    def resume(self):
+        self.unraid.ssh_cmd(f'virsh dompmwakeup "{self.name}"')

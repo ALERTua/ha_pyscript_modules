@@ -12,13 +12,14 @@ def register_telegram_callback(actions, remove_markup=False, add_text=None):
 
     @event_trigger('telegram_callback')
     def fnc(**kwargs):
+        nonlocal actions
         task.unique(task_name, kill_me=True)
         button_action = kwargs.get('data')
         if button_action != task_name:
             # log.debug(f"cannot process {task_name}. no button_action")
             return
 
-        if not isinstance(actions, Iterable):
+        if not isinstance(actions, list):
             actions = [actions]
 
         for action in actions:

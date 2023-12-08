@@ -10,3 +10,5 @@ from homeassistant.const import EVENT_CALL_SERVICE
 import homeassistant.helpers.template as template
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/entity.py
 import homeassistant.helpers.entity as entity_helper
+
+ha = HA()

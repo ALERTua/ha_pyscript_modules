@@ -21,11 +21,11 @@ def state_bool(state_):
         return None
 
 
-def telegram_message_alert_ha(msg=None, disable_notification=False, **kwargs):
+def telegram_message_alert_ha_public(msg=None, disable_notification=False, **kwargs):
     return telegram_message(
         msg=msg,
         disable_notification=disable_notification,
-        target=constants.TELEGRAM_CHAT_ALERT_HA,
+        target=TELEGRAM_CHAT_ALERT_HA,
         **kwargs
     )
 
@@ -34,7 +34,8 @@ def telegram_message_alert_ha_private(msg=None, disable_notification=False, **kw
     return telegram_message(
         msg=msg,
         disable_notification=disable_notification,
-        target=constants.TELEGRAM_CHAT_ALERT_HA_PRIVATE,
+        target=TELEGRAM_CHAT_ALERT_HA_PRIVATE,
+        reply_to_message_id=7024,
         **kwargs
     )
 
@@ -53,8 +54,10 @@ def telegram_message(msg=None, disable_notification=True, **kwargs):
     if not msg:
         log.error("Couldn't send telegram message: msg is None or empty")
         return
-
-    return telegram_bot.send_message(message=msg, disable_notification=disable_notification, **kwargs)
+    msg_limit = 4096
+    msgs = [msg[i:i + msg_limit] for i in range(0, len(msg), msg_limit)]
+    for msg in msgs:
+        telegram_bot.send_message(message=msg, disable_notification=disable_notification, **kwargs)
 
 
 def telegram_video_url(url, caption=None, disable_notification=True, target=None, **kwargs):
@@ -63,7 +66,7 @@ def telegram_video_url(url, caption=None, disable_notification=True, target=None
         return
 
     caption = caption or ''
-    target = target or constants.TELEGRAM_CHAT_ALERT_VIDEO
+    target = target or TELEGRAM_CHAT_ALERT_VIDEO
     return telegram_bot.send_video(url=url, caption=caption, supports_streaming=True,
                                    disable_notification=disable_notification, target=target, verify_ssl=False, **kwargs)
 
@@ -95,9 +98,9 @@ def discord_message(msg, target=None, **kwargs):
 
 
 def expand_sound_data(sound_name):
-    sound_fullpath = constants.MEDIA_PATH_BASE / sound_name
+    sound_fullpath = MEDIA_PATH_BASE / sound_name
     sound_length = MP3(sound_fullpath).info.length
-    sound_external_path = f"{constants.SERVER_URL_EXTERNAL}{constants.EXTERNAL_MEDIA_BASE}{sound_name}"
+    sound_external_path = f"{SERVER_URL_EXTERNAL}{EXTERNAL_MEDIA_BASE}{sound_name}"
     # log.debug(f"expand sound data for {sound_name}: {sound_external_path}")
     return sound_fullpath, sound_length, sound_external_path
 
@@ -134,7 +137,7 @@ def wait_speaker_idle(entity_ids, state_check_now=False, state_hold=1.0, timeout
         if (current_state := state.get(entity_id)) in off_states:
             # task_wait(media_player.turn_on, entity_id=entity_id)
             media_player.turn_on(entity_id=entity_id)
-        elif current_state in constants.UNK_O:
+        elif current_state in UNK_O:
             continue
         elif current_state in idle_states:
             # task_wait(media_player.turn_on, entity_id=entity_id)
@@ -168,7 +171,7 @@ def quiet_hours():
     return state.get('binary_sensor.quiet_hours') == 'on'
     # now = pendulum.now()
     # hours = now.hour
-    # output = hours > constants.QUIET_HOURS_START or hours < constants.QUIET_HOURS_END
+    # output = hours > QUIET_HOURS_START or hours < QUIET_HOURS_END
     # return output
 
 
@@ -296,29 +299,6 @@ def speak_language_from_code(lang_code):
     return voice
 
 
-# Enable the automation only if all passed conditions are true
-def conditional(*conditions, and_=True):
-    """
-    @conditional(
-        "sensor.example1 == 'on'",
-        "sensor.example2 == 'off'",
-        "sensor.example3 == 'on'",
-    )
-    """
-
-    def decorator(fn):
-        cond = 'all' if and_ else 'any'
-        conditions_str = ", ".join(conditions)
-        expr = f"{cond}([{conditions_str}])"
-
-        @functools.wraps(fn)
-        @state_active(expr)
-        def wrapper():
-            return fn()
-        return wrapper
-    return decorator
-
-
 def fstr(template):
     output = eval(f"f'''{template}'''")
     return output
@@ -338,3 +318,8 @@ def only_roman_chars(unistr):
 
     return True
     # return all(is_latin(uchr) for uchr in unistr if uchr.isalpha())
+
+
+def round_temp_float(temp_float, precision=0.5, round_result=1):
+    temp_float = float(temp_float)
+    return round(round(temp_float / precision, 0) * precision, round_result)

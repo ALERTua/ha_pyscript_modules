@@ -32,9 +32,9 @@ def router_link_speed():
 class UISP:  # https://192.168.1.6/nms/api-docs/
     def __init__(self):
         self.session = requests.Session()
-        self.uisp_url = constants.UISP_URL
+        self.uisp_url = UISP_URL
         self.url = f"{self.uisp_url}/nms/api/v2.1"
-        self.token = constants.UISP_TOKEN
+        self.token = UISP_TOKEN
         self.headers = {
             'accept': 'application/json',
             'x-auth-token': self.token,
@@ -129,6 +129,3 @@ class UISP:  # https://192.168.1.6/nms/api-docs/
 
         log.info(f"UISP {device_id} Port {port_name} reset")
         return response.json()
-
-
-

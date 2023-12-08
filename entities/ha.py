@@ -33,7 +33,7 @@ class HA:
 
     def datetime_dt_old(self):
         from entities.entity import entity
-        entity_ = entity(constants.SENSOR_DATETIME)
+        entity_ = entity(SENSOR_DATETIME)
         state_ = entity_.state()
         dt = datetime.fromisoformat(state_)
         return dt
@@ -45,8 +45,11 @@ class HA:
         return template.utcnow(hass)
 
     def datetime_p(self):
-        timestamp = self.datetime_dt().timestamp()
-        return pendulum.from_timestamp(timestamp, tz=self.time_zone_pytz())
+        datetime_dt = self.datetime_dt()
+        timestamp = datetime_dt.timestamp()
+        tz = self.time_zone_pytz()
+        output = pendulum.from_timestamp(timestamp, tz=tz)
+        return output
 
     def boot_timestamp(self):
         return self.host_info.get('boot_timestamp')

@@ -44,6 +44,12 @@ class Window(Switch):
     def stop(self):
         return cover.stop_cover(entity_id=self.entity_id)
 
+    def open(self):
+        return cover.open_cover(entity_id=self.entity_id)
+
+    def close(self):
+        return cover.close_cover(entity_id=self.entity_id)
+
 
 class Cover(Window):
     # noinspection PyMissingConstructor

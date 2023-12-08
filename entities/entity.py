@@ -17,12 +17,15 @@ def entity_from_id(entity_id):
 
 
 def select_entity_id(*entity_ids, priority_mode=False, allow_unknown=False):
+    for entity_id in entity_ids:
+        Entity.entity_registry.add(entity_id)
+
     # log.debug(f"selecting among {entity_ids}")
     alive_entities = [entity_from_id(i) for i in entity_ids if i]
     # log.debug(f"alive_entities: {alive_entities}")
     if allow_unknown is False:
         try:
-            alive_entities = [i for i in alive_entities if i and i.state not in constants.UNK_O]
+            alive_entities = [i for i in alive_entities if i and i.state not in UNK_O]
         except Exception as e:
             log.error(f"Error selecting entity id from {entity_ids} with allow_unknown={allow_unknown}: {type(e)} {e}")
 
@@ -33,6 +36,7 @@ def select_entity_id(*entity_ids, priority_mode=False, allow_unknown=False):
                 alive_entities.sort(key=lambda i: pendulum.from_timestamp(i.last_changed.timestamp()))
             except:
                 pass
+
         output = alive_entities[0]
         # log.debug(f"Priority: {priority_mode} Returning {output}")
         return output
@@ -45,29 +49,39 @@ def entity(*args, **kwargs):
     entity_ = Entity(*args, **kwargs)
     entity_.entity_init()
     domain = entity_.domain()
-    if domain == 'light':
-        from entities.light import Light
-        return Light(*args, **kwargs)
-    elif domain in ('switch', 'input_boolean', 'fan'):
-        from entities.switch import Switch
-        return Switch(*args, **kwargs)
-    elif domain == 'sensor':
-        from entities.sensor import Sensor
-        return Sensor(*args, **kwargs)
-    elif domain == 'binary_sensor':
+    if domain == 'binary_sensor':
         from entities.binary_sensor import BinarySensor
-        return BinarySensor(*args, **kwargs)
-    elif domain == 'cover':
-        from entities.window import Cover
-        return Cover(*args, **kwargs)
+        output = BinarySensor(*args, **kwargs)
     elif domain == 'climate':
         from entities.climate import Climate
-        return Climate(*args, **kwargs)
+        output = Climate(*args, **kwargs)
+    elif domain == 'light':
+        from entities.light import Light
+        output = Light(*args, **kwargs)
+    elif domain == 'media_player':
+        from entities.media_player import MediaPlayer
+        output = MediaPlayer(*args, **kwargs)
+    elif domain == 'sensor':
+        from entities.sensor import Sensor
+        output = Sensor(*args, **kwargs)
+    elif domain in ('switch', 'input_boolean', 'fan'):
+        from entities.switch import Switch
+        output = Switch(*args, **kwargs)
+    elif domain == 'cover':
+        from entities.window import Cover
+        output = Cover(*args, **kwargs)
+    elif domain == 'number':
+        from entities.number import Number
+        output = Number(*args, **kwargs)
     else:
-        return entity_
+        output = entity_
+
+    entity_.entity_init()
+    return output
 
 
 class Entity:
+    entity_registry = set()
     entity = None  # type: State
 
     # noinspection PyMissingConstructor
@@ -88,8 +102,8 @@ class Entity:
     # noinspection PyAttributeOutsideInit
     def entity_init(self):
         # noinspection PyTypeChecker
-        self.entity = None  # type: State
-        self.entity_id = self._entity_id()
+        self.entity = getattr(self, 'entity', None)  # type: State
+        self.entity_id = getattr(self, 'entity_id', self._entity_id())
 
     def _entity_id(self):
         if not any(self.entity_ids):
@@ -107,19 +121,23 @@ class Entity:
         return output.entity_id
 
     def exists(self):
-        return self.entity_id is not None
+        return self.entity_id is not None and hass.states.get(self.entity_id) is not None
 
     def as_str(self):
-        return f"[{self.__class__.__name__}]({self.entity_id}){self.friendly_name()}"
+        friendly_name = self.friendly_name()
+        return f"[{self.__class__.__name__}]({self.entity_id}){friendly_name}"
 
     def friendly_name(self):
-        return tools.friendly_name(self.entity_id)
+        output = tools.friendly_name(self.entity_id)
+        return output
 
     def attrs(self):
         return self.entity.attributes
 
     def as_dict(self):
-        return self.entity.as_dict()
+        entity_ = self.entity
+        output = entity_.as_dict()
+        return output
 
     def state(self, attr=None):
         if not self:
@@ -132,6 +150,30 @@ class Entity:
             return None
 
         return self.entity.state
+
+    def is_on(self):
+        return self.state() == 'on'
+
+    def is_not_on(self):
+        return not self.is_on()
+
+    def is_off(self):
+        return self.state() == 'off'
+
+    def is_not_off(self):
+        return not self.is_off()
+
+    def is_on_str(self):
+        return f"{self.entity_id} == 'on'"
+
+    def is_off_str(self):
+        return f"{self.entity_id} == 'off'"
+
+    def is_not_on_str(self):
+        return f"{self.entity_id} != 'on'"
+
+    def is_not_off_str(self):
+        return f"{self.entity_id} != 'off'"
 
     def domain(self):
         if self.entity is None:
