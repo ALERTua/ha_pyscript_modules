@@ -67,7 +67,7 @@ OFFICE_VALVE = 'climate.valve_office'
 PC_ROOM = 'switch.wol_catbird'
 PC_ROOM_COMBINED = 'switch.catbird_pc_group'
 ROOM_HUMIDIFIER = 'switch.room_humidifier'
-ROOM_HUMIDIFIER_CLOUD = 'switch.room_humidifier_cloud'
+# ROOM_HUMIDIFIER_CLOUD = 'switch.room_humidifier_cloud'
 ROOM_HUMIDITY = 'sensor.room_humidity_latest'
 ROOM_TEMPERATURE = 'sensor.room_temperature_latest'
 ROOM_WINDOW = 'cover.room_window'
@@ -124,7 +124,7 @@ HUMIDIFIERS = [
     OFFICE_HUMIDIFIER,
     # OFFICE_HUMIDIFIER_CLOUD,
     ROOM_HUMIDIFIER,
-    ROOM_HUMIDIFIER_CLOUD,
+    # ROOM_HUMIDIFIER_CLOUD,
     BEDROOM_HUMIDIFIER,
     # BEDROOM_HUMIDIFIER_CLOUD,
 ]

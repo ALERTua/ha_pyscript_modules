@@ -9,50 +9,49 @@ from copy import copy
 import functools
 from constants import *
 
-
-if TYPE_CHECKING:
-    from logging import Logger
-    log: Logger
-    from pyscript import State
-    state: State
-    from homeassistant.core import HomeAssistant, State
-    homeassistant: Any
-    hass: HomeAssistant
-    state: State
-    state_active: Callable
-    state_trigger: Callable
-    mqtt_trigger: Callable
-    time_trigger: Callable
-    time_active: Callable
-    event_trigger: Callable
-    task: Any
-    group: Any
-    light: Any
-    switch: Any
-    script: Any
-    sensor: Any
-    cover: Any
-    hassio: Any
-    fan: Any
-    service: Any
-    persistent_notification: Any
-    input_boolean: Any
-    binary_sensor: Any
-    telegram_bot: Any
-    media_player: Any
-    pyscript: Any
-    notify: Any
-    tts: Any
-    xiaomi_aqara: Any
-    ssh_command: Any
-    vacuum: Any
-    input_number: Any
-    input_select: Any
-    climate: Any
-    mqtt: Any
-    task_unique: Any
-    scene: Any
-    number: Any
+# if TYPE_CHECKING:
+#     from logging import Logger
+#     log: Logger
+#     from pyscript import State
+#     state: State
+#     from homeassistant.core import HomeAssistant, State
+#     homeassistant: Any
+#     hass: HomeAssistant
+#     state: State
+#     state_active: Callable
+#     state_trigger: Callable
+#     mqtt_trigger: Callable
+#     time_trigger: Callable
+#     time_active: Callable
+#     event_trigger: Callable
+#     task: Any
+#     group: Any
+#     light: Any
+#     switch: Any
+#     script: Any
+#     sensor: Any
+#     cover: Any
+#     hassio: Any
+#     fan: Any
+#     service: Any
+#     persistent_notification: Any
+#     input_boolean: Any
+#     binary_sensor: Any
+#     telegram_bot: Any
+#     media_player: Any
+#     pyscript: Any
+#     notify: Any
+#     tts: Any
+#     xiaomi_aqara: Any
+#     ssh_command: Any
+#     vacuum: Any
+#     input_number: Any
+#     input_select: Any
+#     climate: Any
+#     mqtt: Any
+#     task_unique: Any
+#     scene: Any
+#     number: Any
 
 
 UNK_O = ('unavailable', 'unknown', 'null', None, 'none', 'None')

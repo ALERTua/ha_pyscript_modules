@@ -1,6 +1,6 @@
 # https://hacs-pyscript.readthedocs.io/en/stable/reference.html
 from imports_base import *
-import constants
+
 import traceback
 import unicodedata as ud
 
