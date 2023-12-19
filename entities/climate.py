@@ -1,5 +1,4 @@
 # https://github.com/custom-components/pyscript
-from imports_base import *
 from entities.switch import Switch
 
 
@@ -31,7 +30,16 @@ class Climate(Switch):
 
         # hvac_mode = hvac_mode or self.state()  # AC needs this, valves don't
         log.debug(f"set_temperature for {self.as_str()} to hvac_mode: {hvac_mode} temperature: {temperature} target_temp_high: {target_temp_high} target_temp_low: {target_temp_low}")
-        return climate.set_temperature(entity_id=self.entity_id, hvac_mode=hvac_mode, temperature=temperature, target_temp_high=target_temp_high, target_temp_low=target_temp_low, *args, **kwargs)
+        kw = dict(entity_id=self.entity_id)
+        if hvac_mode is not None:
+            kw.update(hvac_mode=hvac_mode)
+        if temperature is not None:
+            kw.update(temperature=temperature)
+        if target_temp_high is not None:
+            kw.update(target_temp_high=target_temp_high)
+        if target_temp_low is not None:
+            kw.update(target_temp_low=target_temp_low)
+        return climate.set_temperature(*args, **kw, **kwargs)
 
     def set_fan_mode(self, fan_mode, *args, **kwargs):
         """

@@ -9,6 +9,7 @@ from copy import copy
 import functools
 from constants import *
 
+
 # if TYPE_CHECKING:
 #     from logging import Logger
 #     log: Logger

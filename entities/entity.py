@@ -1,9 +1,6 @@
 # https://github.com/custom-components/pyscript
-import logging
-
 from imports_base import *
 import common_tools as tools
-import constants
 from entities.ha import HA
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
 import homeassistant.helpers.template as template
