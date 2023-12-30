@@ -1,11 +1,18 @@
 # https://github.com/custom-components/pyscript
 from imports_base import *
+from pyscript_mock import *
 import common_tools as tools
 from entities.ha import HA
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
 import homeassistant.helpers.template as template
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/entity.py
 import homeassistant.helpers.entity as entity_helper
+from homeassistant.components.recorder import get_instance
+from homeassistant.components.recorder.statistics import statistics_during_period
+from typing import Literal, Optional
+from datetime import datetime, timezone
+
+ha = HA()
 
 
 def entity_from_id(entity_id):
@@ -89,7 +96,6 @@ class Entity:
         self.entity_ids = entity_ids
         self._priority_mode = priority_mode
         self._allow_unknown = allow_unknown
-        self.ha = HA()
         self.entity_init()
 
     @pyscript_compile
@@ -265,3 +271,35 @@ class Entity:
             return
 
         return entity_helper.get_unit_of_measurement(hass, self.entity_id)
+
+    async def get_history(
+            self,
+            start_time: datetime,
+            end_time: Optional[datetime],
+            period: Literal["5minute", "day", "hour", "week", "month"],
+            types: Literal["last_reset", "max", "mean", "min", "state", "sum"]):
+        """
+        start_time = datetime.today().replace(day=1)
+        end_time = datetime.today()
+
+        history = _get_history(start_time, end_time, [var_name], "hour", "state")
+
+        for hour in history.get(var_name):
+            log.debug(hour)
+        """
+        start_time = start_time.astimezone(timezone.utc)
+        end_time = end_time or ha.datetime_dt()
+        end_time = end_time.astimezone(timezone.utc)
+
+        entity_id = self.entity_id
+        if not entity_id:
+            log.error(f"No Cannot get history. entity_id empty for {self}")
+            return
+
+        entity_ids = [entity_id]
+        log.debug(f"Getting {types} {period} history for {entity_ids}: {start_time} to {end_time}")
+        output = await get_instance(hass).async_add_executor_job(
+            statistics_during_period, hass, start_time, end_time, entity_ids, period, None, types)
+
+        if output:
+            return output.get(entity_id)
