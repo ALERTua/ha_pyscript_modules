@@ -49,10 +49,6 @@ BEDROOM_WANTED_TEMP = 'input_number.bedroom_wanted_temperature'
 BEDROOM_ALLOWED_MODES = 'input_select.bedroom_auto_ac_allowed_modes'
 BEDROOM_VALVE = 'climate.valve_bedroom'
 
-PC_ALERT = 'switch.wol_alert_pc'
-PC_ALERT_WIFI = 'switch.wol_alert_pc'
-PC_ALERT_COMBINED = 'switch.alert_pc_combined'
-PC_ALERT_SPEAKER = 'media_player.alert_white'
 OFFICE_HUMIDIFIER = 'switch.office_humidifier'
 OFFICE_HUMIDIFIER_POWER = 'sensor.office_humidifier_power'
 OFFICE_HUMIDITY = 'sensor.office_humidity_latest'
@@ -99,6 +95,7 @@ LIGHT_BATHROOM_TOP = 'light.bathroom'
 LIGHT_BATHROOM_LED = 'light.bathroom_led'
 
 HALLWAY_GATEWAY_LUMEN = 'sensor.xiaomi_gateway_illumination'
+GATEWAY_V2_MAC = '04:CF:8C:9D:06:61'
 HALLWAY_SPEAKER = 'media_player.hallway_speaker'
 
 ALL_SPEAKERS = 'media_player.all_speakers'
@@ -110,7 +107,6 @@ ALL_SPEAKERS_GROUP = [
     # HALLWAY_SPEAKER,
     KITCHEN_SPEAKER,
     BATHROOM_SPEAKER,
-    PC_ALERT_SPEAKER,
 ]
 SPEAKERS_BROADCAST = ALL_SPEAKERS_GROUP + [
     # 'media_player.broadcast_speakers',
