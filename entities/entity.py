@@ -242,11 +242,11 @@ class Entity:
 
         return template.area_name(hass, self.entity_id)
 
-    def capability(self):
+    def capability(self, capability):
         if self.entity is None:
             return
 
-        return entity_helper.get_capability(hass, self.entity_id)
+        return entity_helper.get_capability(hass, self.entity_id, capability)
 
     def device_class(self):
         if self.entity is None:
