@@ -37,13 +37,46 @@ from imports_base import *
 
 class XiaomiGatewayV2:
     # noinspection PyMissingConstructor
-    def __init__(self, mac):
+    def __init__(self, mac=GATEWAY_V2_MAC):
         self.mac = mac
 
-    def play_ringtone(self, id_, volume):
+    def play_ringtone(self, id_, volume=1):
         mac = self.mac
         xiaomi_aqara.play_ringtone(gw_mac=mac, ringtone_id=id_, ringtone_vol=volume)
 
-    def media_stop(self):
+    def stop_ringtone(self):
         mac = self.mac
         xiaomi_aqara.stop_ringtone(gw_mac=mac)
+
+    def sound_knock_knock_once(self, volume=1):
+        self.play_ringtone(11, volume)
+        task.sleep(1)
+        self.stop_ringtone()
+
+    def sound_no_internet_once(self, volume=1):
+        self.play_ringtone(29, volume)
+        task.sleep(1.2)
+        self.stop_ringtone()
+
+    def sound_clock_alarm_once(self, volume=1):
+        self.play_ringtone(13, volume)
+        task.sleep(2.5)
+        self.stop_ringtone()
+
+    def sound_doorbell_once(self, volume=1):
+        self.play_ringtone(10, volume)
+        task.sleep(1.5)
+        self.stop_ringtone()
+
+    def sound_doorbell_twice(self, volume=1):
+        self.play_ringtone(10, volume)
+        task.sleep(3)
+        self.stop_ringtone()
+
+    def sound_child_once(self, volume=1):
+        self.play_ringtone(25, volume)
+        task.sleep(3.5)
+        self.stop_ringtone()
+
+    def sound_air_raid(self, volume=1):
+        self.play_ringtone(7, volume)
