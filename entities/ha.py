@@ -1,7 +1,7 @@
 # https://github.com/custom-components/pyscript
 # https://hacs-pyscript.readthedocs.io/en/stable/
-import constants
 from imports_base import *
+from pyscript_mock import *
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
 import homeassistant.helpers.template as template
 
@@ -91,6 +91,5 @@ class HA:
         return self.config.time_zone
 
     def time_zone_pytz(self):
-        # noinspection PyUnresolvedReferences
-        from pendulum.pendulum import pytz
-        return pytz.timezone(hass.config.time_zone)
+        from pendulum.tz import Timezone
+        return Timezone(hass.config.time_zone)
