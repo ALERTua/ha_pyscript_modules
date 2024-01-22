@@ -1,5 +1,8 @@
 # https://hacs-pyscript.readthedocs.io/en/stable/reference.html
+import logging
+
 from imports_base import *
+from pyscript_mock import *
 
 import traceback
 import unicodedata as ud
@@ -244,8 +247,12 @@ def pd_diff(pd, timezone="local"):
     return pd - now
 
 
-def pd_words(pd, locale='uk_ua'):
-    return pd.in_words(locale=locale)
+def pd_words(pd, locale='ua'):
+    try:
+        return pd.in_words(locale=locale)
+    except Exception as e:
+        log.error(f"Exception converting pd_words to {locale}: {type(e)} {e}")
+        return pd.in_words()
 
 
 def print_var(var):
