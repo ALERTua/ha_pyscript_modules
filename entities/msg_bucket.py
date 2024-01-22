@@ -1,5 +1,4 @@
 # https://github.com/custom-components/pyscript
-from imports_base import *
 import common_tools as tools
 
 
@@ -14,8 +13,10 @@ class MsgBucket:
         self.args = args
         self.kwargs = kwargs
 
-    def add(self, msg):
-        # log.debug(f"Adding msg to {self.__class__.__name__}: {msg}")
+    def add(self, msg, debug=False):
+        if debug:
+            # log.debug(f"Adding msg to {self.__class__.__name__}: {msg}")
+            log.debug(msg)
         self.msgs.append(msg)
 
     def _str(self):
@@ -34,12 +35,9 @@ class MsgBucket:
         raise NotImplementedError
 
     def send(self):
-        if not self.msgs:
-            log.debug(f"{self.name}: Nothing to send")
-            return
-
-        log.debug(f"{self.name}: Sending msg:\n{self._str()}")
-        self._send()
+        if self.msgs:
+            log.debug(f"{self.name}: Sending msg:\n{self._str()}")
+            self._send()
 
 
 class TelegramMsgBucket(MsgBucket):
@@ -57,8 +55,10 @@ class DiscordMsgBucket(MsgBucket):
         self._init_(*args, **kwargs)
 
     def _send(self):
+        dt = ha.datetime_p().to_time_string()
+        msg = f"{dt} {self._str()}"
         # log.debug(f"sending {self.__class__.__name__} with args: {self.args}, kwargs: {self.kwargs}")
-        tools.discord_message(msg=self._str(), *self.args, **self.kwargs)
+        tools.discord_message(msg=msg, *self.args, **self.kwargs)
 
 
 # @time_trigger  # test

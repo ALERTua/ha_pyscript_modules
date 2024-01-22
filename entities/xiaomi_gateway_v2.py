@@ -75,7 +75,7 @@ class XiaomiGatewayV2:
 
     def sound_child_once(self, volume=1):
         self.play_ringtone(25, volume)
-        task.sleep(3.5)
+        task.sleep(3.4)
         self.stop_ringtone()
 
     def sound_air_raid(self, volume=1):

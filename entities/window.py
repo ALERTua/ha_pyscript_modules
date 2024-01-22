@@ -11,12 +11,10 @@ def position_normalize(value):
 
 class Window(Switch):
     # noinspection PyMissingConstructor
-    def __init__(self, *entity_ids, reverse=False, priority_mode=False, allow_unknown=False):
-        self.entity_ids = entity_ids
-        self._priority_mode = priority_mode
-        self._allow_unknown = allow_unknown
+    def __init__(self, entity_id, reverse=False):
+        self.entity_id = entity_id
+        self.init()
         self.reverse = reverse
-        self.entity_init()
 
     def position(self):
         dct = self.attrs()
@@ -26,7 +24,7 @@ class Window(Switch):
         return output
 
     def position_set(self, value):
-        log.debug(f"Setting {self.entity} {self.friendly_name()} position to {value}")
+        log.debug(f"Setting {self.ha_state} {self.friendly_name()} position to {value}")
         value = position_normalize(value)
         if self.reverse:
             value = 100 - int(value)
@@ -58,4 +56,3 @@ class Cover(Window):
         self._priority_mode = priority_mode
         self._allow_unknown = allow_unknown
         self.reverse = reverse
-        self.entity_init()
