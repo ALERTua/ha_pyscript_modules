@@ -22,13 +22,13 @@ QUIET_HOURS_END = 8
 SHOWER_HUMIDITY = 'sensor.shower_humidity_latest'
 SHOWER_FAN = 'fan.shower'
 SHOWER_SPEAKER = 'media_player.shower_speaker'
-SHOWER_FLOOR = 'climate.shower_thermostat'
-SHOWER_FLOOR_CLOUD = 'climate.shower_thermostat_cloud'
+SHOWER_FLOOR = 'climate.shower_floor_lt'
+SHOWER_FLOOR_CLOUD = 'climate.floor_shower_cloud'
 
-BATHROOM_HUMIDITY = 'sensor.ble_bathroom_humidity'
 BATHROOM_FAN = 'fan.bathroom'
 BATHROOM_SPEAKER = 'media_player.bathroom_speaker'
-BATHROOM_TEMPERATURE = 'sensor.bathroom_temperature'
+BATHROOM_TEMPERATURE = 'sensor.bathroom_temperature_latest'
+BATHROOM_HUMIDITY = 'sensor.bathroom_humidity_latest'
 
 BEDROOM_TEMPERATURE = 'sensor.bedroom_temperature_latest'
 BEDROOM_HUMIDITY = 'sensor.bedroom_humidity_latest'
@@ -48,24 +48,28 @@ BEDROOM_WINDOW_REED = 'binary_sensor.bedroom_window_reed_contact'
 BEDROOM_WANTED_TEMP = 'input_number.bedroom_wanted_temperature'
 BEDROOM_ALLOWED_MODES = 'input_select.bedroom_auto_ac_allowed_modes'
 BEDROOM_VALVE = 'climate.valve_bedroom'
+BEDROOM_VALVE_POSITION = 'sensor.valve_bedroom_position'
 
 OFFICE_HUMIDIFIER = 'switch.office_humidifier'
 OFFICE_HUMIDIFIER_POWER = 'sensor.office_humidifier_power'
 OFFICE_HUMIDITY = 'sensor.office_humidity_latest'
 OFFICE_TEMPERATURE = 'sensor.office_temperature_latest'
+OFFICE_WANTED_TEMP = 'input_number.office_wanted_temperature'
+OFFICE_CO2 = 'sensor.office_co2_latest'
 OFFICE_WINDOW = 'cover.office_window'
 OFFICE_WINDOW_CLOUD = 'cover.office_window_cloud'
 OFFICE_SPEAKER = 'media_player.office_speaker'
 OFFICE_AC = 'climate.ac_office'
 OFFICE_LIGHTS = 'light.office'
 OFFICE_VALVE = 'climate.valve_office'
+OFFICE_VALVE_POSITION = 'sensor.valve_office_position'
 
-PC_ROOM = 'switch.wol_catbird'
-PC_ROOM_COMBINED = 'switch.catbird_pc_group'
 ROOM_HUMIDIFIER = 'switch.room_humidifier'
 # ROOM_HUMIDIFIER_CLOUD = 'switch.room_humidifier_cloud'
 ROOM_HUMIDITY = 'sensor.room_humidity_latest'
 ROOM_TEMPERATURE = 'sensor.room_temperature_latest'
+ROOM_VALVE_POSITION = 'sensor.valve_room_position'
+ROOM_WANTED_TEMP = 'input_number.room_wanted_temperature'
 ROOM_WINDOW = 'cover.room_window'
 ROOM_SPEAKER = 'media_player.room_speaker'
 ROOM_AC = 'climate.ac_room'
@@ -77,7 +81,10 @@ KITCHEN_SPEAKER = 'media_player.kitchen_speaker'
 KITCHEN_AC = 'climate.ac_kitchen'
 KITCHEN_HUMIDITY = 'sensor.kitchen_humidity_latest'
 KITCHEN_TEMPERATURE = 'sensor.kitchen_temperature_latest'
+KITCHEN_WANTED_TEMP = 'input_number.kitchen_wanted_temperature'
 KITCHEN_VALVE = 'climate.valve_kitchen'
+KITCHEN_VALVE_POSITION = 'sensor.valve_kitchen_position'
+PROJECTOR = 'switch.projector'
 
 LAUNDRY_HUMIDITY = 'sensor.laundry_humidity_latest'
 LAUNDRY_TEMPERATURE = 'sensor.laundry_temperature_latest'
@@ -110,7 +117,7 @@ ALL_SPEAKERS_GROUP = [
 ]
 SPEAKERS_BROADCAST = ALL_SPEAKERS_GROUP + [
     # 'media_player.broadcast_speakers',
-    'media_player.microusb_speaker',
+    # 'media_player.microusb_speaker',
 ]
 # SPEAKERS_BROADCAST = [
 #     'media_player.broadcast_speakers',
