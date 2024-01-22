@@ -89,21 +89,21 @@ def conditional(*conditions, and_=True):
 
 
 def entity_exists(entity_id):
-    return f"hass.states.get(f'{entity_id}') is not None and {entity_id} not in {UNK_S}"
+    return f"(hass.states.get(f'{entity_id}') is not None and {entity_id} not in {UNK_S})"
     # return f"hass.states.get('{entity_id}') is not None"
 
 
 def entity_on(entity_id):
-    return f"{entity_id} == 'on'"
+    return f"({entity_id} == 'on')"
 
 
 def entity_not_on(entity_id):
-    return f"{entity_id} != 'on'"
+    return f"({entity_id} != 'on')"
 
 
 def entity_off(entity_id):
-    return f"{entity_id} == 'off'"
+    return f"({entity_id} == 'off')"
 
 
 def entity_not_off(entity_id):
-    return f"{entity_id} != 'off'"
+    return f"({entity_id} != 'off')"
