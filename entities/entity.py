@@ -59,7 +59,7 @@ def entity(entity_id):
 
     Entity.entity_library[entity_id] = output
     Entity.entity_registry.add(entity_id)
-    log.debug(f"Added {output.__repr__()} to library")
+    # log.debug(f"Added {output.__repr__()} to library")
     return output
 
 
@@ -88,8 +88,6 @@ class Entity:
     def init(self):
         if getattr(self, 'ha_state', None) is None:
             self.ha_state = template.TemplateStateFromEntityId(hass, self.entity_id)
-            log.debug(f"Initing {self.entity_id}")
-        # self.ha_state = getattr(self, 'ha_state', template.TemplateStateFromEntityId(hass, self.entity_id))
 
     def attrs(self) -> Dict:
         return self.ha_state.attributes
