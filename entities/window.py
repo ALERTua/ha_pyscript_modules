@@ -51,8 +51,7 @@ class Window(Switch):
 
 class Cover(Window):
     # noinspection PyMissingConstructor
-    def __init__(self, *entity_ids, reverse=False, priority_mode=False, allow_unknown=False):
-        self.entity_ids = entity_ids
-        self._priority_mode = priority_mode
-        self._allow_unknown = allow_unknown
+    def __init__(self, entity_id, reverse=False):
+        self.entity_id = entity_id
         self.reverse = reverse
+        self.init()
