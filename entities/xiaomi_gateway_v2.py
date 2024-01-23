@@ -50,7 +50,7 @@ class XiaomiGatewayV2:
 
     def sound_knock_knock_once(self, volume=1):
         self.play_ringtone(11, volume)
-        task.sleep(1)
+        task.sleep(1.1)
         self.stop_ringtone()
 
     def sound_no_internet_once(self, volume=1):
