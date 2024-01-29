@@ -88,22 +88,32 @@ def conditional(*conditions, and_=True):
     return decorator
 
 
-def entity_exists(entity_id):
+def _entity_exists(entity_id):
     return f"(hass.states.get(f'{entity_id}') is not None and {entity_id} not in {UNK_S})"
     # return f"hass.states.get('{entity_id}') is not None"
 
 
+def entity_exists(*entity_ids):
+    msg = ''
+    for entity_id in entity_ids:
+        msg += f"(hass.states.get(f'{entity_id}') is not None and {entity_id} not in {UNK_S}), "
+
+    output = f"all([{msg}])"
+    # log.debug(f"entity_exists: {output}")
+    return output
+
+
 def entity_on(entity_id):
-    return f"({entity_id} == 'on')"
+    return f"({entity_id} in ('on', 'home'))"
 
 
 def entity_not_on(entity_id):
-    return f"({entity_id} != 'on')"
+    return f"({entity_id} not in ('on', 'home'))"
 
 
 def entity_off(entity_id):
-    return f"({entity_id} == 'off')"
+    return f"({entity_id} in ('off', 'away'))"
 
 
 def entity_not_off(entity_id):
-    return f"({entity_id} != 'off')"
+    return f"({entity_id} not in ('off', 'away'))"
