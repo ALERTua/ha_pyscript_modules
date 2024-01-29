@@ -1,5 +1,8 @@
 # https://github.com/custom-components/pyscript
 import common_tools as tools
+from entities.ha import HA
+
+ha = HA()
 
 
 class MsgBucket:
@@ -55,8 +58,9 @@ class DiscordMsgBucket(MsgBucket):
         self._init_(*args, **kwargs)
 
     def _send(self):
-        dt = ha.datetime_p().to_time_string()
-        msg = f"{dt} {self._str()}"
+        dt_p = ha.datetime_p()
+        dt_str = dt_p.to_time_string()
+        msg = f"{dt_str} {self._str()}"
         # log.debug(f"sending {self.__class__.__name__} with args: {self.args}, kwargs: {self.kwargs}")
         tools.discord_message(msg=msg, *self.args, **self.kwargs)
 
