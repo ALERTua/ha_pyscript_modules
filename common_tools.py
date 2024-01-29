@@ -251,7 +251,7 @@ def pd_words(pd, locale='ua'):
     try:
         return pd.in_words(locale=locale)
     except Exception as e:
-        log.error(f"Exception converting pd_words to {locale}: {type(e)} {e}")
+        log.warning(f"Exception converting pd_words to {locale}: {type(e)} {e}")
         return pd.in_words()
 
 
