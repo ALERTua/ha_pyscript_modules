@@ -1,10 +1,8 @@
 from imports import *
-from pyscript_mock import *
 
 
-PRECISION = 0.1
-TOLERANCE_DOWN = 0.5
-TOLERANCE_UP = 0.3
+DEFAULT_TOLERANCE_DOWN = 0.5
+DEFAULT_TOLERANCE_UP = 0.3
 DEFAULT_MIN_TEMP = 18
 DEFAULT_MAX_TEMP = 30
 MAX_TEMP = 29
@@ -67,6 +65,8 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
     position_entity_id = kwargs.get('position_entity_id') or None
     allow_turning_off = kwargs.get('allow_turning_off', False) or False
     temp_diff_factor = kwargs.get('temp_diff_factor', 1.0) or 1.0
+    tolerance_down = kwargs.get('tolerance_down', DEFAULT_TOLERANCE_DOWN)
+    tolerance_up = kwargs.get('tolerance_up', DEFAULT_TOLERANCE_UP)
     notification_channel = str(kwargs.get('notification_channel', DEFAULT_NOTIFICATION_CHANNEL))
 
     real_temp_entity = entity(real_temp_entity_id)
@@ -113,8 +113,8 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
     temp_difference_abs = abs(temp_diff)
     # log.debug(f"temp_difference_abs={temp_difference_abs}")
 
-    if real_temp >= wanted_temp + TOLERANCE_UP:  # off
-        msg = f':white_check_mark: real({real_temp}) >= wanted({wanted_temp}) + tolerance_up({TOLERANCE_UP})'
+    if real_temp >= wanted_temp + tolerance_up:  # off
+        msg = f':white_check_mark: real({real_temp}) >= wanted({wanted_temp}) + tolerance_up({tolerance_up})'
         msgs.add(msg, debug=True)
         if valve_state != 'off':
             if valve_target_temp != wanted_temp:
@@ -129,29 +129,29 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
         return
 
     elif real_temp >= wanted_temp:
-        msg = f'{vlv} real {real_temp} >= {wanted_temp} wanted, but not above tolerance {TOLERANCE_UP}. Breaking'
+        msg = f'{vlv} real {real_temp} >= {wanted_temp} wanted, but not above tolerance {tolerance_up}. Breaking'
         log.debug(msg)
         # msgs.add(msg)
         # msgs.send()
         return
 
-    elif real_temp < wanted_temp - TOLERANCE_DOWN:  # on
+    elif real_temp < wanted_temp - tolerance_down:  # on
         msgs.add(f'real {real_temp} < {wanted_temp} wanted')
         if allow_turning_off and valve_state == 'off':
             msgs.add(f'Turning on')
             valve_entity.turn_on()
     elif real_temp <= wanted_temp:
-        msg = f'{vlv} real {real_temp} <= {wanted_temp} wanted, but not below tolerance {TOLERANCE_DOWN}. Breaking'
+        msg = f'{vlv} real {real_temp} <= {wanted_temp} wanted, but not below tolerance {tolerance_down}. Breaking'
         log.debug(msg)
         # msgs.add(msg)
         # msgs.send()
         return
-    elif valve_cur_temp >= wanted_temp + TOLERANCE_UP + OVERTEMP_PROTECTION:  # off?
+    elif valve_cur_temp >= wanted_temp + tolerance_up + OVERTEMP_PROTECTION:  # off?
         msg = (f':white_check_mark:  {vlv} current temp({valve_cur_temp}) >= wanted({wanted_temp}) + '
-               f'tolerance_up({TOLERANCE_UP}) + overtemp_protection({OVERTEMP_PROTECTION})')
+               f'tolerance_up({tolerance_up}) + overtemp_protection({OVERTEMP_PROTECTION})')
         msgs.add(msg, debug=True)
         if valve_target_temp != wanted_temp:
-            msg = (f"{vlv} temp({valve_cur_temp}) >= wanted_temp({wanted_temp}) + tolerance_up({TOLERANCE_UP}) "
+            msg = (f"{vlv} temp({valve_cur_temp}) >= wanted_temp({wanted_temp}) + tolerance_up({tolerance_up}) "
                    f"+ overtemp_protection({OVERTEMP_PROTECTION})")
             msgs.add(msg, debug=True)
             valve_entity.set_temperature(temperature=wanted_temp, hvac_mode=valve_state)
@@ -182,8 +182,8 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
     #         msgs.send()
         return
 
-    if ((temp_diff > 0 and temp_difference_abs < TOLERANCE_UP)
-            or (temp_diff < 0 and temp_difference_abs < TOLERANCE_DOWN)):
+    if ((temp_diff > 0 and temp_difference_abs < tolerance_up)
+            or (temp_diff < 0 and temp_difference_abs < tolerance_down)):
         if valve_target_temp != wanted_temp:
             msg = f"{vlv} Temperature difference too low. Setting Valve Temperature to {wanted_temp}."
             msgs.add(msg, debug=True)
