@@ -1,4 +1,5 @@
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
+from imports_base import *
 import homeassistant.helpers.template as template
 
 
@@ -14,4 +15,3 @@ class Area:
 
     def devices(self):
         return template.area_devices(hass, self.name)
-

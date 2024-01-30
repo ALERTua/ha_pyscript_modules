@@ -1,8 +1,5 @@
 # https://hacs-pyscript.readthedocs.io/en/stable/reference.html
-import logging
-
 from imports_base import *
-from pyscript_mock import *
 
 import traceback
 import unicodedata as ud

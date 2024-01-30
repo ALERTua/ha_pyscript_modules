@@ -1,7 +1,6 @@
 # https://github.com/custom-components/pyscript
 # https://hacs-pyscript.readthedocs.io/en/stable/
 from imports_base import *
-from pyscript_mock import *
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
 import homeassistant.helpers.template as template
 

@@ -1,4 +1,5 @@
 # https://github.com/custom-components/pyscript
+from imports_base import *
 import common_tools as tools
 from entities.ha import HA
 

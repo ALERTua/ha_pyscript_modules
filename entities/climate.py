@@ -1,4 +1,5 @@
 # https://github.com/custom-components/pyscript
+from imports_base import *
 from entities.switch import Switch
 
 
