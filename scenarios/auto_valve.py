@@ -26,6 +26,7 @@ OVERTEMP_PROTECTION = 3
 #     temp_diff_factor=DEFAULT_TEMP_FACTOR,
 #     position_entity_id=OFFICE_VALVE_POSITION,
 #     allow_turning_off=True,
+#     hvac_mode_on='auto',
 #     notification_channel='1198228933288661043',
 # )
 #
@@ -67,6 +68,7 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
     temp_diff_factor = kwargs.get('temp_diff_factor', 1.0) or 1.0
     tolerance_down = kwargs.get('tolerance_down', DEFAULT_TOLERANCE_DOWN)
     tolerance_up = kwargs.get('tolerance_up', DEFAULT_TOLERANCE_UP)
+    hvac_mode_on = kwargs.get('hvac_mode_on', None)
     notification_channel = str(kwargs.get('notification_channel', DEFAULT_NOTIFICATION_CHANNEL))
 
     real_temp_entity = entity(real_temp_entity_id)
@@ -140,6 +142,9 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
         if allow_turning_off and valve_state == 'off':
             msgs.add(f'Turning on')
             valve_entity.turn_on()
+            if hvac_mode_on:
+                task.sleep(3)
+                valve_entity.set_hvac_mode(hvac_mode_on)
     elif real_temp <= wanted_temp:
         msg = f'{vlv} real {real_temp} <= {wanted_temp} wanted, but not below tolerance {tolerance_down}. Breaking'
         log.debug(msg)
