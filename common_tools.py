@@ -3,6 +3,8 @@ from imports_base import *
 
 import traceback
 import unicodedata as ud
+from pendulum import DateTime
+from pendulum.tz import Timezone
 
 from mutagen.mp3 import MP3
 
@@ -231,8 +233,11 @@ def func_name():
     return traceback.extract_stack(None, 2)[0][2]
 
 
-def dt_to_pd(dt, timezone="local"):
-    timestamp = dt.timestamp()
+def dt_to_pd(dt, timezone="local") -> DateTime:
+    if isinstance(dt, float):
+        timestamp = dt
+    else:
+        timestamp = dt.timestamp()
     return pendulum.from_timestamp(timestamp, tz=timezone)
 
 
@@ -303,8 +308,8 @@ def speak_language_from_code(lang_code):
     return voice
 
 
-def fstr(template):
-    output = eval(f"f'''{template}'''")
+def fstr(template_):
+    output = eval(f"f'''{template_}'''")
     return output
 
 
