@@ -65,7 +65,7 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
     real_temp_entity_id = kwargs.get('cur_temp_entity') or None
     position_entity_id = kwargs.get('position_entity_id') or None
     allow_turning_off = kwargs.get('allow_turning_off', False) or False
-    temp_diff_factor = kwargs.get('temp_diff_factor', 1.0) or 1.0
+    temp_diff_factor = kwargs.get('temp_diff_factor', DEFAULT_TEMP_FACTOR) or DEFAULT_TEMP_FACTOR
     tolerance_down = kwargs.get('tolerance_down', DEFAULT_TOLERANCE_DOWN)
     tolerance_up = kwargs.get('tolerance_up', DEFAULT_TOLERANCE_UP)
     hvac_mode_on = kwargs.get('hvac_mode_on', None)
@@ -142,9 +142,10 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
         if allow_turning_off and valve_state == 'off':
             msgs.add(f'Turning on')
             valve_entity.turn_on()
+            task.sleep(3)
             if hvac_mode_on:
-                task.sleep(3)
                 valve_entity.set_hvac_mode(hvac_mode_on)
+                task.sleep(5)
     elif real_temp <= wanted_temp:
         msg = f'{vlv} real {real_temp} <= {wanted_temp} wanted, but not below tolerance {tolerance_down}. Breaking'
         log.debug(msg)
@@ -178,6 +179,8 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
     target_temp = min(target_temp, valve_max_temp, MAX_TEMP)
     # log.debug(f"{vlv} target_temp 3: {target_temp}")
 
+    valve_state = valve_entity.state()
+    # log.debug(f"{vlv} valve_state: {valve_state}")
     if valve_target_temp == target_temp:  # todo: ?!
     #     if valve_target_temp != wanted_temp:
     #         msg = f"{vlv} No Temperature difference. Setting Valve Temperature to {wanted_temp}."
@@ -189,14 +192,10 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
 
     if ((temp_diff > 0 and temp_difference_abs < tolerance_up)
             or (temp_diff < 0 and temp_difference_abs < tolerance_down)):
-        if valve_target_temp != wanted_temp:
-            msg = f"{vlv} Temperature difference too low. Setting Valve Temperature to {wanted_temp}."
-            msgs.add(msg, debug=True)
-            valve_entity.set_temperature(temperature=wanted_temp, hvac_mode=valve_state)
-            msgs.send()
-        return
-
-    if valve_target_temp != target_temp:
+        msg = f"{vlv} Temperature difference too low. Setting Valve Temperature to {wanted_temp}."
+        msgs.add(msg, debug=True)
+        valve_entity.set_temperature(temperature=wanted_temp, hvac_mode=valve_state)
+    else:
         msgs.add(f'{vlv} Setting temperature {valve_target_temp} to {target_temp}')
         valve_entity.set_temperature(temperature=target_temp, hvac_mode=valve_state)
 
