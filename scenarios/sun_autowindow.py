@@ -48,6 +48,8 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     reverse = kwargs.get('reverse', False)
     position_limit = kwargs.get('position_limit', 95)
     position_open = kwargs.get('position_open', 0)
+    cloud_coverage_limit = kwargs.get('cloud_coverage_limit', 90)
+    uv_index_limit = kwargs.get('uv_index_limit', None)
     window = Window(window_entity_id, reverse=reverse)
     # log.debug(f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}")
     window_fn = window.friendly_name()
@@ -75,16 +77,18 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
  'wind_speed': 14.7,
  'wind_speed_unit': 'km/h'}
 """
-    cloud_coverage_limit = 90
+
     cloud_coverage = int(weather.attrs().get('cloud_coverage', 0))
-    if elevation > 5 and cloud_coverage is not None and cloud_coverage > cloud_coverage_limit:
+    if (elevation > 5
+            and cloud_coverage_limit
+            and cloud_coverage is not None
+            and cloud_coverage > cloud_coverage_limit):
         window.open()
         log.debug(f"{__name__}: cloud_coverage is too high: {cloud_coverage}. Breaking.")
         return
 
-    uv_index_limit = 1
     uv_index = int(weather.attrs().get('uv_index', 0))
-    if elevation > 5 and uv_index is not None and uv_index < uv_index_limit:
+    if elevation > 5 and uv_index_limit is not None and uv_index is not None and uv_index < uv_index_limit:
         window.open()
         log.debug(f"{__name__}: uv_index is too low: {uv_index}. Breaking.")
         return
