@@ -92,3 +92,11 @@ class HA:
     def time_zone_pytz(self):
         from pendulum.tz import Timezone
         return Timezone(hass.config.time_zone)
+
+    def render_template(self, template_, *args, **kwargs):
+        """
+            returns template.Template("{{ states('light.office') == 'off' }}", hass).async_render()
+        """
+        tmpl = template.Template(template_, hass)
+        result = tmpl.async_render(*args, **kwargs)
+        return result
