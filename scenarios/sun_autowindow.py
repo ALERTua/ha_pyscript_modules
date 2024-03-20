@@ -49,7 +49,7 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     position_limit = kwargs.get('position_limit', 95)
     position_open = kwargs.get('position_open', 0)
     cloud_coverage_limit = kwargs.get('cloud_coverage_limit', 90)
-    uv_index_limit = kwargs.get('uv_index_limit', None)
+    uv_index_limit = kwargs.get('uv_index_limit', 0)
     window = Window(window_entity_id, reverse=reverse)
     # log.debug(f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}")
     window_fn = window.friendly_name()
@@ -81,14 +81,17 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     cloud_coverage = int(weather.attrs().get('cloud_coverage', 0))
     if (elevation > 5
             and cloud_coverage_limit
-            and cloud_coverage is not None
+            and cloud_coverage
             and cloud_coverage > cloud_coverage_limit):
         window.open()
         log.debug(f"{__name__}: cloud_coverage is too high: {cloud_coverage}. Breaking.")
         return
 
     uv_index = int(weather.attrs().get('uv_index', 0))
-    if elevation > 5 and uv_index_limit is not None and uv_index is not None and uv_index < uv_index_limit:
+    if (elevation > 5
+            and uv_index_limit
+            and uv_index
+            and uv_index < uv_index_limit):
         window.open()
         log.debug(f"{__name__}: uv_index is too low: {uv_index}. Breaking.")
         return
@@ -99,6 +102,7 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     max_azimuth = AZIMUTH_HIGH
     min_azimuth = AZIMUTH_LOW
     steps = [
+        # window_position_, step_high, step_low, step_force
         (60, ELEVATION_HIGH, 38, False),  # {step_high (or previous step_low)} >= {elevation} > {step_low}
         (70, None, 34, False),
         (80, None, 30, False),
@@ -112,12 +116,14 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     if azimuth < min_azimuth or azimuth > max_azimuth or elevation < ELEVATION_LOW or elevation > ELEVATION_HIGH:
         window_position = position_open
         force = True
-        log.debug(window_position)
-    elif (cloud_coverage is not None and cloud_coverage > cloud_coverage_limit
-          or uv_index is not None and uv_index < uv_index_limit):
+        log.debug(f'''{min_azimuth} < azimuth {azimuth} > {max_azimuth}
+{ELEVATION_LOW} > elevation {elevation} > {ELEVATION_HIGH}''')
+    elif ((cloud_coverage_limit and cloud_coverage > cloud_coverage_limit)
+          or (uv_index_limit and uv_index < uv_index_limit)):
         window_position = position_open
         force = True
-        log.debug(window_position)
+        log.debug(f'''cloud_coverage {cloud_coverage} > limit {cloud_coverage_limit}
+uv_index: {uv_index} < limit {uv_index_limit}''')
     else:
         for window_position_, step_high, step_low, step_force in steps:
             step_high = step_high or prev_high
@@ -125,7 +131,9 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
             if step_high >= elevation > step_low:
                 window_position = window_position_
                 force = step_force
-                log.debug(f'{__name__}: {window_fn}: {step_high} >= {elevation} > {step_low}: {window_position}')
+                log.debug(f'''{window_fn}:
+step: {window_position_}, {step_high}, {step_low}, {step_force}
+{step_high} >= {elevation} > {step_low}: {window_position}''')
                 break
 
     window_position = min(window_position, position_limit)
