@@ -121,7 +121,7 @@ def task_wait(func, *args, **kwargs):
     task.wait([task_id])
 
 
-def wait_speaker_idle(entity_ids, state_check_now=False, state_hold=1.0, timeout=None):
+def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=1.0, timeout=None):
     """
     https://hacs-pyscript.readthedocs.io/en/stable/reference.html#task-waiting
     """
