@@ -20,7 +20,8 @@ QUIET_HOURS_START = 22
 QUIET_HOURS_END = 8
 
 SHOWER_HUMIDITY = 'sensor.shower_humidity_latest'
-SHOWER_FAN = 'fan.shower'
+SHOWER_FAN = 'switch.shower_vents_l1'
+SHOWER_FAN_SLOW = 'switch.shower_vents_l2'
 SHOWER_SPEAKER = 'media_player.shower_speaker'
 SHOWER_FLOOR = 'climate.shower_floor_lt'
 SHOWER_FLOOR_CLOUD = 'climate.floor_shower_cloud'
@@ -85,6 +86,7 @@ KITCHEN_WANTED_TEMP = 'input_number.kitchen_wanted_temperature'
 KITCHEN_VALVE = 'climate.valve_kitchen'
 KITCHEN_VALVE_POSITION = 'sensor.valve_kitchen_position'
 PROJECTOR = 'switch.projector'
+HALLWAY_LIGHT = 'light.hallway'
 
 LAUNDRY_HUMIDITY = 'sensor.laundry_humidity_latest'
 LAUNDRY_TEMPERATURE = 'sensor.laundry_temperature_latest'
@@ -101,6 +103,9 @@ LIGHT_MAIN = 'light.main_switch'
 LIGHT_BATHROOM_TOP = 'light.bathroom'
 LIGHT_BATHROOM_LED = 'light.bathroom_led'
 
+ALERT_ASLEEP = 'binary_sensor.alert_is_asleep'
+CATBIRD_ASLEEP = 'binary_sensor.catbird_is_asleep'
+SOMEONE_ASLEEP = 'binary_sensor.someone_is_asleep'
 HALLWAY_GATEWAY_LUMEN = 'sensor.xiaomi_gateway_illumination'
 GATEWAY_V2_MAC = '04:CF:8C:9D:06:61'
 HALLWAY_SPEAKER = 'media_player.hallway_speaker'
@@ -139,6 +144,7 @@ MEDIA_CONTENT_TYPE = 'audio/mp3'
 
 
 def SECRET(value):
+    # noinspection PyUnresolvedReferences
     return pyscript.config.get('secrets', {}).get(value)
 
 
