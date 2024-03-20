@@ -70,18 +70,22 @@ def auto_vents(trigger_type=None, var_name=None, value=None, old_value=None, con
 
     for action in actions:
         wanted_entity_id = action.get('wanted_entity_id')
-        wanted_entity = Entity(wanted_entity_id)
-        wanted_entity_friendly_name = wanted_entity.friendly_name()
-        wanted_state = action.get('wanted_state')
-        trigger_name = kwargs.get('trigger', '')
-        if trigger_name:
-            trigger_name = f" {trigger_name}"
-        if wanted_entity_id and wanted_state:
-            current_state = wanted_entity.state()
-            # log.debug(f"Current {wanted_entity_id} state: {current_state}")
-            if wanted_state == current_state:
-                # log.debug(f"Nothing to do for {wanted_entity_friendly_name}")
-                continue
+        if not isinstance(wanted_entity_id, list):
+            wanted_entity_id = [wanted_entity_id]
+
+        for wanted_e_id in wanted_entity_id:
+            wanted_entity = Entity(wanted_e_id)
+            wanted_entity_friendly_name = wanted_entity.friendly_name()
+            wanted_state = action.get('wanted_state')
+            trigger_name = kwargs.get('trigger', '')
+            if trigger_name:
+                trigger_name = f" {trigger_name}"
+            if wanted_entity_id and wanted_state:
+                current_state = wanted_entity.state()
+                # log.debug(f"Current {wanted_entity_id} state: {current_state}")
+                if wanted_state == current_state:
+                    # log.debug(f"Nothing to do for {wanted_entity_friendly_name}")
+                    continue
 
         tg_kwargs = {}
         chat_id = action.get('telegram_chat_id')
@@ -98,7 +102,7 @@ def auto_vents(trigger_type=None, var_name=None, value=None, old_value=None, con
         callable_ = action.get('callable')
         if callable_:
             func_str = f"partial({callable_})"
-            # log.debug(func_str)
+            log.debug(f"callable: {func_str}")
             func = eval(func_str)
             func.__name__ = callable_
             func_kwargs = {}
