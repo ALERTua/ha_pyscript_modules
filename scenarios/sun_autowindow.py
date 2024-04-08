@@ -50,6 +50,8 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     position_open = kwargs.get('position_open', 0)
     cloud_coverage_limit = kwargs.get('cloud_coverage_limit', 90)
     uv_index_limit = kwargs.get('uv_index_limit', 0)
+    illumination_sensor = kwargs.get('illumination_sensor', None)
+    illumination_threshold = kwargs.get('illumination_threshold', 200)
     window = Window(window_entity_id, reverse=reverse)
     # log.debug(f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}")
     window_fn = window.friendly_name()
@@ -77,13 +79,25 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
  'wind_speed': 14.7,
  'wind_speed_unit': 'km/h'}
 """
+    if illumination_sensor:
+        i_sensor = entity(illumination_sensor)
+        illumination = 0
+        try:
+            illumination = int(i_sensor.state())
+        except:
+            pass
+
+        if illumination <= illumination_threshold:
+            window.position_set(position_open)
+            log.debug(f"{__name__}: illumination is less than threshold: {illumination} <= {illumination_threshold}.")
+            return
 
     cloud_coverage = int(weather.attrs().get('cloud_coverage', 0))
     if (elevation > 5
             and cloud_coverage_limit
             and cloud_coverage
             and cloud_coverage > cloud_coverage_limit):
-        window.open()
+        window.position_set(position_open)
         log.debug(f"{__name__}: cloud_coverage is too high: {cloud_coverage}. Breaking.")
         return
 
@@ -92,7 +106,7 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
             and uv_index_limit
             and uv_index
             and uv_index < uv_index_limit):
-        window.open()
+        window.position_set(position_open)
         log.debug(f"{__name__}: uv_index is too low: {uv_index}. Breaking.")
         return
 
@@ -109,7 +123,7 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
         (90, None, 25, False),
         (100, None, 0.8, False),
         (60, None, 0.5, True),
-        (0, None, ELEVATION_LOW, True),
+        (position_open, None, ELEVATION_LOW, True),
     ]
     window_position = prev_high = position_open
     force = False
@@ -153,7 +167,7 @@ step: {window_position_}, {step_high}, {step_low}, {step_force}
     input_boolean_ = kwargs.get('input_boolean')
     action_turn_off = f"input_boolean.turn_off(entity_id='{input_boolean_}')"
     cb_turn_off = register_telegram_callback(action_turn_off)
-    action_open_cover = f"cover.open_cover(entity_id='{window.entity_id}')"
+    action_open_cover = f"cover.set_cover_position(entity_id='{window.entity_id}', position={position_open})"
     cb_open_cover = register_telegram_callback(action_open_cover)
     inline = [
         [
@@ -166,6 +180,6 @@ Elevation: {elevation}
 Setting {window_fn} position from {window_position_current} to {window_position}"""
     log.info(f"{__name__}: {msg}")
     # tools.telegram_message(msg, inline_keyboard=inline, disable_notification=True)
-    tools.discord_message(msg)
+    tools.discord_message(msg, target=['1223990700266356847'])
     # cover.set_cover_position(entity_id=WINDOW_ENTITY_ID, position=window_position)
     window.position_set(window_position)
