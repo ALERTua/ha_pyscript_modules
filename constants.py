@@ -64,6 +64,7 @@ OFFICE_AC = 'climate.ac_office'
 OFFICE_LIGHTS = 'light.office'
 OFFICE_VALVE = 'climate.valve_office'
 OFFICE_VALVE_POSITION = 'sensor.valve_office_position'
+OFFICE_ILLUMINATION_SENSOR = 'sensor.lumi_lumi_sensor_motion_aq2_illuminance'
 
 ROOM_HUMIDIFIER = 'switch.room_humidifier'
 # ROOM_HUMIDIFIER_CLOUD = 'switch.room_humidifier_cloud'
@@ -103,12 +104,15 @@ LIGHT_MAIN = 'light.main_switch'
 LIGHT_BATHROOM_TOP = 'light.bathroom'
 LIGHT_BATHROOM_LED = 'light.bathroom_led'
 
+SOMEONE_HOME = 'binary_sensor.someone_s_home'
+
+TELEGRAM_CALLBACKS = 'pyscript.telegram_callbacks'
 ALERT_ASLEEP = 'binary_sensor.alert_is_asleep'
 CATBIRD_ASLEEP = 'binary_sensor.catbird_is_asleep'
 SOMEONE_ASLEEP = 'binary_sensor.someone_is_asleep'
 HALLWAY_GATEWAY_LUMEN = 'sensor.xiaomi_gateway_illumination'
 GATEWAY_V2_MAC = '04:CF:8C:9D:06:61'
-HALLWAY_SPEAKER = 'media_player.hallway_speaker'
+# HALLWAY_SPEAKER = 'media_player.hallway_speaker'
 
 ALL_SPEAKERS = 'media_player.all_speakers'
 ALL_SPEAKERS_GROUP = [
