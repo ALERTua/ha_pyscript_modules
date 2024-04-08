@@ -24,10 +24,13 @@ class Window(Switch):
         return output
 
     def position_set(self, value):
-        log.debug(f"Setting {self.ha_state} {self.friendly_name()} position to {value}")
         value = position_normalize(value)
         if self.reverse:
             value = 100 - int(value)
+        if self.position() == value:
+            return
+
+        log.debug(f"Setting {self.ha_state} {self.friendly_name()} position to {value}")
         # noinspection PyUnresolvedReferences
         return cover.set_cover_position(entity_id=self.entity_id, position=value)
 
