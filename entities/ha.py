@@ -2,7 +2,9 @@
 # https://hacs-pyscript.readthedocs.io/en/stable/
 from imports_base import *
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
-import homeassistant.helpers.template as template
+from homeassistant.helpers import template
+from homeassistant.helpers import device_registry
+from entities.device import Device
 
 
 class HA:
@@ -100,3 +102,22 @@ class HA:
         tmpl = template.Template(template_, hass)
         result = tmpl.async_render(*args, **kwargs)
         return result
+
+    def _device_registry(self):
+        return device_registry.async_get(hass)
+
+    def ha_devices(self, filter_func=None) -> list[device_registry.DeviceEntry]:
+        # duplicates = [_ for __, _ in devices.devices.items() if 'duplicates' in _.labels]
+        # duplicates = ha.devices(filter_func=lambda device: 'duplicates' in device.labels)
+        registry = self._device_registry()
+        output = registry.devices.values()
+        if filter_func:
+            output = filter(filter_func, output)
+        return list(output)
+
+    def devices(self, filter_func=None) -> list[Device]:
+        output = self.ha_devices(filter_func=filter_func)
+        log.debug(f"Returning {len(output)} devices")
+        if output:
+            output = [Device(_.id) for _ in output]
+        return output
