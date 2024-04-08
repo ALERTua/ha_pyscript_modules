@@ -14,7 +14,8 @@ class MediaPlayer(Switch):
                                        timeout=timeout)
 
     def volume_set(self, volume_level: float):
-        return media_player.volume_set(entity_id=self.entity_id, volume_level=volume_level)
+        if self.volume() != volume_level:
+            return media_player.volume_set(entity_id=self.entity_id, volume_level=volume_level)
 
     def volume(self):
         return self.state('volume_level') or None
