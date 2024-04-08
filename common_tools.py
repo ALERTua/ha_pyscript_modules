@@ -117,11 +117,17 @@ def speaker_toggle(entity_id, on=True):
 
 
 def task_wait(func, *args, **kwargs):
+    log.info(f"task_wait {func.__name__} {args}, {kwargs}")
     task_id = task.create(func, *args, **kwargs)
-    task.wait([task_id])
+    done, pending = task.wait([task_id])
+    # log.info(f"done {done}, pending {pending}")
+    while not done:
+        # log.info(f"done {done}, pending {pending}")
+        task.sleep(0.1)
+    log.info(f"task_wait {func.__name__} finished")
 
 
-def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=1.0, timeout=None):
+def wait_speaker_idle(entity_ids, state_check_now=False, state_hold=1.0, timeout=30):
     """
     https://hacs-pyscript.readthedocs.io/en/stable/reference.html#task-waiting
     """
@@ -129,7 +135,6 @@ def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=1.0, timeout=
     if not isinstance(entity_ids, List):
         entity_ids = [entity_ids]
     entity_ids = list(set(entity_ids))
-    
     idle_states = ('idle', 'on',)
     off_states = ('off', )
     statement = 'True'
@@ -162,7 +167,9 @@ def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=1.0, timeout=
     else:
         state_hold = None
         state_check_now = True
+    # log.info(f"wait started {state_hold}")
     task.wait_until(statement, timeout=timeout, state_hold=state_hold, state_check_now=state_check_now)
+    # log.info(f"wait finished")
     return output
 
     # log.debug(f"Entering {entity_id} idle state waiting. current state: {current_state}")
@@ -332,3 +339,7 @@ def only_roman_chars(unistr):
 def round_temp_float(temp_float, precision=0.5, round_result=1):
     temp_float = float(temp_float)
     return round(round(temp_float / precision, 0) * precision, round_result)
+
+
+def notify_alert_mob(message, *args, **kwargs):
+    notify.mobile_app_alert_s_s24(message=message, *args, **kwargs)
