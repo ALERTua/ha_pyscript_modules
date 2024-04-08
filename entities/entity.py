@@ -92,6 +92,24 @@ class Entity:
     def attrs(self) -> Dict:
         return self.ha_state.attributes
 
+    def setattr(self, name, value):
+        attrs = self.attrs()
+        # log.debug(f"{self.entity_id} attrs before:\n{pformat(attrs)}")
+        new_dict = {k: v for k, v in attrs.items()}
+        new_dict[name] = value
+        state.set(self.entity_id, new_attributes=new_dict)
+        # attrs = self.attrs()
+        # log.debug(f"{self.entity_id} attrs after:\n{pformat(attrs)}")
+
+    def delattr(self, name):
+        attrs = self.attrs()
+        # log.debug(f"{self.entity_id} attrs before:\n{pformat(attrs)}")
+        new_dict = {k: v for k, v in attrs.items() if k != name}
+        state.set(self.entity_id, new_attributes=new_dict)
+        # attrs = self.attrs()
+        # log.debug(f"{self.entity_id} attrs after:\n{pformat(attrs)}")
+
+
     def exists(self) -> bool:
         return self.ha_state is not None
 
@@ -145,6 +163,11 @@ class Entity:
             return
 
         return template.device_id(hass, self.entity_id)
+
+    def device(self):
+        if device_id := self.device_id():
+            from entities.device import Device
+            return Device(device_id)
 
     def device_entities(self):
         if self.ha_state is None:
