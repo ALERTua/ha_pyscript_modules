@@ -70,22 +70,35 @@ FAN_MODES = ['Silence', '1', '2', '3', '4', '5']
 #                    context=context, **kwargs)
 
 
-def turn_off(ac_entity, allow_turning_off=True, ac_action_wait=3):
+def turn_off(ac_entity, allow_turning_off=True, ac_action_wait=4):
     if allow_turning_off is True:
-        ac_entity.turn_off()
-        task.sleep(ac_action_wait)
-        ac_entity.turn_off()
-        task.sleep(ac_action_wait)
+        on = ac_entity.is_on()
+        if on:
+            ac_entity.turn_off()
+            task.sleep(ac_action_wait)
+        on = ac_entity.is_on()
+        if on:
+            ac_entity.turn_off()
+            task.sleep(ac_action_wait)
     else:
-        ac_entity.set_hvac_mode(HVAC_MODE_FAN)
-        task.sleep(ac_action_wait)
-        ac_entity.set_preset_mode(PRESET_MODE_OFF)
-        task.sleep(ac_action_wait)
+        hvac_mode = ac_entity.hvac_mode()
+        if hvac_mode != HVAC_MODE_FAN:
+            ac_entity.set_hvac_mode(HVAC_MODE_FAN)
+            task.sleep(ac_action_wait)
+        preset_mode = ac_entity.preset_mode()
+        if preset_mode != PRESET_MODE_OFF:
+            ac_entity.set_preset_mode(PRESET_MODE_OFF)
+            task.sleep(ac_action_wait)
+
         try:
             fan_mode = FAN_MODES[allow_turning_off]
         except:
             fan_mode = FAN_MODES[0]
-        ac_entity.set_fan_mode(fan_mode)
+
+        ac_fan_mode = ac_entity.fan_mode()
+        if ac_fan_mode != fan_mode:
+            ac_entity.set_fan_mode(fan_mode)
+            task.sleep(ac_action_wait)
 
 
 def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs):
@@ -137,9 +150,9 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     cur_temp_friendly_name = cur_temp_entity.friendly_name()
 
     ac_entity = entity(ac_entity_id)
-    ac_state = ac_entity.state()
-    ac_preset_mode = ac_entity.attrs().get('preset_mode')
-    ac_fan_speed = ac_entity.attrs().get('fan_mode')
+    ac_hvac_mode = ac_entity.hvac_mode()
+    ac_preset_mode = ac_entity.preset_mode()
+    ac_fan_speed = ac_entity.fan_mode()
     ac_temperature = round(float(ac_entity.attrs().get('temperature', cur_temp) or cur_temp), 1)
     ac_friendly_name = ac_entity.friendly_name()
     ac_action_wait = 3
@@ -179,7 +192,7 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
         msgs.add(f'{cur_temp} < ↓{temp_low_bar}')
         wanted_state = HVAC_MODE_HEAT
     else:
-        wanted_state = ac_state
+        wanted_state = ac_hvac_mode
         msgs.add(f'{temp_high_bar} ↑ {cur_temp} ↓ {temp_low_bar}')
 
     if wanted_state not in allowed_modes:
@@ -187,20 +200,20 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
         msgs.send()
         turn_off(ac_entity, allow_turning_off, ac_action_wait)
         return
-    elif ac_state != wanted_state:
+    elif ac_hvac_mode != wanted_state:
         msgs.add(f"wanted_state: {wanted_state}")
 
-    if ac_state != HVAC_MODE_OFF and wanted_state == HVAC_MODE_OFF:
+    if ac_hvac_mode != HVAC_MODE_OFF and wanted_state == HVAC_MODE_OFF:
         log.debug(f"{ac_friendly_name} wanted_state off. Turning off.")
         msgs.send()
         turn_off(ac_entity, allow_turning_off, ac_action_wait)
         return
-    elif ac_state == HVAC_MODE_OFF and wanted_state == HVAC_MODE_OFF:
-        log.debug(f"{ac_friendly_name} ac_state == wanted_state == {HVAC_MODE_OFF}")
+    elif ac_hvac_mode == HVAC_MODE_OFF and wanted_state == HVAC_MODE_OFF:
+        log.debug(f"{ac_friendly_name} ac_hvac_mode == wanted_state == {HVAC_MODE_OFF}")
         return
 
-    if ac_state != HVAC_MODE_OFF and ac_state not in allowed_modes:
-        msgs.add(f'{ac_friendly_name} current state unallowed: {ac_state}. Turning off.')
+    if ac_hvac_mode != HVAC_MODE_OFF and ac_hvac_mode not in allowed_modes:
+        msgs.add(f'{ac_friendly_name} current state unallowed: {ac_hvac_mode}. Turning off.')
         msgs.send()
         turn_off(ac_entity, allow_turning_off, ac_action_wait)
         return
@@ -228,14 +241,14 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
         f"🌡️ {cur_temp_friendly_name}: {cur_temp}",
         f"🎯 {wanted_temp_entity_friendly_name}: {wanted_temp}",
         f'temp_difference: {temp_difference}',
-        f"state: {ac_state}",
+        f"hvac_mode: {ac_hvac_mode}",
         f"allowed_modes: {allowed_modes}",
         f"preset_mode: {ac_preset_mode}",
         f"🌬️fan_speed: {ac_fan_speed}: {index_try}/{len(FAN_MODES)}",
     ]
 
-    if ac_state != wanted_state and wanted_state in allowed_modes:
-        msgs.add(f'Setting HVAC state {ac_state} to {wanted_state}')
+    if ac_hvac_mode != wanted_state and wanted_state in allowed_modes:
+        msgs.add(f'Setting HVAC Mode {ac_hvac_mode} to {wanted_state}')
         ac_entity.set_hvac_mode(wanted_state)
         task.sleep(ac_action_wait)
 

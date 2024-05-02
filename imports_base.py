@@ -44,7 +44,12 @@ def conditional(*conditions, and_=True):
     return decorator
 
 
-def _entity_exists(entity_id):
+def entity_not_exists(entity_id):
+    return f"(hass.states.get(f'{entity_id}') in {UNK_S}) "
+    # return f"hass.states.get('{entity_id}') is not None"
+
+
+def entity_exists_1(entity_id):
     return f"(hass.states.get(f'{entity_id}') is not None and {entity_id} not in {UNK_S}) "
     # return f"hass.states.get('{entity_id}') is not None"
 
@@ -73,3 +78,7 @@ def entity_off(entity_id):
 
 def entity_not_off(entity_id):
     return f"({entity_id} not in ('off', 'away')) "
+
+
+def speaker_idle(entity_id):
+    return f"({entity_id} in ('off', 'on', 'idle')) "

@@ -5,7 +5,7 @@ from entities.window import Window
 
 WEATHER_ENTITY_ID = 'weather.accuweather'
 AZIMUTH_LOW = 212
-AZIMUTH_HIGH = 285
+AZIMUTH_HIGH = 291  # 291 is below the roof of house #3
 ELEVATION_LOW = 0
 ELEVATION_HIGH = 58
 
@@ -145,7 +145,8 @@ uv_index: {uv_index} < limit {uv_index_limit}''')
             if step_high >= elevation > step_low:
                 window_position = window_position_
                 force = step_force
-                log.debug(f'''{window_fn}:
+                if window.position() != window_position:  # print only if a change needs to be made
+                    log.debug(f'''{window_fn}:
 step: {window_position_}, {step_high}, {step_low}, {step_force}
 {step_high} >= {elevation} > {step_low}: {window_position}''')
                 break
@@ -156,12 +157,12 @@ step: {window_position_}, {step_high}, {step_low}, {step_force}
     # log.debug(f"window position: {window_position}")
     window_position_current = window.position()
     if window_position_current is not None and int(window_position_current) == window_position:
-        log.debug(f"{__name__}: {window_fn} position is already: {window_position_current}. Breaking.")
+        # log.debug(f"{__name__}: {window_fn} position is already: {window_position_current}. Breaking.")
         return
 
     if not force and window_position_current is not None and int(window_position_current) > window_position:
-        log.debug(f"{__name__}: Won't close({window_position}) {window_fn} that is already "
-                  f"closed({window_position_current}).")
+        # log.debug(f"{__name__}: Won't close({window_position}) {window_fn} that is already "
+        #           f"closed({window_position_current}).")
         return
 
     input_boolean_ = kwargs.get('input_boolean')

@@ -4,10 +4,60 @@ from entities.switch import Switch
 
 
 class Climate(Switch):
+    """
+    {
+        'entity_id': 'climate.ac_office',
+        'state': 'fan_only',
+        'attributes': {
+            'hvac_modes': [
+                "<HVACMode.FAN_ONLY: 'fan_only'>",
+                "<HVACMode.DRY: 'dry'>",
+                "<HVACMode.COOL: 'cool'>",
+                "<HVACMode.HEAT: 'heat'>",
+                "<HVACMode.HEAT_COOL: 'heat_cool'>",
+                "<HVACMode.OFF: 'off'>"
+            ],
+            'min_temp': 7,
+            'max_temp': 35,
+            'target_temp_step': 1,
+            'fan_modes': [
+                'Auto', 'Silence', '1', '2', '3', '4', '5'
+            ],
+            'preset_modes': ['none', 'away', 'eco', 'boost'],
+            'swing_modes': ['Off', 'Vertical', 'Horizontal', '3D'],
+            'current_temperature': 24.0,
+            'temperature': None,
+            'fan_mode': '2',
+            'preset_mode': 'none',
+            'swing_mode': 'Vertical',
+            'friendly_name': 'OfficeAC',
+            'supported_features': "<ClimateEntityFeature.TARGET_TEMPERATURE|FAN_MODE|PRESET_MODE|SWING_MODE|TURN_OFF|TURN_ON: 441>"
+        },
+        'last_changed': '2024-05-02T12:00:12.825057+00:00', 'last_reported': '2024-05-02T12:05:20.180818+00:00',
+        'last_updated': '2024-05-02T12:05:20.180818+00:00',
+        'context': {'id': '01HWWK3Q5M86HYM5SYD8A0Y2MN', 'parent_id': None, 'user_id': None}
+    }
+    """
     # noinspection PyMissingConstructor
     def __init__(self, entity_id):
         self.entity_id = entity_id
         self.init()
+
+    def hvac_mode(self):
+        return self.state()
+
+    def preset_mode(self):
+        return self.state('preset_mode')
+
+    def swing_mode(self):
+        return self.state('swing_mode')
+
+    def current_temperature(self):
+        return self.state('current_temperature')
+
+    def fan_mode(self):
+        output = self.state('fan_mode')
+        return output
 
     def set_hvac_mode(self, hvac_mode, *args, **kwargs):
         log.debug(f"set_hvac_mode for {self} to {hvac_mode}")
