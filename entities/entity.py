@@ -128,9 +128,9 @@ class Entity:
     def friendly_name(self):
         return self.attrs().get('friendly_name')
 
-    def state(self, attr=None):
+    def state(self, attr=None, default=None):
         if attr:
-            return self.attrs().get(attr)
+            return self.attrs().get(attr, default)
 
         return self.ha_state.state
 
