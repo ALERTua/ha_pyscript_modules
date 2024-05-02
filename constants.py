@@ -64,7 +64,7 @@ OFFICE_AC = 'climate.ac_office'
 OFFICE_LIGHTS = 'light.office'
 OFFICE_VALVE = 'climate.valve_office'
 OFFICE_VALVE_POSITION = 'sensor.valve_office_position'
-OFFICE_ILLUMINATION_SENSOR = 'sensor.lumi_lumi_sensor_motion_aq2_illuminance'
+OFFICE_ILLUMINATION_SENSOR = 'sensor.motion_detector_1_illuminance_lux'
 
 ROOM_HUMIDIFIER = 'switch.room_humidifier'
 # ROOM_HUMIDIFIER_CLOUD = 'switch.room_humidifier_cloud'
