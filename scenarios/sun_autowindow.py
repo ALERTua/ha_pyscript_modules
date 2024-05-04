@@ -127,7 +127,10 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     ]
     window_position = prev_high = position_open
     force = False
-    if azimuth < min_azimuth or azimuth > max_azimuth or elevation < ELEVATION_LOW or elevation > ELEVATION_HIGH:
+    if azimuth < min_azimuth:
+        return
+
+    if azimuth > max_azimuth or elevation < ELEVATION_LOW or elevation > ELEVATION_HIGH:
         window_position = position_open
         force = True
         log.debug(f'''{min_azimuth} < azimuth {azimuth} > {max_azimuth}
