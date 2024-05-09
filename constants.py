@@ -20,6 +20,7 @@ QUIET_HOURS_START = 22
 QUIET_HOURS_END = 8
 
 SHOWER_HUMIDITY = 'sensor.shower_humidity_latest'
+SHOWER_TEMPERATURE = 'sensor.shower_temperature_latest'
 SHOWER_FAN = 'switch.shower_vents_l1'
 SHOWER_FAN_SLOW = 'switch.shower_vents_l2'
 SHOWER_SPEAKER = 'media_player.shower_speaker'
@@ -73,6 +74,7 @@ ROOM_TEMPERATURE = 'sensor.room_temperature_latest'
 ROOM_VALVE_POSITION = 'sensor.valve_room_position'
 ROOM_WANTED_TEMP = 'input_number.room_wanted_temperature'
 ROOM_WINDOW = 'cover.room_window'
+ROOM_WINDOW_CLOUD = 'cover.room_window_cloud'
 ROOM_SPEAKER = 'media_player.room_speaker'
 ROOM_AC = 'climate.ac_room'
 ROOM_VALVE = 'climate.valve_room'
@@ -97,6 +99,7 @@ LAUNDRY_VALVE_COLD = 'switch.valve_cold'
 GROUP_LEAK = 'group.water_leak_group'
 GROUP_VALVES = 'group.water_valves'
 SERVER_TEMPERATURE = 'sensor.server_cpu_temperature'
+SERVER_RAM_USED_PERCENT = 'sensor.server_ram_used_percent'
 
 LIGHT_SHOWER_TOP = 'light.shower'
 LIGHT_SHOWER_LED = 'light.shower_led'
