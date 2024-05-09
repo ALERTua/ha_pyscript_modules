@@ -5,7 +5,7 @@ from entities.window import Window
 
 WEATHER_ENTITY_ID = 'weather.accuweather'
 AZIMUTH_LOW = 212
-AZIMUTH_HIGH = 291  # 291 is below the roof of house #3
+AZIMUTH_HIGH = 300
 ELEVATION_LOW = 0
 ELEVATION_HIGH = 58
 
@@ -45,6 +45,7 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
         log.info("Cannot _sun_autowindow: no window_entity_id")
         return
 
+    dbg = False
     reverse = kwargs.get('reverse', False)
     position_limit = kwargs.get('position_limit', 95)
     position_open = kwargs.get('position_open', 0)
@@ -53,14 +54,15 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     illumination_sensor = kwargs.get('illumination_sensor', None)
     illumination_threshold = kwargs.get('illumination_threshold', 200)
     window = Window(window_entity_id, reverse=reverse)
-    # log.debug(f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}")
+    if dbg:
+        log.debug(f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}")
     window_fn = window.friendly_name()
 
     sun_state = state.getattr('sun.sun')
     azimuth = float(sun_state.get('azimuth') or -9999)
     elevation = float(sun_state.get('elevation') or -9999)
 
-    weather = entity(WEATHER_ENTITY_ID)
+    weather_e = entity(WEATHER_ENTITY_ID)
     """
 {'apparent_temperature': 21.1,
  'cloud_coverage': 90,
@@ -79,6 +81,12 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
  'wind_speed': 14.7,
  'wind_speed_unit': 'km/h'}
 """
+    max_azimuth = AZIMUTH_HIGH
+    min_azimuth = AZIMUTH_LOW
+
+    if azimuth < min_azimuth or elevation > ELEVATION_HIGH:  # before noon
+        return
+
     if illumination_sensor:
         i_sensor = entity(illumination_sensor)
         illumination = 0
@@ -92,7 +100,7 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
             log.debug(f"{__name__}: illumination is less than threshold: {illumination} <= {illumination_threshold}.")
             return
 
-    cloud_coverage = int(weather.attrs().get('cloud_coverage', 0))
+    cloud_coverage = int(weather_e.attrs().get('cloud_coverage', 0))
     if (elevation > 5
             and cloud_coverage_limit
             and cloud_coverage
@@ -101,7 +109,7 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
         log.debug(f"{__name__}: cloud_coverage is too high: {cloud_coverage}. Breaking.")
         return
 
-    uv_index = int(weather.attrs().get('uv_index', 0))
+    uv_index = int(weather_e.attrs().get('uv_index', 0))
     if (elevation > 5
             and uv_index_limit
             and uv_index
@@ -113,8 +121,6 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     # p = ha.datetime_p()
     # month = p.month
     # if 4 <= month <= 8:  # [april,august]
-    max_azimuth = AZIMUTH_HIGH
-    min_azimuth = AZIMUTH_LOW
     steps = [
         # window_position_, step_high, step_low, step_force
         (60, ELEVATION_HIGH, 38, False),  # {step_high (or previous step_low)} >= {elevation} > {step_low}
@@ -127,10 +133,8 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     ]
     window_position = prev_high = position_open
     force = False
-    if azimuth < min_azimuth:
-        return
 
-    if azimuth > max_azimuth or elevation < ELEVATION_LOW or elevation > ELEVATION_HIGH:
+    if azimuth > max_azimuth or elevation < ELEVATION_LOW:
         window_position = position_open
         force = True
         log.debug(f'''{min_azimuth} < azimuth {azimuth} > {max_azimuth}
@@ -148,10 +152,12 @@ uv_index: {uv_index} < limit {uv_index_limit}''')
             if step_high >= elevation > step_low:
                 window_position = window_position_
                 force = step_force
-                if window.position() != window_position:  # print only if a change needs to be made
+                window_position_current = window.position()
+                real_wanted_window_position = min(window_position, position_limit)
+                if window_position_current != real_wanted_window_position:  #print only if a change needs to be made
                     log.debug(f'''{window_fn}:
-step: {window_position_}, {step_high}, {step_low}, {step_force}
-{step_high} >= {elevation} > {step_low}: {window_position}''')
+                    step: {window_position_}, {step_high}, {step_low}, {step_force}
+                    {step_high} >= {elevation} > {step_low}: {window_position} vs {window_position_current}''')
                 break
 
     window_position = min(window_position, position_limit)
