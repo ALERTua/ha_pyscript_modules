@@ -2,7 +2,7 @@ from imports import *
 from pyscript_mock import *
 
 
-DEFAULT_BOOST_TEMP_DIFFERENCE = 1.2
+DEFAULT_BOOST_TEMP_DIFFERENCE = 1.5
 DEFAULT_TEMP_TOLERANCE_UP = 0.5
 DEFAULT_TEMP_TOLERANCE_DOWN = 0.1
 DEFAULT_HOLD = HOLD_1M
@@ -129,7 +129,7 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     #         'supported_features': <ClimateEntityFeature.SWING_MODE|PRESET_MODE|FAN_MODE|TARGET_TEMPERATURE: 57>},
     #         'last_changed': '2023-05-23T16:32:31.787600+00:00',
     #         'last_updated': '2023-05-23T16:32:31.787600+00:00',
-
+    dbg = False
     wanted_temp_entity_id = kwargs.get('wanted_temperature_entity')
     ac_entity_id = kwargs.get('ac_entity')
     assert ac_entity_id, f"ac_entity_id: {ac_entity_id}, kwargs: {kwargs}"
@@ -253,34 +253,37 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
         task.sleep(ac_action_wait)
 
     if change_fan_speed:  # and temp_difference_ok
-        wanted_fan_speed = abs(float(len(FAN_MODES)) * (temp_difference or 0.1) / float(boost_temp_difference))
+        wanted_fan_speed = abs(float(len(FAN_MODES)) * (temp_difference or 0.1) / float(boost_temp_difference or 2))
         wanted_fan_speed -= 1  # indexes from 0
-        # log.debug(f"before mod: {wanted_fan_speed}")
-        # if wanted_fan_speed % 1.0 >= 0.41:
+        if dbg:
+            log.debug(f"before mod: {wanted_fan_speed}")
         if (wanted_fan_speed_div := wanted_fan_speed % 1.0) >= 0.5:
             wanted_fan_speed -= wanted_fan_speed_div
             wanted_fan_speed += 1
-            # log.debug(f"after mod: {wanted_fan_speed}")
+            if dbg:
+                log.debug(f"after mod: {wanted_fan_speed}")
 
         wanted_fan_speed = int(round(wanted_fan_speed, 0))
-        # log.debug(f"after int: {wanted_fan_speed}")
+        if dbg:
+            log.debug(f"after int: {wanted_fan_speed}")
 
         if fan_speed_limit is not None:
             wanted_fan_speed = min(wanted_fan_speed, int(fan_speed_limit))
-            # log.debug(f"after min: {wanted_fan_speed}")
+            if dbg:
+                log.debug(f"after min: {wanted_fan_speed}")
 
         if wanted_fan_speed > len(FAN_MODES) - 1:
             preset_target = PRESET_MODE_BOOST
-            # log.debug(f"too much boost: {wanted_fan_speed} > {len(FAN_MODES) - 1}")
+            if dbg:
+                log.debug(f"too much boost: {wanted_fan_speed} > {len(FAN_MODES) - 1}")
         else:
             wanted_fan_speed = max(min(wanted_fan_speed, len(FAN_MODES) - 1), 0)
-            # log.debug(f"after max: {wanted_fan_speed}")
-
-            #         log.debug(f"""{ac_friendly_name}
-            # float(len(FAN_MODES)) * (temp_difference or 0.1) / float(boost_temp_difference):
-            # {float(len(FAN_MODES))} * {(temp_difference or 0.1)} / {float(boost_temp_difference)}
-            # wanted_fan_speed: {wanted_fan_speed}/{len(FAN_MODES)}
-            # """)
+            if dbg:
+                log.debug(f"after max: {wanted_fan_speed}")
+                log.debug(f"""{ac_friendly_name}
+                          float(len(FAN_MODES)) * (temp_difference or 0.1) / float(boost_temp_difference):
+                          {float(len(FAN_MODES))} * {(temp_difference or 0.1)} / {float(boost_temp_difference)}
+                          wanted_fan_speed: {wanted_fan_speed}/{len(FAN_MODES)}""")
 
             try:
                 wanted_fan_speed = FAN_MODES[wanted_fan_speed]
