@@ -117,14 +117,15 @@ def speaker_toggle(entity_id, on=True):
 
 
 def task_wait(func, *args, **kwargs):
-    log.info(f"task_wait {func.__name__} {args}, {kwargs}")
+    func_name = getattr(func, '__name__', func)
+    log.info(f"task_wait {func_name} {args}, {kwargs}")
     task_id = task.create(func, *args, **kwargs)
-    done, pending = task.wait([task_id])
+    done, pending = task.wait({task_id})
     # log.info(f"done {done}, pending {pending}")
     while not done:
         # log.info(f"done {done}, pending {pending}")
         task.sleep(0.1)
-    log.info(f"task_wait {func.__name__} finished")
+    log.info(f"task_wait {func_name} finished")
 
 
 def wait_speaker_idle(entity_ids, state_check_now=False, state_hold=1.0, timeout=30):
@@ -234,10 +235,6 @@ def timestamp_to_date(timestamp=None, _format='%Y-%m-%d_%H-%M-%S', timezone="loc
         timestamp = pendulum.now(tz=timezone)
     output = timestamp.strftime(_format)
     return output
-
-
-def func_name():
-    return traceback.extract_stack(None, 2)[0][2]
 
 
 def dt_to_pd(dt, timezone="local") -> DateTime:

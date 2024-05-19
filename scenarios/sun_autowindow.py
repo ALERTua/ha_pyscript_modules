@@ -47,12 +47,12 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
 
     dbg = False
     reverse = kwargs.get('reverse', False)
-    position_limit = kwargs.get('position_limit', 95)
-    position_open = kwargs.get('position_open', 0)
-    cloud_coverage_limit = kwargs.get('cloud_coverage_limit', 90)
-    uv_index_limit = kwargs.get('uv_index_limit', 0)
+    position_limit = int(kwargs.get('position_limit', 95))
+    position_open = int(kwargs.get('position_open', 0))
+    cloud_coverage_limit = int(kwargs.get('cloud_coverage_limit', 90))
+    uv_index_limit = int(kwargs.get('uv_index_limit', 0))
     illumination_sensor = kwargs.get('illumination_sensor', None)
-    illumination_threshold = kwargs.get('illumination_threshold', 200)
+    illumination_threshold = int(kwargs.get('illumination_threshold', 200))
     window = Window(window_entity_id, reverse=reverse)
     if dbg:
         log.debug(f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}")
@@ -123,13 +123,15 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     # if 4 <= month <= 8:  # [april,august]
     steps = [
         # window_position_, step_high, step_low, step_force
-        (60, ELEVATION_HIGH, 38, False),  # {step_high (or previous step_low)} >= {elevation} > {step_low}
-        (70, None, 34, False),
-        (80, None, 30, False),
+        (50, ELEVATION_HIGH, 48, False),  # {step_high (or previous step_low)} >= {elevation} > {step_low}
+        (60, None, 46, False),
+        (70, None, 44, False),
+        (80, None, 39, False),
         (90, None, 25, False),
         (100, None, 0.8, False),
         (60, None, 0.5, True),
         (position_open, None, ELEVATION_LOW, True),
+        (position_open, None, -5, True),
     ]
     window_position = prev_high = position_open
     force = False
@@ -154,10 +156,10 @@ uv_index: {uv_index} < limit {uv_index_limit}''')
                 force = step_force
                 window_position_current = window.position()
                 real_wanted_window_position = min(window_position, position_limit)
-                if window_position_current != real_wanted_window_position:  #print only if a change needs to be made
+                if window_position_current != real_wanted_window_position:  # print only if a change needs to be made
                     log.debug(f'''{window_fn}:
                     step: {window_position_}, {step_high}, {step_low}, {step_force}
-                    {step_high} >= {elevation} > {step_low}: {window_position} vs {window_position_current}''')
+                    {step_high} >= {elevation} > {step_low}: {window_position} {real_wanted_window_position} vs {window_position_current}''')
                 break
 
     window_position = min(window_position, position_limit)
@@ -185,11 +187,9 @@ uv_index: {uv_index} < limit {uv_index_limit}''')
             [f"Open {window_fn}", cb_open_cover],
         ],
     ]
-    msg = f"""Azimuth: {azimuth}
-Elevation: {elevation}
+    msg = f"""Azimuth: {azimuth} Elevation: {elevation}
 Setting {window_fn} position from {window_position_current} to {window_position}"""
-    log.info(f"{__name__}: {msg}")
+    log.info(f"{__name__}:\n{msg}")
     # tools.telegram_message(msg, inline_keyboard=inline, disable_notification=True)
     tools.discord_message(msg, target=['1223990700266356847'])
-    # cover.set_cover_position(entity_id=WINDOW_ENTITY_ID, position=window_position)
     window.position_set(window_position)
