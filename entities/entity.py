@@ -109,7 +109,6 @@ class Entity:
         # attrs = self.attrs()
         # log.debug(f"{self.entity_id} attrs after:\n{pformat(attrs)}")
 
-
     def exists(self) -> bool:
         return self.ha_state is not None
 
