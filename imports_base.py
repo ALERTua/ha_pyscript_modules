@@ -4,7 +4,7 @@ from pprint import pprint, pformat
 from pathlib import Path
 from functools import lru_cache, partial
 from datetime import datetime
-from typing import TYPE_CHECKING, Iterable, List, Dict, Collection, Callable, Any
+from typing import TYPE_CHECKING, Iterable, List, Dict, Collection, Callable, Any, Literal
 from copy import copy
 import functools
 from constants import *
@@ -21,8 +21,7 @@ MEDIA_PATH_BASE = Path('/config/www/media')
 EXTERNAL_MEDIA_BASE = '/local/media/'
 
 
-# Enable the automation only if all passed conditions are true
-def conditional(*conditions, and_=True):
+def conditional(*conditions, and_=True, debug=False):
     """
     @conditional(
         "sensor.example1 == 'on'",
@@ -32,9 +31,16 @@ def conditional(*conditions, and_=True):
     """
 
     def decorator(fn):
-        cond = 'all' if and_ else 'any'
-        conditions_str = ", ".join(conditions)
-        expr = f"{cond}([{conditions_str}])"
+        joint = 'and' if and_ else 'or'
+        expr = ''
+        for condition in conditions:
+            if expr:
+                expr += f" {joint} "
+
+            expr += f"({condition})"
+
+        if debug:
+            log.debug(f"conditional: {expr}")
 
         @functools.wraps(fn)
         @state_active(expr)
@@ -44,41 +50,8 @@ def conditional(*conditions, and_=True):
     return decorator
 
 
-def entity_not_exists(entity_id):
-    return f"(hass.states.get(f'{entity_id}') in {UNK_S}) "
-    # return f"hass.states.get('{entity_id}') is not None"
-
-
-def entity_exists_1(entity_id):
-    return f"(hass.states.get(f'{entity_id}') is not None and {entity_id} not in {UNK_S}) "
-    # return f"hass.states.get('{entity_id}') is not None"
-
-
-def entity_exists(*entity_ids):
-    msg = ''
-    for entity_id in entity_ids:
-        msg += f"(hass.states.get(f'{entity_id}') is not None and {entity_id} not in {UNK_S}), "
-
-    output = f"all([{msg}]) "
-    # log.debug(f"entity_exists: {output}")
-    return output
-
-
-def entity_on(entity_id):
-    return f"({entity_id} in ('on', 'home')) "
-
-
-def entity_not_on(entity_id):
-    return f"({entity_id} not in ('on', 'home')) "
-
-
-def entity_off(entity_id):
-    return f"({entity_id} in ('off', 'away')) "
-
-
-def entity_not_off(entity_id):
-    return f"({entity_id} not in ('off', 'away')) "
-
-
-def speaker_idle(entity_id):
-    return f"({entity_id} in ('off', 'on', 'idle')) "
+def float_(obj):
+    try:
+        return float(obj)
+    except:
+        return -666

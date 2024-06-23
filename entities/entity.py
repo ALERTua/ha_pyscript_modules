@@ -18,17 +18,21 @@ def entity(entity_id):
     if isinstance(entity_id, Entity):
         return entity_id
 
-    if (output := Entity.entity_library.get(entity_id)) is not None:
-        # log.debug(f"Returned {entity_id} from library")
+    if isinstance(entity_id, str) and entity_id.count('.') > 1:
+        entity_id = '.'.join(entity_id.split('.')[:2])
+
+    output = Entity.entity_library.get(entity_id)
+    if output is not None:
+        # log.debug(f"Returned {entity_id} from library: {type(output)} {output}")
         return output
 
-    try:
-        domain = getattr(hass.states.get(entity_id), 'domain')
-    except:
-        domain = None
+    e_state = hass.states.get(entity_id)
+    domain = getattr(e_state, 'domain', None)
 
     if domain is None or not domain:
-        tools.telegram_message_alert_ha_private(f"Entity getter failed at {entity_id}", disable_notification=True)
+        msg = f"⛔Entity getter failed for\n{entity_id}\n{e_state}"
+        # tools.telegram_message_alert_ha_private(msg, disable_notification=True)
+        tools.discord_message(msg, target=['1252277077848359055'])
 
     if domain == 'binary_sensor':
         from entities.binary_sensor import BinarySensor

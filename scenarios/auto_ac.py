@@ -129,7 +129,7 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     #         'supported_features': <ClimateEntityFeature.SWING_MODE|PRESET_MODE|FAN_MODE|TARGET_TEMPERATURE: 57>},
     #         'last_changed': '2023-05-23T16:32:31.787600+00:00',
     #         'last_updated': '2023-05-23T16:32:31.787600+00:00',
-    dbg = False
+    dbg = True
     wanted_temp_entity_id = kwargs.get('wanted_temperature_entity')
     ac_entity_id = kwargs.get('ac_entity')
     assert ac_entity_id, f"ac_entity_id: {ac_entity_id}, kwargs: {kwargs}"
@@ -150,9 +150,19 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     cur_temp_friendly_name = cur_temp_entity.friendly_name()
 
     ac_entity = entity(ac_entity_id)
+
+    # try:
+    #     ac_hvac_mode = ac_entity.hvac_mode()
+    #     ac_preset_mode = ac_entity.preset_mode()
+    #     ac_fan_speed = ac_entity.fan_mode()
+    # except Exception as e:
+    #     log.debug(f"{ac_entity_id} {type(ac_entity)} {ac_entity} exception: {type(e)} {str(e)}")
+    #     return
+
     ac_hvac_mode = ac_entity.hvac_mode()
     ac_preset_mode = ac_entity.preset_mode()
     ac_fan_speed = ac_entity.fan_mode()
+
     ac_temperature = round(float(ac_entity.attrs().get('temperature', cur_temp) or cur_temp), 1)
     ac_friendly_name = ac_entity.friendly_name()
     ac_action_wait = 3
