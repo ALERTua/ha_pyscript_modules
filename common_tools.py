@@ -56,6 +56,7 @@ def telegram_message(msg=None, disable_notification=True, **kwargs):
     if not msg:
         log.error("Couldn't send telegram message: msg is None or empty")
         return
+
     msg_limit = 4096
     msgs = [msg[i:i + msg_limit] for i in range(0, len(msg), msg_limit)]
     for msg in msgs:

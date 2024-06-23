@@ -45,9 +45,11 @@ class HA:
     def datetime_dt_utc(self):
         return template.utcnow(hass)
 
-    def datetime_p(self):
-        datetime_dt = self.datetime_dt()
-        timestamp = datetime_dt.timestamp()
+    def datetime_p(self, timestamp=None):
+        if timestamp is None:
+            datetime_dt = self.datetime_dt()
+            timestamp = datetime_dt.timestamp()
+
         tz = self.time_zone_pytz()
         output = pendulum.from_timestamp(timestamp, tz=tz)
         return output

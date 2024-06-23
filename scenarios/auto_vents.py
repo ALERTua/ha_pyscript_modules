@@ -15,10 +15,10 @@ from entities.entity import Entity
 # @task_unique('func_shower_humidity_auto_fan_on', kill_me=True)
 # @state_trigger(
 #     f"{entity_exists(SHOWER_HUMIDITY, BEDROOM_HUMIDITY)} "
-#     f" and float({SHOWER_HUMIDITY}) >= {HUMIDITY_MID} "
-#     f" and float({SHOWER_HUMIDITY}) >= float({BEDROOM_HUMIDITY}) + 10 ",
-#     f"{entity_exists(BEDROOM_HUMIDITY)} and float({BEDROOM_HUMIDITY}) >= {HUMIDITY_MID}",
-#     f"{entity_exists(SHOWER_HUMIDITY)} and float({SHOWER_HUMIDITY}) >= {HUMIDITY_VERYHIGH}",
+#     f" and float_({SHOWER_HUMIDITY}) >= {HUMIDITY_MID} "
+#     f" and float_({SHOWER_HUMIDITY}) >= float_({BEDROOM_HUMIDITY}) + 10 ",
+#     f"{entity_exists(BEDROOM_HUMIDITY)} and float_({BEDROOM_HUMIDITY}) >= {HUMIDITY_MID}",
+#     f"{entity_exists(SHOWER_HUMIDITY)} and float_({SHOWER_HUMIDITY}) >= {HUMIDITY_VERYHIGH}",
 #     watch=[
 #         SHOWER_HUMIDITY,
 #         BEDROOM_HUMIDITY,
