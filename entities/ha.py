@@ -2,8 +2,7 @@
 # https://hacs-pyscript.readthedocs.io/en/stable/
 from imports_base import *
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
-from homeassistant.helpers import template
-from homeassistant.helpers import device_registry
+from homeassistant.helpers import template, device_registry
 from entities.device import Device
 
 
