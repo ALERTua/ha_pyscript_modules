@@ -7,7 +7,7 @@ WEATHER_ENTITY_ID = 'weather.accuweather'
 AZIMUTH_LOW = 212
 AZIMUTH_HIGH = 298
 ELEVATION_LOW = 0
-ELEVATION_HIGH = 58
+ELEVATION_HIGH = 59
 
 # # EXAMPLE
 # ELEVATION = 'sun.sun.elevation'
@@ -85,6 +85,11 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     min_azimuth = AZIMUTH_LOW
 
     if azimuth < min_azimuth or elevation > ELEVATION_HIGH:  # before noon
+        if dbg:
+            log.debug(f"""{__name__}: before noon:
+            azimuth: {azimuth} < {min_azimuth}
+            elevation: {elevation} > {ELEVATION_HIGH}
+            Breaking.""")
         return
 
     if illumination_sensor:
@@ -131,7 +136,6 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
         (100, None, 0.8, False),
         (60, None, 0.5, True),
         (position_open, None, ELEVATION_LOW, True),
-        (position_open, None, -5, True),
     ]
     window_position = prev_high = position_open
     force = False
