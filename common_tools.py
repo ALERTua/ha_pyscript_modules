@@ -12,6 +12,9 @@ latin_letters = {}
 
 
 def state_bool(state_):
+    if state_ is None:
+        return None
+
     on_states = ['on', ]
     off_states = ['off', ]
     state_ = state_.lower()
