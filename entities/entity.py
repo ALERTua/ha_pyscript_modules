@@ -58,6 +58,9 @@ def entity(entity_id):
     elif domain == 'number':
         from entities.number import Number
         output = Number(entity_id)
+    elif domain == 'water_heater':
+        from entities.water_heater import WaterHeater
+        output = WaterHeater(entity_id)
     else:
         output = Entity(entity_id)
 

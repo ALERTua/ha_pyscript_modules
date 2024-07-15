@@ -19,6 +19,9 @@ HOLD_1W = HOLD_1D * 7
 QUIET_HOURS_START = 22
 QUIET_HOURS_END = 8
 
+# "cron(min hr dom mon dow)"
+TIME_TRIGGER_HOURLY = 'cron(0 * * * *)'
+
 SHOWER_HUMIDITY = 'sensor.shower_humidity_latest'
 SHOWER_TEMPERATURE = 'sensor.shower_temperature_latest'
 SHOWER_FAN = 'switch.shower_vents_l1'
@@ -101,6 +104,7 @@ GROUP_LEAK = 'group.water_leak_group'
 GROUP_VALVES = 'group.water_valves'
 SERVER_TEMPERATURE = 'sensor.server_cpu_temperature'
 SERVER_RAM_USED_PERCENT = 'sensor.server_ram_used_percent'
+BOILER = 'water_heater.boiler'
 
 LIGHT_SHOWER_TOP = 'light.shower'
 LIGHT_SHOWER_LED = 'light.shower_led'
