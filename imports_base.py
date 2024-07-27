@@ -4,7 +4,7 @@ from pprint import pprint, pformat
 from pathlib import Path
 from functools import lru_cache, partial
 from datetime import datetime
-from typing import TYPE_CHECKING, Iterable, List, Dict, Collection, Callable, Any, Literal
+from typing import TYPE_CHECKING, Iterable, List, Dict, Collection, Callable, Any, Literal, Optional
 from copy import copy
 import functools
 from constants import *
@@ -37,10 +37,11 @@ def conditional(*conditions, and_=True, debug=False):
             if expr:
                 expr += f" {joint} "
 
-            expr += f"({condition})"
+            expr += f"{condition}"
 
         if debug:
             log.debug(f"conditional: {expr}")
+        expr = expr.strip()
 
         @functools.wraps(fn)
         @state_active(expr)
@@ -55,3 +56,10 @@ def float_(obj):
         return float(obj)
     except:
         return -666
+
+
+def int_(obj):
+    try:
+        return int(obj)
+    except:
+        return None

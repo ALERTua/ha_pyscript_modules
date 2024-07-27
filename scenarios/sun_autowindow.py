@@ -8,6 +8,8 @@ AZIMUTH_LOW = 212
 AZIMUTH_HIGH = 298
 ELEVATION_LOW = 0
 ELEVATION_HIGH = 59
+DEBUG = False
+
 
 # # EXAMPLE
 # ELEVATION = 'sun.sun.elevation'
@@ -45,7 +47,6 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
         log.info("Cannot _sun_autowindow: no window_entity_id")
         return
 
-    dbg = False
     reverse = kwargs.get('reverse', False)
     position_limit = int(kwargs.get('position_limit', 95))
     position_open = int(kwargs.get('position_open', 0))
@@ -54,7 +55,7 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     illumination_sensor = kwargs.get('illumination_sensor', None)
     illumination_threshold = int(kwargs.get('illumination_threshold', 200))
     window = Window(window_entity_id, reverse=reverse)
-    if dbg:
+    if DEBUG:
         log.debug(f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}")
     window_fn = window.friendly_name()
 
@@ -85,7 +86,7 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     min_azimuth = AZIMUTH_LOW
 
     if azimuth < min_azimuth or elevation > ELEVATION_HIGH:  # before noon
-        if dbg:
+        if DEBUG:
             log.debug(f"""{__name__}: before noon:
             azimuth: {azimuth} < {min_azimuth}
             elevation: {elevation} > {ELEVATION_HIGH}
@@ -102,7 +103,8 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
 
         if illumination <= illumination_threshold:
             window.position_set(position_open)
-            log.debug(f"{__name__}: illumination is less than threshold: {illumination} <= {illumination_threshold}.")
+            if DEBUG:
+                log.debug(f"{__name__}: illumination is less than threshold: {illumination} <= {illumination_threshold}.")
             return
 
     cloud_coverage = int(weather_e.attrs().get('cloud_coverage', 0))
@@ -111,7 +113,8 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
             and cloud_coverage
             and cloud_coverage > cloud_coverage_limit):
         window.position_set(position_open)
-        log.debug(f"{__name__}: cloud_coverage is too high: {cloud_coverage}. Breaking.")
+        if DEBUG:
+            log.debug(f"{__name__}: cloud_coverage is too high: {cloud_coverage}. Breaking.")
         return
 
     uv_index = int(weather_e.attrs().get('uv_index', 0))
@@ -120,7 +123,8 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
             and uv_index
             and uv_index < uv_index_limit):
         window.position_set(position_open)
-        log.debug(f"{__name__}: uv_index is too low: {uv_index}. Breaking.")
+        if DEBUG:
+            log.debug(f"{__name__}: uv_index is too low: {uv_index}. Breaking.")
         return
 
     # p = ha.datetime_p()
@@ -140,17 +144,21 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     window_position = prev_high = position_open
     force = False
 
+    if DEBUG:
+        log.debug(f"Sun position: azimuth {azimuth}/{max_azimuth} elevation {elevation}/{ELEVATION_LOW}")
     if azimuth > max_azimuth or elevation < ELEVATION_LOW:
         window_position = position_open
         force = True
-        log.debug(f'''{min_azimuth} < azimuth {azimuth} > {max_azimuth}
-{ELEVATION_LOW} > elevation {elevation} > {ELEVATION_HIGH}''')
+        if DEBUG:
+            log.debug(f'''{min_azimuth} < azimuth {azimuth} > {max_azimuth}
+                      {ELEVATION_LOW} > elevation {elevation} > {ELEVATION_HIGH}''')
     elif ((cloud_coverage_limit and cloud_coverage > cloud_coverage_limit)
           or (uv_index_limit and uv_index < uv_index_limit)):
         window_position = position_open
         force = True
-        log.debug(f'''cloud_coverage {cloud_coverage} > limit {cloud_coverage_limit}
-uv_index: {uv_index} < limit {uv_index_limit}''')
+        if DEBUG:
+            log.debug(f'''cloud_coverage {cloud_coverage} > limit {cloud_coverage_limit}
+                      uv_index: {uv_index} < limit {uv_index_limit}''')
     else:
         for window_position_, step_high, step_low, step_force in steps:
             step_high = step_high or prev_high
@@ -161,9 +169,10 @@ uv_index: {uv_index} < limit {uv_index_limit}''')
                 window_position_current = window.position()
                 real_wanted_window_position = min(window_position, position_limit)
                 if window_position_current != real_wanted_window_position:  # print only if a change needs to be made
-                    log.debug(f'''{window_fn}:
-                    step: {window_position_}, {step_high}, {step_low}, {step_force}
-                    {step_high} >= {elevation} > {step_low}: {window_position} {real_wanted_window_position} vs {window_position_current}''')
+                    if DEBUG:
+                        log.debug(f'''{window_fn}:
+                                  step: {window_position_}, {step_high}, {step_low}, {step_force}
+                                  {step_high} >= {elevation} > {step_low}: {window_position} {real_wanted_window_position} vs {window_position_current}''')
                 break
 
     window_position = min(window_position, position_limit)
@@ -180,20 +189,21 @@ uv_index: {uv_index} < limit {uv_index_limit}''')
         #           f"closed({window_position_current}).")
         return
 
-    input_boolean_ = kwargs.get('input_boolean')
-    action_turn_off = f"input_boolean.turn_off(entity_id='{input_boolean_}')"
-    cb_turn_off = register_telegram_callback(action_turn_off)
-    action_open_cover = f"cover.set_cover_position(entity_id='{window.entity_id}', position={position_open})"
-    cb_open_cover = register_telegram_callback(action_open_cover)
-    inline = [
-        [
-            [f"Turn Off Automation", cb_turn_off],
-            [f"Open {window_fn}", cb_open_cover],
-        ],
-    ]
     msg = f"""Azimuth: {azimuth} Elevation: {elevation}
-Setting {window_fn} position from {window_position_current} to {window_position}"""
+    Setting {window_fn} position from {window_position_current} to {window_position}"""
     log.info(f"{__name__}:\n{msg}")
+
+    # input_boolean_ = kwargs.get('input_boolean')
+    # action_turn_off = f"input_boolean.turn_off(entity_id='{input_boolean_}')"
+    # cb_turn_off = register_telegram_callback(action_turn_off)
+    # action_open_cover = f"cover.set_cover_position(entity_id='{window.entity_id}', position={position_open})"
+    # cb_open_cover = register_telegram_callback(action_open_cover)
+    # inline = [
+    #     [
+    #         [f"Turn Off Automation", cb_turn_off],
+    #         [f"Open {window_fn}", cb_open_cover],
+    #     ],
+    # ]
     # tools.telegram_message(msg, inline_keyboard=inline, disable_notification=True)
     tools.discord_message(msg, target=['1223990700266356847'])
     window.position_set(window_position)

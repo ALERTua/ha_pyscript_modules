@@ -105,6 +105,7 @@ GROUP_VALVES = 'group.water_valves'
 SERVER_TEMPERATURE = 'sensor.server_cpu_temperature'
 SERVER_RAM_USED_PERCENT = 'sensor.server_ram_used_percent'
 BOILER = 'water_heater.boiler'
+LAUNDRY_SPEAKER = 'media_player.microusb_speaker'
 
 LIGHT_SHOWER_TOP = 'light.shower'
 LIGHT_SHOWER_LED = 'light.shower_led'
@@ -122,23 +123,17 @@ HALLWAY_GATEWAY_LUMEN = 'sensor.xiaomi_gateway_illumination'
 GATEWAY_V2_MAC = '04:CF:8C:9D:06:61'
 # HALLWAY_SPEAKER = 'media_player.hallway_speaker'
 
-ALL_SPEAKERS = 'media_player.all_speakers'
-ALL_SPEAKERS_GROUP = [
-    SHOWER_SPEAKER,
-    BEDROOM_SPEAKER,
+CHROMECAST_BROADCAST = 'media_player.broadcast'
+CHROMECAST_ALL_SPEAKERS = 'media_player.all_speakers'
+LIST_BROADCAST_SPEAKERS = [
+    LAUNDRY_SPEAKER,
     OFFICE_SPEAKER,
     ROOM_SPEAKER,
-    # HALLWAY_SPEAKER,
     KITCHEN_SPEAKER,
     BATHROOM_SPEAKER,
+    BEDROOM_SPEAKER,
+    SHOWER_SPEAKER,
 ]
-SPEAKERS_BROADCAST = ALL_SPEAKERS_GROUP + [
-    # 'media_player.broadcast_speakers',
-    # 'media_player.microusb_speaker',
-]
-# SPEAKERS_BROADCAST = [
-#     'media_player.broadcast_speakers',
-# ]
 
 HUMIDIFIERS = [
     OFFICE_HUMIDIFIER,
@@ -164,6 +159,7 @@ TELEGRAM_ALERT_ID = SECRET('telegram_alert_id')
 TELEGRAM_CHAT_ALERT_HA = SECRET('telegram_chat_alert_ha')
 TELEGRAM_CHAT_ALERT_HA_PRIVATE = SECRET('telegram_chat_alert_ha_private')
 TELEGRAM_CHAT_ALERT_VIDEO = SECRET('telegram_chat_alert_video')
+DISCORD_CHANNEL_HA = SECRET('discord_channel_ha')
 SERVER_URL_EXTERNAL = SECRET('server_url_external')
 
 ROUTER_USERNAME = SECRET('router_username')
@@ -178,8 +174,18 @@ UNRAID_SSH_USERNAME = SECRET('unraid_ssh_username')
 UNRAID_SSH_PASSWORD = SECRET('unraid_ssh_password')
 UNRAID_SSH_KEY_PATH = SECRET('unraid_ssh_key_path')
 
+UNRAID_MINI_SSH_HOST = SECRET('unraid_mini_ssh_host')
+UNRAID_MINI_SSH_PORT = SECRET('unraid_mini_ssh_port')
+UNRAID_MINI_SSH_USERNAME = SECRET('unraid_ssh_mini_username')
+UNRAID_MINI_SSH_PASSWORD = SECRET('unraid_ssh_mini_password')
+UNRAID_MINI_SSH_KEY_PATH = SECRET('unraid_ssh_mini_key_path')
+
 FRIGATE_URL = SECRET('frigate_url')
 
 XIAOMI_HUB_MAC = SECRET('xiaomi_hub_mac')
 
-SENSOR_DATETIME = 'sensor.datetime_full'
+OUTAGE_CALENDAR_EID = 'calendar.yasno_group_3_outages_calendar'
+NEXT_OUTAGE_DATETIME_EID = 'input_datetime.next_outage_datetime'
+POWER_OUTAGE_IB = 'input_boolean.power_outage_calendar'
+
+# SENSOR_DATETIME = 'sensor.datetime_full'

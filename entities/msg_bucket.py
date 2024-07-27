@@ -10,15 +10,16 @@ class MsgBucket:
     def __init__(self, *args, **kwargs):
         self._init_(*args, **kwargs)
 
-    def _init_(self, name=None, separator='\n', *args, **kwargs):
+    def _init_(self, name=None, separator='\n', debug=False, *args, **kwargs):
         self.name = name or self.__class__.__name__
         self.msgs = []
         self.separator = separator
         self.args = args
         self.kwargs = kwargs
+        self.debug = debug
 
-    def add(self, msg, debug=False):
-        if debug:
+    def add(self, msg):
+        if self.debug:
             # log.debug(f"Adding msg to {self.__class__.__name__}: {msg}")
             log.debug(msg)
         self.msgs.append(msg)
@@ -40,7 +41,8 @@ class MsgBucket:
 
     def send(self):
         if self.msgs:
-            log.debug(f"{self.name}: Sending msg:\n{self._str()}")
+            if self.debug:
+                log.debug(f"{self.name}: Sending msg:\n{self._str()}")
             self._send()
 
 

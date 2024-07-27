@@ -3,8 +3,8 @@ import paramiko
 
 
 class Unraid:
-    def __init__(self):
-        self.ssh_host = UNRAID_SSH_HOST
+    def __init__(self, host=UNRAID_SSH_HOST):
+        self.ssh_host = host or UNRAID_SSH_HOST
         self.ssh_port = UNRAID_SSH_PORT
         self.ssh_username = UNRAID_SSH_USERNAME
         self.ssh_password = UNRAID_SSH_PASSWORD
@@ -60,9 +60,9 @@ class Unraid:
 
 
 class VM:
-    def __init__(self, name):
+    def __init__(self, name, unraid: Unraid = None):
         self.name = name
-        self.unraid = Unraid()
+        self.unraid = unraid or Unraid()
     
     def turn_on(self):
         self.unraid.ssh_cmd(f'virsh start "{self.name}"')

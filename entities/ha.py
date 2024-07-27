@@ -31,12 +31,15 @@ class HA:
     def operating_system(self):
         return self.host_info().get('operating_system')
 
-    def datetime_dt_old(self):
-        from entities.entity import entity
-        entity_ = entity(SENSOR_DATETIME)
-        state_ = entity_.state()
-        dt = datetime.fromisoformat(state_)
-        return dt
+    # def datetime_dt_old(self):
+    #     from entities.entity import entity
+    #     entity_ = entity(SENSOR_DATETIME)
+    #     state_ = entity_.state()
+    #     dt = datetime.fromisoformat(state_)
+    #     return dt
+
+    def dt_from_string(self, dt_str):
+        return datetime.fromisoformat(dt_str)
 
     def datetime_dt(self):
         return template.now(hass)
