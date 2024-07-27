@@ -102,7 +102,7 @@ def auto_vents(trigger_type=None, var_name=None, value=None, old_value=None, con
         callable_ = action.get('callable')
         if callable_:
             func_str = f"partial({callable_})"
-            log.debug(f"callable: {func_str}")
+            # log.debug(f"callable: {func_str}")
             func = eval(func_str)
             func.__name__ = callable_
             func_kwargs = {}

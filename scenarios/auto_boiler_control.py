@@ -1,7 +1,6 @@
 from imports import *
 from pyscript_mock import *
-if TYPE_CHECKING:
-    from entities.water_heater import WaterHeater
+from entities.water_heater import WaterHeater
 
 DISCORD_CHATS = ['1262407979920261161']
 
@@ -19,10 +18,10 @@ def auto_boiler_control(trigger_type=None, var_name=None, value=None, old_value=
         log.error(f"{__name__} not all args are set:\n{pformat(locals())}")
         return
 
-    ib_e: WaterHeater = entity(ib_eid)
+    ib_e = entity(ib_eid)
     discount_period_e = entity(discount_period_eid)
-    boiler_e = entity(boiler_eid)
-    boiler_mode_current = boiler_e.operation_mode()
+    boiler_e = WaterHeater(boiler_eid)
+    boiler_mode_current = boiler_e.state()
     boiler_is_off = boiler_e.is_off()
     boiler_away_mode_on = boiler_e.away_mode_on()
     if not ignore_boiler_off and (boiler_is_off or boiler_away_mode_on):

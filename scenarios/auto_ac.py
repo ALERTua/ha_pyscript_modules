@@ -1,6 +1,9 @@
 from imports import *
 from pyscript_mock import *
+from entities.climate import Climate
+from entities.entity import Entity
 
+DEBUG = False
 
 DEFAULT_BOOST_TEMP_DIFFERENCE = 1.5
 DEFAULT_TEMP_TOLERANCE_UP = 0.5
@@ -71,6 +74,12 @@ FAN_MODES = ['Silence', '1', '2', '3', '4', '5']
 
 
 def turn_off(ac_entity, allow_turning_off=True, ac_action_wait=4):
+    if not isinstance(ac_entity, Climate):
+        if isinstance(ac_entity, str):
+            ac_entity = Climate(ac_entity)
+        elif isinstance(ac_entity, Entity):
+            ac_entity = Climate(ac_entity.entity_id)
+
     if allow_turning_off is True:
         on = ac_entity.is_on()
         if on:
@@ -129,7 +138,6 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     #         'supported_features': <ClimateEntityFeature.SWING_MODE|PRESET_MODE|FAN_MODE|TARGET_TEMPERATURE: 57>},
     #         'last_changed': '2023-05-23T16:32:31.787600+00:00',
     #         'last_updated': '2023-05-23T16:32:31.787600+00:00',
-    dbg = True
     wanted_temp_entity_id = kwargs.get('wanted_temperature_entity')
     ac_entity_id = kwargs.get('ac_entity')
     assert ac_entity_id, f"ac_entity_id: {ac_entity_id}, kwargs: {kwargs}"
@@ -149,7 +157,7 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     cur_temp = round(float(cur_temp_entity.state()), 1)
     cur_temp_friendly_name = cur_temp_entity.friendly_name()
 
-    ac_entity = entity(ac_entity_id)
+    ac_entity = Climate(ac_entity_id)
 
     # try:
     #     ac_hvac_mode = ac_entity.hvac_mode()
@@ -159,7 +167,7 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     #     log.debug(f"{ac_entity_id} {type(ac_entity)} {ac_entity} exception: {type(e)} {str(e)}")
     #     return
 
-    ac_hvac_mode = ac_entity.hvac_mode()
+    ac_hvac_mode = ac_entity.state()
     ac_preset_mode = ac_entity.preset_mode()
     ac_fan_speed = ac_entity.fan_mode()
 
@@ -214,12 +222,14 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
         msgs.add(f"wanted_state: {wanted_state}")
 
     if ac_hvac_mode != HVAC_MODE_OFF and wanted_state == HVAC_MODE_OFF:
-        log.debug(f"{ac_friendly_name} wanted_state off. Turning off.")
+        if DEBUG:
+            log.debug(f"{ac_friendly_name} wanted_state off. Turning off.")
         msgs.send()
         turn_off(ac_entity, allow_turning_off, ac_action_wait)
         return
     elif ac_hvac_mode == HVAC_MODE_OFF and wanted_state == HVAC_MODE_OFF:
-        log.debug(f"{ac_friendly_name} ac_hvac_mode == wanted_state == {HVAC_MODE_OFF}")
+        if DEBUG:
+            log.debug(f"{ac_friendly_name} ac_hvac_mode == wanted_state == {HVAC_MODE_OFF}")
         return
 
     if ac_hvac_mode != HVAC_MODE_OFF and ac_hvac_mode not in allowed_modes:
@@ -265,30 +275,30 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     if change_fan_speed:  # and temp_difference_ok
         wanted_fan_speed = abs(float(len(FAN_MODES)) * (temp_difference or 0.1) / float(boost_temp_difference or 2))
         wanted_fan_speed -= 1  # indexes from 0
-        if dbg:
+        if DEBUG:
             log.debug(f"before mod: {wanted_fan_speed}")
         if (wanted_fan_speed_div := wanted_fan_speed % 1.0) >= 0.5:
             wanted_fan_speed -= wanted_fan_speed_div
             wanted_fan_speed += 1
-            if dbg:
+            if DEBUG:
                 log.debug(f"after mod: {wanted_fan_speed}")
 
         wanted_fan_speed = int(round(wanted_fan_speed, 0))
-        if dbg:
+        if DEBUG:
             log.debug(f"after int: {wanted_fan_speed}")
 
         if fan_speed_limit is not None:
             wanted_fan_speed = min(wanted_fan_speed, int(fan_speed_limit))
-            if dbg:
+            if DEBUG:
                 log.debug(f"after min: {wanted_fan_speed}")
 
         if wanted_fan_speed > len(FAN_MODES) - 1:
             preset_target = PRESET_MODE_BOOST
-            if dbg:
+            if DEBUG:
                 log.debug(f"too much boost: {wanted_fan_speed} > {len(FAN_MODES) - 1}")
         else:
             wanted_fan_speed = max(min(wanted_fan_speed, len(FAN_MODES) - 1), 0)
-            if dbg:
+            if DEBUG:
                 log.debug(f"after max: {wanted_fan_speed}")
                 log.debug(f"""{ac_friendly_name}
                           float(len(FAN_MODES)) * (temp_difference or 0.1) / float(boost_temp_difference):
@@ -323,4 +333,5 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
         msgs.msgs = msgs_init + msgs.msgs
         msgs.send()
     else:
-        log.debug(f"{__name__}: nothing to do for {ac_friendly_name}")
+        if DEBUG:
+            log.debug(f"{__name__}: nothing to do for {ac_friendly_name}")

@@ -91,7 +91,7 @@ def discord_message(msg, target=None, **kwargs):
         log.error("Couldn't send discord message: msg is None or empty")
         return
 
-    target = target or ["1093812584324530287"]
+    target = target or [DISCORD_CHANNEL_HA]
     if not isinstance(target, list):
         target = [target]
 
@@ -100,15 +100,25 @@ def discord_message(msg, target=None, **kwargs):
     messages = [msg[i: i + split] for i in range(0, len(msg), split)]
     for message in messages:
         # log.debug(f"Sending discord message len {len(message)}")
-        notify.alert_iot(message=message, target=target, **kwargs)
+        try:  # errors during ha relaunch
+            notify.alert_iot(message=message, target=target, **kwargs)
+        except:
+            pass
 
 
 def expand_sound_data(sound_name):
     sound_fullpath = MEDIA_PATH_BASE / sound_name
-    sound_length = MP3(sound_fullpath).info.length
-    sound_external_path = f"{SERVER_URL_EXTERNAL}{EXTERNAL_MEDIA_BASE}{sound_name}"
+    mp3 = MP3(sound_fullpath)
+    mp3_info = mp3.info
+    sound_length = mp3_info.length
+    sound_external_path = sound_ext_path(sound_name)
     # log.debug(f"expand sound data for {sound_name}: {sound_external_path}")
     return sound_fullpath, sound_length, sound_external_path
+
+
+def sound_ext_path(sound_name):
+    output = f"{SERVER_URL_EXTERNAL}{EXTERNAL_MEDIA_BASE}{sound_name}"
+    return output
 
 
 def speaker_toggle(entity_id, on=True):
@@ -316,8 +326,12 @@ def speak_language_from_code(lang_code):
     return voice
 
 
-def fstr(template_):
-    output = eval(f"f'''{template_}'''")
+def fstr(template_: str, locals_dict: dict):
+    # output = eval(f"f'''%s'''" % template_, __locals=locals_dict or dict())
+    dct = copy(locals())
+    dct.update(locals_dict)
+    output = '%s' % template_
+    output = output.format(**dct)
     return output
 
 
