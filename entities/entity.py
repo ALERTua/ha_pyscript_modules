@@ -80,14 +80,17 @@ class Entity:
         self.entity_id = entity_id
         self.init()
 
+    # noinspection PyArgumentList
     @pyscript_compile
     def __eq__(self, other):
         return isinstance(other, Entity) and self.entity_id == other.entity_id
 
+    # noinspection PyArgumentList
     @pyscript_compile
     def __str__(self):
         return self.entity_id
 
+    # noinspection PyArgumentList
     @pyscript_compile
     def __repr__(self):
         return f"[{self.__class__.__name__}]({self.entity_id})"
