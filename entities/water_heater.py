@@ -69,7 +69,7 @@ class WaterHeater(Switch):
         if self.ha_state is None:
             return
 
-        log.debug(f"set_temperature for {self.as_str()} to operation_mode: {operation_mode} temperature: {temperature}")
+        # log.debug(f"set_temperature for {self.as_str()} to operation_mode: {operation_mode} temperature: {temperature}")
         # hvac_mode = hvac_mode or self.state()  # AC needs this, valves don't
         kw = dict(entity_id=self.entity_id)
         if operation_mode is not None:

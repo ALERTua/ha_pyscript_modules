@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 ha = HA()
 
 
-def entity(entity_id):
+def entity(entity_id, debug=False):
     if isinstance(entity_id, Entity):
         return entity_id
 
@@ -23,17 +23,28 @@ def entity(entity_id):
 
     output = Entity.entity_library.get(entity_id, None)
     if output is not None and isinstance(output, Entity):
-        # log.debug(f"Returned {entity_id} from library: {type(output)} {output}")
+        if debug:
+            log.debug(f"Returned {entity_id} from library: {type(output)} {output}")
         return output
 
-    e_state = hass.states.get(entity_id)
-    try:
-        domain = e_state.domain
-    except:
-        msg = f"⛔Entity getter failed for\n{entity_id}\n{e_state}"
-        # tools.telegram_message_alert_ha_private(msg, disable_notification=True)
-        tools.discord_message(msg, target=['1252277077848359055'])
-        return entity_id
+    if hass.states.get(entity_id) is not None:
+        eid = None
+        ent = None
+        domain = None
+        try:
+            eid = ha.resolve_entity_id(entity_id)
+            ent = ha.get_entity(eid)
+            domain = ent.domain
+        except Exception as e:
+            msg = f"⛔Entity getter failed for\nentity_id: {entity_id}\neid: {eid}\nent: {ent}\nException: {type(e)} {e}"
+            # log.debug(msg)
+
+            if debug:
+                tools.discord_message(msg, target=['1252277077848359055'])
+            # tools.telegram_message_alert_ha_private(msg, disable_notification=True)
+            domain = (ent or eid or entity_id).split('.')[0]
+    else:
+        domain = entity_id.split('.')[0]
 
     if domain == 'binary_sensor':
         from entities.binary_sensor import BinarySensor
@@ -121,7 +132,10 @@ class Entity:
         # log.debug(f"{self.entity_id} attrs after:\n{pformat(attrs)}")
 
     def exists(self) -> bool:
-        return self.ha_state is not None
+        return state.exist(self.entity_id)
+
+    def exist(self):
+        return self.exists()
 
     def as_dict(self) -> Dict:
         return self.ha_state.as_dict()
@@ -142,7 +156,11 @@ class Entity:
         if attr:
             return self.attrs().get(attr, default)
 
-        return self.ha_state.state
+        try:
+            return self.ha_state.state
+        except:
+            eid = self.entity_id
+            return state.get(eid)
 
     def is_on(self):
         return self.state() == 'on'
@@ -167,6 +185,18 @@ class Entity:
 
     def is_not_off_str(self):
         return f"({self.entity_id} != 'off')"
+
+    def is_unavailable(self):
+        return self.state() == 'unavailable'
+
+    def is_unknown(self):
+        return self.state() == 'unknown'
+
+    def config_entry_id(self):
+        if self.ha_state is None:
+            return
+
+        return template.config_entry_id(hass, self.entity_id)
 
     def device_id(self):
         if self.ha_state is None:

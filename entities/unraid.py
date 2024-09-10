@@ -3,12 +3,17 @@ import paramiko
 
 
 class Unraid:
-    def __init__(self, host=UNRAID_SSH_HOST):
+    def __init__(self,
+                 host=UNRAID_SSH_HOST,
+                 port=UNRAID_SSH_PORT,
+                 username=UNRAID_SSH_USERNAME,
+                 password=UNRAID_SSH_PASSWORD,
+                 ssh_key_path=UNRAID_SSH_KEY_PATH):
         self.ssh_host = host or UNRAID_SSH_HOST
-        self.ssh_port = UNRAID_SSH_PORT
-        self.ssh_username = UNRAID_SSH_USERNAME
-        self.ssh_password = UNRAID_SSH_PASSWORD
-        self.ssh_key_path = UNRAID_SSH_KEY_PATH
+        self.ssh_port = port or UNRAID_SSH_PORT
+        self.ssh_username = username or UNRAID_SSH_USERNAME
+        self.ssh_password = password or UNRAID_SSH_PASSWORD
+        self.ssh_key_path = ssh_key_path or UNRAID_SSH_KEY_PATH
 #         log.debug(f"""{self.__class__.__name__}
 # host: {self.ssh_host}
 # port: {self.ssh_port}
@@ -18,16 +23,17 @@ class Unraid:
 # """)
 
     def ssh_cmd_ha(self, command):
-        data = {
-            'host': self.ssh_host,
-            'port': self.ssh_port,
-            'user': self.ssh_username,
-            'pass': self.ssh_password,
-            'command': command
-        }
-        return ssh_command.exec_command(data=data)
+        host = self.ssh_host,
+        port = self.ssh_port
+        user = self.ssh_username
+        password = self.ssh_password
+        command = command
+        kw = {}
+        if password:
+            kw['pass'] = password
+        return ssh_command.exec_command(host=host, port=port, user=user, command=command, **kw)
 
-    def ssh_cmd(self, command, sudo=False):
+    def ssh_cmd(self, command, sudo=False, debug=False):
         if sudo:
             command = f"sudo -S -p '' {command}"
 
@@ -49,7 +55,10 @@ class Unraid:
             _stdout = _stdout.read().decode()
         if _stderr:
             _stderr = _stderr.read().decode()
-        # log.debug(_stdout.read().decode())
+
+        if debug:
+            log.debug(f"stdout: {_stdout}\nstderr: {_stderr}\nretval: {retval}")
+
         client.close()
         return retval, _stdout, _stderr
 

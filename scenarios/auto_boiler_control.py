@@ -6,7 +6,7 @@ DISCORD_CHATS = ['1262407979920261161']
 
 
 def auto_boiler_control(trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs):
-    dbg = True
+    dbg = False
     ib_eid = kwargs.get('IB_EID', None)
     discount_period_eid = kwargs.get('DISCOUNT_PERIOD_EID', None)
     boiler_eid = kwargs.get('BOILER_EID', None)
