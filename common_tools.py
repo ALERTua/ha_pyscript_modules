@@ -1,10 +1,8 @@
 # https://hacs-pyscript.readthedocs.io/en/stable/reference.html
 from imports_base import *
 
-import traceback
 import unicodedata as ud
 from pendulum import DateTime
-from pendulum.tz import Timezone
 
 from mutagen.mp3 import MP3
 
@@ -45,7 +43,7 @@ def telegram_message_alert_ha_private(msg=None, disable_notification=False, **kw
     )
 
 
-def telegram_message(msg=None, disable_notification=True, **kwargs):
+def telegram_message(msg=None, disable_notification=True, **kwargs):  # message_thread_id
     # inline = [
     #     [
     #         ["Text btn1", "/button1"], 
@@ -73,8 +71,8 @@ def telegram_video_url(url, caption=None, disable_notification=True, target=None
 
     caption = caption or ''
     target = target or TELEGRAM_CHAT_ALERT_VIDEO
-    return telegram_bot.send_video(url=url, caption=caption, supports_streaming=True,
-                                   disable_notification=disable_notification, target=target, verify_ssl=False, **kwargs)
+    return telegram_bot.send_video(url=url, caption=caption, disable_notification=disable_notification, target=target,
+                                   verify_ssl=False, **kwargs)
 
 
 def telegram_photo(url, caption=None, disable_notification=True, **kwargs):
@@ -151,7 +149,7 @@ def wait_speaker_idle(entity_ids, state_check_now=False, state_hold=1.0, timeout
         entity_ids = [entity_ids]
     entity_ids = list(set(entity_ids))
     idle_states = ('idle', 'on',)
-    off_states = ('off', )
+    off_states = ('off',)
     statement = 'True'
     waiting = False
     output = []
@@ -206,27 +204,27 @@ def friendly_name(entity_id):
             return attrs.get('friendly_name') or entity_id
         else:
             return entity_id
-    
+
     return ''
 
 
-def debug(ip='192.168.1.2', port=12345):
-    try:
-        # pylint: disable=import-error
-        import pydevd_pycharm  # noqa: E402
-    except:
-        import os
-        os.system('pip install -U pydevd-pycharm')
-        return debug(ip=ip, port=port)
-
-    log.debug(f"Connecting to PyCharm Debugger @ {ip}:{port}")
-    try:
-        pydevd_pycharm.settrace(ip, port=port, stdoutToServer=True, stderrToServer=True, suspend=False)
-    except Exception as e:
-        log.debug(f"Error connecting to PyCharm Debugger @ {ip}:{port} : {type(e)} {e}")
-        return
-
-    log.debug(f"Connected to PyCharm Debugger @ {ip}:{port}")
+# def debug(ip='192.168.1.2', port=12345):
+#     try:
+#         # pylint: disable=import-error
+#         import pydevd_pycharm  # noqa: E402
+#     except:
+#         import os
+#         os.system('pip install -U pydevd-pycharm')
+#         return debug(ip=ip, port=port)
+#
+#     log.debug(f"Connecting to PyCharm Debugger @ {ip}:{port}")
+#     try:
+#         pydevd_pycharm.settrace(ip, port=port, stdoutToServer=True, stderrToServer=True, suspend=False)
+#     except Exception as e:
+#         log.debug(f"Error connecting to PyCharm Debugger @ {ip}:{port} : {type(e)} {e}")
+#         return
+#
+#     log.debug(f"Connected to PyCharm Debugger @ {ip}:{port}")
 
 
 def filename_timestamp():
@@ -295,10 +293,10 @@ exception: {type(e)} {e}""")
 
 
 def speak_language_from_code(lang_code):
-    if lang_code in ('ua', ):
+    if lang_code in ('ua',):
         voice = choice(
             (
-                'uk-UA-PolinaNeural', 
+                'uk-UA-PolinaNeural',
                 'uk-UA-OstapNeural'
             )
         )
@@ -358,3 +356,36 @@ def round_temp_float(temp_float, precision=0.5, round_result=1):
 
 def notify_alert_mob(message, *args, **kwargs):
     notify.mobile_app_alert_s_s24(message=message, *args, **kwargs)
+
+
+def converse(txt, agent_id='conversation.llama3_1_8b_instruct_q8_0', language='UA'):
+    # noinspection PyArgumentList
+    response = conversation.process(agent_id=agent_id, language=language, text=txt, return_response=True)
+    """
+    {
+        'conversation_id': '01J4PM01TN6X0JKXKY4VS2Q792', 
+        'response': {
+            'card': {},
+            'data': {
+                'failed': [], 
+                'success': [], 
+                'targets': []
+            }, 
+            'language': 'UA',
+            'response_type': 'action_done', 
+            'speech': {
+                'plain': {
+                    'extra_data': None,
+                    'speech': 'Південно-східне напрямку України. Загроза авіаційного удару.'
+                }
+            }
+        }
+    }
+    """
+    answer = response.get('response', {}).get('speech', {}).get('plain', {}).get('speech', '')
+    return answer, response
+
+
+def got_power():
+    pwr = state.get(POWER_SENSOR)
+    return pwr != 'off'

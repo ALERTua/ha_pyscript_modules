@@ -62,4 +62,4 @@ def int_(obj):
     try:
         return int(obj)
     except:
-        return None
+        return 666

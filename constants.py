@@ -12,8 +12,12 @@ HOLD_3H = HOLD_1H * 3
 HOLD_4H = HOLD_2H * 2
 HOLD_5H = HOLD_1H * 5
 HOLD_6H = HOLD_3H * 2
+HOLD_8H = HOLD_4H * 2
+HOLD_10H = HOLD_5H * 2
 HOLD_12H = HOLD_6H * 2
 HOLD_1D = HOLD_12H * 2
+HOLD_2D = HOLD_1D * 2
+HOLD_3D = HOLD_1D * 3
 HOLD_1W = HOLD_1D * 7
 
 QUIET_HOURS_START = 22
@@ -65,6 +69,7 @@ OFFICE_WINDOW = 'cover.office_window'
 # OFFICE_WINDOW_CLOUD = 'cover.office_window_cloud'
 OFFICE_SPEAKER = 'media_player.office_speaker'
 OFFICE_AC = 'climate.ac_office'
+OFFICE_AUTO_AC = 'input_boolean.office_auto_ac'
 OFFICE_LIGHTS = 'light.office'
 OFFICE_VALVE = 'climate.valve_office'
 OFFICE_VALVE_POSITION = 'sensor.valve_office_position'
@@ -81,17 +86,20 @@ ROOM_WINDOW_REED = 'binary_sensor.room_window_reed_contact'
 ROOM_WINDOW_CLOUD = 'cover.room_window_cloud'
 ROOM_SPEAKER = 'media_player.room_speaker'
 ROOM_AC = 'climate.ac_room'
+ROOM_AUTO_AC = 'input_boolean.room_auto_ac'
 ROOM_VALVE = 'climate.valve_room'
 
 KITCHEN_WINDOW = 'cover.kitchen_window'
 # KITCHEN_WINDOW_CLOUD = 'cover.kitchen_window_cloud'
 KITCHEN_SPEAKER = 'media_player.kitchen_speaker'
 KITCHEN_AC = 'climate.ac_kitchen'
+KITCHEN_AUTO_AC = 'input_boolean.kitchen_auto_ac'
 KITCHEN_HUMIDITY = 'sensor.kitchen_humidity_latest'
 KITCHEN_TEMPERATURE = 'sensor.kitchen_temperature_latest'
 KITCHEN_WANTED_TEMP = 'input_number.kitchen_wanted_temperature'
 KITCHEN_VALVE = 'climate.valve_kitchen'
 KITCHEN_VALVE_POSITION = 'sensor.valve_kitchen_position'
+KITCHEN_COUCH_LED = 'light.couch_led'
 PROJECTOR = 'switch.projector'
 HALLWAY_LIGHT = 'light.hallway'
 
@@ -106,6 +114,7 @@ SERVER_TEMPERATURE = 'sensor.server_cpu_temperature'
 SERVER_RAM_USED_PERCENT = 'sensor.server_ram_used_percent'
 BOILER = 'water_heater.boiler'
 LAUNDRY_SPEAKER = 'media_player.microusb_speaker'
+LAUNDRY_DELTA_2_PLUG = 'switch.delta_2_plug'
 
 LIGHT_SHOWER_TOP = 'light.shower'
 LIGHT_SHOWER_LED = 'light.shower_led'
@@ -123,6 +132,10 @@ HALLWAY_GATEWAY_LUMEN = 'sensor.xiaomi_gateway_illumination'
 GATEWAY_V2_MAC = '04:CF:8C:9D:06:61'
 # HALLWAY_SPEAKER = 'media_player.hallway_speaker'
 
+LOCK = 'lock.door'
+
+# https://github.com/adrgumula/HomeAssitantBluetoothSpeaker?tab=readme-ov-file
+LAUNDRY_BT_SPEAKER = 'media_player.bs_3'  # 15:08:01:24:08:1A
 CHROMECAST_BROADCAST = 'media_player.broadcast'
 CHROMECAST_ALL_SPEAKERS = 'media_player.all_speakers'
 LIST_BROADCAST_SPEAKERS = [
@@ -133,6 +146,19 @@ LIST_BROADCAST_SPEAKERS = [
     BATHROOM_SPEAKER,
     BEDROOM_SPEAKER,
     SHOWER_SPEAKER,
+]
+
+LIST_AC = [
+    BEDROOM_AC,
+    OFFICE_AC,
+    KITCHEN_AC,
+    ROOM_AC
+]
+LIST_AUTO_AC = [
+    BEDROOM_AUTO_AC,
+    OFFICE_AUTO_AC,
+    KITCHEN_AUTO_AC,
+    ROOM_AUTO_AC,
 ]
 
 HUMIDIFIERS = [
@@ -156,7 +182,10 @@ def SECRET(value):
 
 
 TELEGRAM_ALERT_ID = SECRET('telegram_alert_id')
+
 TELEGRAM_CHAT_ALERT_HA = SECRET('telegram_chat_alert_ha')
+TELEGRAM_TOPIC_ALERT_HA_URGENT = SECRET('telegram_chat_alert_ha_public_topic_urgent')
+
 TELEGRAM_CHAT_ALERT_HA_PRIVATE = SECRET('telegram_chat_alert_ha_private')
 TELEGRAM_CHAT_ALERT_VIDEO = SECRET('telegram_chat_alert_video')
 DISCORD_CHANNEL_HA = SECRET('discord_channel_ha')
@@ -187,5 +216,8 @@ XIAOMI_HUB_MAC = SECRET('xiaomi_hub_mac')
 OUTAGE_CALENDAR_EID = 'calendar.yasno_group_3_outages_calendar'
 NEXT_OUTAGE_DATETIME_EID = 'input_datetime.next_outage_datetime'
 POWER_OUTAGE_IB = 'input_boolean.power_outage_calendar'
+POWER_SENSOR = 'binary_sensor.power'
+INTERNET_SENSOR = 'binary_sensor.internet'
+ALARM_SENSOR_ID = 'binary_sensor.kyiv_alarm'
 
 # SENSOR_DATETIME = 'sensor.datetime_full'

@@ -2,7 +2,7 @@
 # https://hacs-pyscript.readthedocs.io/en/stable/
 from imports_base import *
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
-from homeassistant.helpers import template, device_registry
+from homeassistant.helpers import template, device_registry, entity_registry, entity as entity_helper
 from entities.device import Device
 
 
@@ -38,7 +38,8 @@ class HA:
     #     dt = datetime.fromisoformat(state_)
     #     return dt
 
-    def dt_from_string(self, dt_str):
+    @staticmethod
+    def dt_from_string(dt_str):
         return datetime.fromisoformat(dt_str)
 
     def datetime_dt(self):
@@ -125,3 +126,23 @@ class HA:
         if output:
             output = [Device(_.id) for _ in output]
         return output
+
+    @staticmethod
+    def entity_registry():
+        return entity_registry.async_get(hass)
+
+    def get_entity(self, entity_id_or_uuid: str):
+        entity_registry_ = self.entity_registry()
+        return entity_registry_.async_get(entity_id_or_uuid=entity_id_or_uuid)
+
+    def resolve_entity_id(self, entity_id_or_uuid: str):
+        entity_registry_ = self.entity_registry()
+        return entity_registry.async_resolve_entity_id(entity_registry_, entity_id_or_uuid)
+
+    def validate_entity_id(self, entity_id_or_uuid: str):
+        entity_registry_ = self.entity_registry()
+        return entity_registry.async_resolve_entity_id(entity_registry_, entity_id_or_uuid)
+
+    @staticmethod
+    def get_device_class(entity_id: str):
+        return entity_helper.get_device_class(hass, entity_id)
