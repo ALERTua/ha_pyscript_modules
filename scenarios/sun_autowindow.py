@@ -4,7 +4,7 @@ from entities.window import Window
 
 
 WEATHER_ENTITY_ID = 'weather.accuweather'
-AZIMUTH_LOW = 212
+AZIMUTH_LOW = 210
 AZIMUTH_HIGH = 298
 ELEVATION_LOW = 0
 ELEVATION_HIGH = 59
