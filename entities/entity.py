@@ -82,6 +82,38 @@ def entity(entity_id, debug=False):
     return output
 
 
+def entity_latest_changed(*entity_ids, debug=True):
+    entities = list([entity(_) for _ in entity_ids])
+    output = {}
+    for e in entities:
+        output[e.entity_id] = e.last_changed()
+
+    output = dict(sorted(output.items(), key=lambda item: item[1], reverse=True))
+
+    if debug:
+        log.debug(f"entity_latest:\n{output}")
+
+    output = list(output.keys())[0]
+    output = entity(output)
+    return output
+
+
+def entity_latest_updated(*entity_ids, debug=False):
+    entities = list([entity(_) for _ in entity_ids])
+    output = {}
+    for e in entities:
+        output[e.entity_id] = e.last_changed()
+
+    output = dict(sorted(output.items(), key=lambda item: item[1], reverse=True))
+
+    if debug:
+        log.debug(f"entity_latest:\n{output}")
+
+    output = list(output.keys())[0]
+    output = entity(output)
+    return output
+
+
 class Entity:
     entity_registry = set()
     entity_library = dict()

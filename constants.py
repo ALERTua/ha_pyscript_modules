@@ -25,6 +25,7 @@ QUIET_HOURS_END = 8
 
 # "cron(min hr dom mon dow)"
 TIME_TRIGGER_HOURLY = 'cron(0 * * * *)'
+TIME_TRIGGER_EVERY_MINUTE = 'cron(* * * * *)'
 
 SHOWER_HUMIDITY = 'sensor.shower_humidity_latest'
 SHOWER_TEMPERATURE = 'sensor.shower_temperature_latest'
@@ -88,6 +89,7 @@ ROOM_SPEAKER = 'media_player.room_speaker'
 ROOM_AC = 'climate.ac_room'
 ROOM_AUTO_AC = 'input_boolean.room_auto_ac'
 ROOM_VALVE = 'climate.valve_room'
+ROOM_LIGHT = 'light.room'
 
 KITCHEN_WINDOW = 'cover.kitchen_window'
 # KITCHEN_WINDOW_CLOUD = 'cover.kitchen_window_cloud'
@@ -100,8 +102,11 @@ KITCHEN_WANTED_TEMP = 'input_number.kitchen_wanted_temperature'
 KITCHEN_VALVE = 'climate.valve_kitchen'
 KITCHEN_VALVE_POSITION = 'sensor.valve_kitchen_position'
 KITCHEN_COUCH_LED = 'light.couch_led'
+KITCHEN_LIGHT_TOP = 'light.kitchen'
+KITCHEN_COUNTERTOP_LED = 'light.kitchen_led'
 PROJECTOR = 'switch.projector'
-HALLWAY_LIGHT = 'light.hallway'
+LIGHT_HALLWAY = 'light.hallway'
+LIGHT_ENTRANCE = 'light.entrance'
 
 LAUNDRY_HUMIDITY = 'sensor.laundry_humidity_latest'
 LAUNDRY_TEMPERATURE = 'sensor.laundry_temperature_latest'

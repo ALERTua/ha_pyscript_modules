@@ -17,7 +17,7 @@ def entity_not_exists(entity_id):
     _ = entity(entity_id)
     # return f"hass.states.get(f'{entity_id}') in {UNK_S} "
     # return f"{entity_id} in {UNK_S} "
-    return f"hass.states.get('{entity_id}') in {UNK_S} "
+    return f"(hass.states.get('{entity_id}') in {UNK_S}) "
 
 
 def entity_exists_1(entity_id, debug=False):
@@ -55,29 +55,29 @@ def entity_on(entity_id, debug=False):
         estate = e.state()
         log.debug(f"entity_on for {entity_id}: {e}: {estate}")
 
-    return f"hass.states.get('{entity_id}') in ('on', 'home') or {entity_id} in ('on', 'home') "
+    return f"(hass.states.get('{entity_id}') in ('on', 'home') or {entity_id} in ('on', 'home')) "
     # return f"{entity_id} in ('on', 'home') "
 
 
 def entity_not_on(entity_id):
     _ = entity(entity_id)
-    return f"hass.states.get('{entity_id}') not in ('on', 'home') or {entity_id} not in ('on', 'home') "
-    # return f"{entity_id} not in ('on', 'home') "
+    # return f"(hass.states.get('{entity_id}') not in ('on', 'home') or {entity_id} not in ('on', 'home')) "
+    return f"{entity_id} not in ('on', 'home') "
 
 
 def entity_off(entity_id):
     _ = entity(entity_id)
-    return f"hass.states.get('{entity_id}') in ('off', 'away') or {entity_id} in ('off', 'away') "
+    return f"(hass.states.get('{entity_id}') in ('off', 'away') or {entity_id} in ('off', 'away')) "
     # return f"{entity_id} in ('off', 'away') "
 
 
 def entity_not_off(entity_id):
     _ = entity(entity_id)
-    return f"hass.states.get('{entity_id}') not in ('off', 'away') or {entity_id} not in ('off', 'away')"
-    # return f"{entity_id} not in ('off', 'away') "
+    # return f"(hass.states.get('{entity_id}') not in ('off', 'away') or {entity_id} not in ('off', 'away'))"
+    return f"{entity_id} not in ('off', 'away') "
 
 
 def speaker_idle(entity_id):
     _ = entity(entity_id)
-    return f"hass.states.get('{entity_id}') in ('off', 'on', 'idle') or {entity_id} in ('off', 'on', 'idle')"
+    return f"(hass.states.get('{entity_id}') in ('off', 'on', 'idle') or {entity_id} in ('off', 'on', 'idle'))"
     # return f"{entity_id} in ('off', 'on', 'idle') "
