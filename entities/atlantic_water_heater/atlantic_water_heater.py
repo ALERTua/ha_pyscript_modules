@@ -1,5 +1,3 @@
-import logging
-
 from imports import *
 from pyoverkiz.const import SUPPORTED_SERVERS
 from pyoverkiz.client import OverkizClient
@@ -7,9 +5,9 @@ from pyoverkiz.enums import Server, OverkizState, OverkizCommand
 from pyoverkiz.models import Command
 
 
-USERNAME = "username"
-PASSWORD = "password"
-DEVICE_URL = 'device_url'
+USERNAME = SECRET('cozytouch_username')
+PASSWORD = SECRET('cozytouch_password')
+DEVICE_URL = SECRET('cozytouch_device_url')
 
 
 class AtlanticWaterHeater:

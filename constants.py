@@ -23,6 +23,8 @@ HOLD_1W = HOLD_1D * 7
 QUIET_HOURS_START = 22
 QUIET_HOURS_END = 8
 
+UPTIME = 'sensor.ha_uptime_seconds'
+
 # "cron(min hr dom mon dow)"
 TIME_TRIGGER_HOURLY = 'cron(0 * * * *)'
 TIME_TRIGGER_EVERY_MINUTE = 'cron(* * * * *)'
@@ -32,8 +34,7 @@ SHOWER_TEMPERATURE = 'sensor.shower_temperature_latest'
 SHOWER_FAN = 'switch.shower_vents_l1'
 SHOWER_FAN_SLOW = 'switch.shower_vents_l2'
 SHOWER_SPEAKER = 'media_player.shower_speaker'
-SHOWER_FLOOR = 'climate.shower_floor_lt'
-SHOWER_FLOOR_CLOUD = 'climate.floor_shower_cloud'
+SHOWER_FLOOR = 'climate.shower_floor'
 
 BATHROOM_FAN = 'fan.bathroom'
 BATHROOM_SPEAKER = 'media_player.bathroom_speaker'
@@ -61,6 +62,7 @@ BEDROOM_WINDOW_REED = 'binary_sensor.bedroom_window_reed_contact'
 BEDROOM_WANTED_TEMP = 'input_number.bedroom_wanted_temperature'
 BEDROOM_ALLOWED_MODES = 'input_select.bedroom_auto_ac_allowed_modes'
 BEDROOM_VALVE = 'climate.valve_bedroom'
+BEDROOM_AUTOVALVE_IB = 'input_boolean.bedroom_auto_valve'
 BEDROOM_VALVE_POSITION = 'sensor.valve_bedroom_position'
 
 OFFICE_HUMIDIFIER = 'switch.office_humidifier'
@@ -76,6 +78,7 @@ OFFICE_AC = 'climate.ac_office'
 OFFICE_AUTO_AC = 'input_boolean.office_auto_ac'
 OFFICE_LIGHTS = 'light.office'
 OFFICE_VALVE = 'climate.valve_office'
+OFFICE_AUTOVALVE_IB = 'input_boolean.office_auto_valve'
 OFFICE_VALVE_POSITION = 'sensor.valve_office_position'
 OFFICE_ILLUMINATION_SENSOR = 'sensor.motion_detector_1_illuminance_lux'
 
@@ -92,6 +95,7 @@ ROOM_SPEAKER = 'media_player.room_speaker'
 ROOM_AC = 'climate.ac_room'
 ROOM_AUTO_AC = 'input_boolean.room_auto_ac'
 ROOM_VALVE = 'climate.valve_room'
+ROOM_AUTOVALVE_IB = 'input_boolean.room_auto_valve'
 ROOM_LIGHT = 'light.room'
 
 KITCHEN_WINDOW = 'cover.kitchen_window'
@@ -103,6 +107,7 @@ KITCHEN_HUMIDITY = 'sensor.kitchen_humidity_latest'
 KITCHEN_TEMPERATURE = 'sensor.kitchen_temperature_latest'
 KITCHEN_WANTED_TEMP = 'input_number.kitchen_wanted_temperature'
 KITCHEN_VALVE = 'climate.valve_kitchen'
+KITCHEN_AUTOVALVE_IB = 'input_boolean.kitchen_auto_valve'
 KITCHEN_VALVE_POSITION = 'sensor.valve_kitchen_position'
 KITCHEN_COUCH_LED = 'light.couch_led'
 KITCHEN_LIGHT_TOP = 'light.kitchen'
@@ -118,7 +123,7 @@ LAUNDRY_LIGHT = 'light.laundry'
 LAUNDRY_VALVE_COLD = 'switch.valve_cold'
 GROUP_LEAK = 'group.water_leak_group'
 GROUP_VALVES = 'group.water_valves'
-SERVER_TEMPERATURE = 'sensor.server_cpu_temperature'
+SERVER_TEMPERATURE = 'sensor.alert_server_package_id_0_temperature'
 SERVER_RAM_USED_PERCENT = 'sensor.server_ram_used_percent'
 BOILER = 'water_heater.boiler'
 LAUNDRY_SPEAKER = 'media_player.microusb_speaker'
@@ -131,6 +136,9 @@ LIGHT_BATHROOM_TOP = 'light.bathroom'
 LIGHT_BATHROOM_LED = 'light.bathroom_led'
 
 SOMEONE_HOME = 'binary_sensor.someone_s_home'
+CATBIRD_HOME = 'binary_sensor.catbird_s_home'
+ALERT_HOME = 'binary_sensor.alert_s_home'
+
 
 TELEGRAM_CALLBACKS = 'pyscript.telegram_callbacks'
 ALERT_ASLEEP = 'binary_sensor.alert_is_asleep'
@@ -139,11 +147,13 @@ SOMEONE_ASLEEP = 'binary_sensor.someone_is_asleep'
 HALLWAY_GATEWAY_LUMEN = 'sensor.xiaomi_gateway_illumination'
 GATEWAY_V2_MAC = '04:CF:8C:9D:06:61'
 # HALLWAY_SPEAKER = 'media_player.hallway_speaker'
+SERVER_AVAILABLE_SENSOR = 'binary_sensor.alert_server_web'
 
 LOCK = 'lock.door'
 
 # https://github.com/adrgumula/HomeAssitantBluetoothSpeaker?tab=readme-ov-file
-LAUNDRY_BT_SPEAKER = 'media_player.bs_3'  # 15:08:01:24:08:1A
+# LAUNDRY_BT_SPEAKER = 'media_player.bs_3'  # 15:08:01:24:08:1A
+HA_SPEAKER = 'media_player.mini'
 CHROMECAST_BROADCAST = 'media_player.broadcast'
 CHROMECAST_ALL_SPEAKERS = 'media_player.all_speakers'
 LIST_BROADCAST_SPEAKERS = [
@@ -224,8 +234,11 @@ XIAOMI_HUB_MAC = SECRET('xiaomi_hub_mac')
 OUTAGE_CALENDAR_EID = 'calendar.yasno_group_3_outages_calendar'
 NEXT_OUTAGE_DATETIME_EID = 'input_datetime.next_outage_datetime'
 POWER_OUTAGE_IB = 'input_boolean.power_outage_calendar'
-POWER_SENSOR = 'binary_sensor.power'
-INTERNET_SENSOR = 'binary_sensor.internet'
+POWER = POWER_SENSOR = 'binary_sensor.power'
+INTERNET = INTERNET_SENSOR = 'binary_sensor.internet'
 ALARM_SENSOR_ID = 'binary_sensor.kyiv_alarm'
-
+LLM_STANDARD = "conversation.gemma2_9b_instruct_q5_k_m"
 # SENSOR_DATETIME = 'sensor.datetime_full'
+
+COMPANION_ALERT = 'notify.mobile_app_alert_s_s24'
+COMPANION_CATBIRD = 'notify.mobile_app_kateryna_drozd'

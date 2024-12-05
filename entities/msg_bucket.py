@@ -18,8 +18,8 @@ class MsgBucket:
         self.kwargs = kwargs
         self.debug = debug
 
-    def add(self, msg):
-        if self.debug:
+    def add(self, msg, debug=False):
+        if self.debug or debug:
             # log.debug(f"Adding msg to {self.__class__.__name__}: {msg}")
             log.debug(msg)
         self.msgs.append(msg)
@@ -61,8 +61,7 @@ class DiscordMsgBucket(MsgBucket):
         self._init_(*args, **kwargs)
 
     def _send(self):
-        dt_p = ha.datetime_p()
-        dt_str = dt_p.to_time_string()
+        dt_str = tools.dt_to_datetime_string()
         msg = f"{dt_str} {self._str()}"
         # log.debug(f"sending {self.__class__.__name__} with args: {self.args}, kwargs: {self.kwargs}")
         tools.discord_message(msg=msg, *self.args, **self.kwargs)

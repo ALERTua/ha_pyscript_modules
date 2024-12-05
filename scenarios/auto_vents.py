@@ -70,14 +70,16 @@ def auto_vents(trigger_type=None, var_name=None, value=None, old_value=None, con
 
     for action in actions:
         wanted_entity_id = action.get('wanted_entity_id')
+        wanted_entity = Entity(wanted_entity_id)
+        wanted_entity_friendly_name = wanted_entity.friendly_name()
+        trigger_name = kwargs.get('trigger', '')
+        wanted_state = action.get('wanted_state')
         if not isinstance(wanted_entity_id, list):
             wanted_entity_id = [wanted_entity_id]
 
         for wanted_e_id in wanted_entity_id:
             wanted_entity = Entity(wanted_e_id)
             wanted_entity_friendly_name = wanted_entity.friendly_name()
-            wanted_state = action.get('wanted_state')
-            trigger_name = kwargs.get('trigger', '')
             if trigger_name:
                 trigger_name = f" {trigger_name}"
             if wanted_entity_id and wanted_state:
@@ -109,12 +111,12 @@ def auto_vents(trigger_type=None, var_name=None, value=None, old_value=None, con
 
         if old_value is not None:
             lc_dt = old_value.last_changed
-            lc = tools.dt_to_pd(lc_dt)
+            lc = tools.dt_from_timestamp(lc_dt)
         else:
             lc = wanted_entity.last_changed()
 
-        lc_str = lc.to_datetime_string()
-        lc_now = tools.pd_diff(lc)
+        lc_str = tools.dt_to_datetime_string(lc)
+        lc_now = tools.dt_diff(lc)
 
         wanted_entity_cur_state = wanted_entity.state()
 
@@ -122,7 +124,7 @@ def auto_vents(trigger_type=None, var_name=None, value=None, old_value=None, con
             funcname = func.__name__.replace('homeassistant.', '')
             func_kwargs_str = f" with {func_kwargs}" if func_kwargs else ''
             log.info(f"condition monitor for {var_name}: executing {func.__name__}{func_kwargs_str}")
-            msg = f"{__name__}:\n" \
+            msg = f"🪶{__name__}:\n" \
                   f"{friendly_name}> {trigger_type}{trigger_name} triggered on {var_name} value {value}. \n" \
                   f"{wanted_entity_friendly_name} was {wanted_entity_cur_state} " \
                   f"from {lc_str} \n" \

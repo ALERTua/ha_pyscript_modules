@@ -73,11 +73,18 @@ def entity(entity_id, debug=False):
     elif domain == 'water_heater':
         from entities.water_heater import WaterHeater
         output = WaterHeater(entity_id)
+    elif domain == 'lock':
+        from entities.lock import Lock
+        output = Lock(entity_id)
+    elif domain == 'notify':
+        from entities.companion import Companion
+        output = Companion(entity_id)
     else:
         output = Entity(entity_id)
 
-    Entity.entity_library[entity_id] = output
-    Entity.entity_registry.add(entity_id)
+    if domain not in ('notify',):
+        Entity.entity_library[entity_id] = output
+        Entity.entity_registry.add(entity_id)
     # log.debug(f"Added {output.__repr__()} to library")
     return output
 
@@ -119,8 +126,8 @@ class Entity:
     entity_library = dict()
 
     # noinspection PyMissingConstructor
-    def __init__(self, entity_id):
-        self.entity_id = entity_id
+    def __init__(self, entity_id: str):
+        self.entity_id: str = entity_id
         self.init()
 
     # noinspection PyArgumentList
@@ -140,6 +147,7 @@ class Entity:
 
     # noinspection PyAttributeOutsideInit
     def init(self):
+        self.entity_domain, self.entity_name = self.entity_id.split('.')
         if getattr(self, 'ha_state', None) is None:
             self.ha_state = template.TemplateStateFromEntityId(hass, self.entity_id)
 
@@ -247,13 +255,13 @@ class Entity:
 
         return template.device_entities(hass, self.device_id())
 
-    def last_changed(self):
+    def last_changed(self) -> datetime:
         last_changed = self.ha_state.last_changed
-        return tools.dt_to_pd(last_changed)
+        return tools.dt_from_timestamp(last_changed)
 
-    def last_updated(self):
+    def last_updated(self) -> datetime:
         last_updated = self.ha_state.last_updated
-        return tools.dt_to_pd(last_updated)
+        return tools.dt_from_timestamp(last_updated)
 
     def area_id(self):
         return template.area_id(hass, self.entity_id)

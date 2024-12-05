@@ -14,11 +14,25 @@ class MediaPlayer(Switch):
                                        timeout=timeout)
 
     def volume_set(self, volume_level: float):
-        if self.volume() != volume_level:
-            return media_player.volume_set(entity_id=self.entity_id, volume_level=volume_level)
+        return media_player.volume_set(entity_id=self.entity_id, volume_level=volume_level)
 
     def volume(self):
-        return self.state('volume_level') or None
+        return self.state(attr='volume_level', default=None) or None
+
+    def turn_on(self):
+        if self.is_on():
+            return
+
+        homeassistant.turn_on(entity_id=self.entity_id)
+        volume = self.volume()
+        while volume is None:
+            volume = self.volume()
+            if volume is None:
+                task.sleep(0.1)
+
+        self.volume_set(0)
+        task.sleep(0.1)
+        self.volume_set(volume)
 
 # # off
 # {'entity_id': 'media_player.shower_speaker',

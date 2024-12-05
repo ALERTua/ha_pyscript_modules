@@ -1,8 +1,9 @@
 # https://hacs-pyscript.readthedocs.io/en/stable/reference.html
 from imports_base import *
-
+import requests
 import unicodedata as ud
-from pendulum import DateTime
+from datetime import datetime
+import humanize
 
 from mutagen.mp3 import MP3
 
@@ -133,14 +134,14 @@ def task_wait(func, *args, **kwargs):
     log.info(f"task_wait {func_name} {args}, {kwargs}")
     task_id = task.create(func, *args, **kwargs)
     done, pending = task.wait({task_id})
-    # log.info(f"done {done}, pending {pending}")
-    while not done:
-        # log.info(f"done {done}, pending {pending}")
+    log.info(f"done {done}, pending {pending}")
+    while pending or not done:
+        log.info(f"done {done}, pending {pending}")
         task.sleep(0.1)
     log.info(f"task_wait {func_name} finished")
 
 
-def wait_speaker_idle(entity_ids, state_check_now=False, state_hold=1.0, timeout=30):
+def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=0.5, timeout=30):
     """
     https://hacs-pyscript.readthedocs.io/en/stable/reference.html#task-waiting
     """
@@ -191,7 +192,6 @@ def wait_speaker_idle(entity_ids, state_check_now=False, state_hold=1.0, timeout
 
 def quiet_hours():
     return state.get('binary_sensor.quiet_hours') == 'on'
-    # now = pendulum.now()
     # hours = now.hour
     # output = hours > QUIET_HOURS_START or hours < QUIET_HOURS_END
     # return output
@@ -227,50 +227,76 @@ def friendly_name(entity_id):
 #     log.debug(f"Connected to PyCharm Debugger @ {ip}:{port}")
 
 
+def timedelta_words(value: timedelta | float, months: bool = True, minimum_unit: str = "seconds", locale: str = 'uk_UA') -> str:
+    if locale == 'en':
+        humanize.i18n.deactivate()
+    else:
+        humanize.i18n.activate(locale)
+    return humanize.naturaldelta(value, months=months, minimum_unit=minimum_unit)
+
+
+def dt_words(value: datetime | timedelta | float,
+             future: bool = False,
+             months: bool = True,
+             minimum_unit: str = "seconds",
+             when: datetime | None = None,
+             locale: str = 'uk_UA') -> str:
+    if locale == 'en':
+        humanize.i18n.deactivate()
+    else:
+        humanize.i18n.activate(locale)
+    return humanize.naturaltime(value, future=future, months=months, minimum_unit=minimum_unit, when=when)
+
+
 def filename_timestamp():
     return "%s" % timestamp_to_date()
 
 
-def timestamp_to_date(timestamp=None, _format='%Y-%m-%d_%H-%M-%S', timezone="local"):
+def timestamp_to_date(timestamp: datetime | int | float | None = None, _format: str = '%Y-%m-%d_%H-%M-%S') -> str:
     """
+    Convert a timestamp (datetime, int, or float) to a formatted date string.
 
-    :param _format: date format
-    :param timezone: date timezone
-    :type timestamp: int or float
-    :rtype: str
+    :param timestamp: The timestamp to convert (defaults to the current time if None).
+    :param _format: The format string for the output date (default: '%Y-%m-%d_%H-%M-%S').
+    :return: Formatted date string.
     """
-    if isinstance(timestamp, (str, int, float)):
-        # noinspection PyTypeChecker
-        timestamp = pendulum.from_timestamp(timestamp, tz=timezone)
-    elif isinstance(timestamp, type(None)):
-        # noinspection PyTypeChecker
-        timestamp = pendulum.now(tz=timezone)
-    output = timestamp.strftime(_format)
-    return output
+    if timestamp is None:
+        timestamp = datetime.now()
+    elif isinstance(timestamp, (int, float)):
+        timestamp = datetime.fromtimestamp(timestamp)
+    elif isinstance(timestamp, str):
+        timestamp = datetime.fromisoformat(timestamp)
+
+    return timestamp.strftime(_format)
 
 
-def dt_to_pd(dt, timezone="local") -> DateTime:
-    if isinstance(dt, float):
-        timestamp = dt
+def dt_from_timestamp(timestamp):
+    if isinstance(timestamp, str):
+        timestamp = float(timestamp)
+    if isinstance(timestamp, float):
+        timestamp = timestamp
     else:
-        timestamp = dt.timestamp()
-    return pendulum.from_timestamp(timestamp, tz=timezone)
+        timestamp = timestamp.timestamp()
+    return datetime.fromtimestamp(timestamp, tz=dt_util.DEFAULT_TIME_ZONE)
 
 
-def pd_diff(pd, timezone="local"):
-    now = pendulum.now(tz=timezone)
-    if now > pd:
-        return now - pd
+def dt_diff(dt: datetime) -> timedelta:
+    now = datetime.now()
+    if now > dt:
+        return now - dt
 
-    return pd - now
+    return dt - now
 
 
-def pd_words(pd, locale='ua'):
-    try:
-        return pd.in_words(locale=locale)
-    except Exception as e:
-        log.warning(f"Exception converting pd_words to {locale}: {type(e)} {e}")
-        return pd.in_words()
+def dt_to_datetime_string(dt: datetime = None) -> str:
+    if dt is None:
+        dt = datetime.now()
+
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def timedelta_hours(td: timedelta) -> float:
+    return td.total_seconds() / 3600.0
 
 
 def print_var(var):
@@ -354,13 +380,11 @@ def round_temp_float(temp_float, precision=0.5, round_result=1):
     return round(round(temp_float / precision, 0) * precision, round_result)
 
 
-def notify_alert_mob(message, *args, **kwargs):
-    notify.mobile_app_alert_s_s24(message=message, *args, **kwargs)
-
-
-def converse(txt, agent_id='conversation.llama3_1_8b_instruct_q8_0', language='UA'):
+def converse(txt, agent_id='conversation.air_raid_summary', language='UA', conversation_id=''):
+    log.debug(f"Conversing {language} {agent_id}\n{txt}\n___")
     # noinspection PyArgumentList
-    response = conversation.process(agent_id=agent_id, language=language, text=txt, return_response=True)
+    response = conversation.process(agent_id=agent_id, language=language, text=txt,
+                                    conversation_id=conversation_id, return_response=True) or {}
     """
     {
         'conversation_id': '01J4PM01TN6X0JKXKY4VS2Q792', 
@@ -383,9 +407,107 @@ def converse(txt, agent_id='conversation.llama3_1_8b_instruct_q8_0', language='U
     }
     """
     answer = response.get('response', {}).get('speech', {}).get('plain', {}).get('speech', '')
+    log.debug(f"Conversation answer for {language} {agent_id}\n{answer}")
     return answer, response
 
 
+PROVIDER = "01JDEV89KBVTW1F5V2X70GTD51"
+MODEL = "llama3.2-vision:11b-instruct-q4_K_M"
+
+PROMPT = """
+Ти — спеціаліст із моніторингу камер спостереження.
+Твоє завдання — створювати короткий підсумок активності, що відбувається на серії послідовних кадрів із відеозапису.
+
+Ти повинен:
+1. Ігнорувати будь-які деталі, пов'язані з інтер'єром, будівлею, підлогою, стінами, дверима, вікнами та іншими статичними об'єктами.
+2. Якщо на кадрах немає активності (руху, подій), ти маєш відповісти: "На кадрах активність відсутня."  
+3. Якщо активність є, об'єднай усю інформацію в **одне речення**, описуючи події стисло, без покадрового аналізу.  
+
+Головні принципи:  
+- Чіткість і лаконічність.
+- Без пояснень, деталей інтер'єру чи покадрових перерахувань.
+- Відповіді мають бути українською мовою.
+
+Приклад:  
+Кадри не містять активності. Відповідь: "На кадрах активність відсутня."  
+"""
+
+async def converse_frigate_event(
+        event_id: str,
+        provider: str = PROVIDER,
+        message: str = PROMPT,
+        include_filename: bool = True,
+        max_tokens: int = 250,
+        temperature: float = 0.3,
+        model: str = MODEL,
+        remember: bool = True,
+        video_file: str = "",
+        max_frames: int = 10,
+        target_width: int = 3840,
+        detail: Literal['', 'high', 'low'] = '',
+        expose_images: bool = False,
+):
+    output = llmvision.video_analyzer(
+        event_id=event_id,
+        provider=provider,
+        message=message,
+        include_filename=include_filename,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        model=model,
+        remember=remember,
+        # video_file=video_file,
+        max_frames=max_frames,
+        # target_width=target_width,
+        # detail=detail,
+        expose_images=expose_images,
+    ) or {}
+    response_text = output.get('response_text', '')
+    log.debug(f"{model} response for {event_id}:\n{response_text}")
+    return response_text
+
+
 def got_power():
-    pwr = state.get(POWER_SENSOR)
+    pwr = state.get(POWER)
     return pwr != 'off'
+
+
+def got_internet():
+    inet = state.get(INTERNET)
+    return inet != 'off'
+
+
+# create a decorator that try-excepts the function and if it fails, it will call the function again
+def try_except(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            log.warning(f"{func.__name__} failed: {type(e)} {e}")
+
+    return wrapper
+
+
+def check_mp4_file(url):
+    try:
+        # Send a GET request with streaming to avoid downloading the entire file
+        response = task.executor(requests.get, url=url, verify=False, stream=True, timeout=10)
+
+        # Check HTTP status code
+        if response.status_code != 200:
+            return False, f"Error: Received HTTP {response.status_code} for {url}"
+
+        # Check Content-Type
+        content_type = response.headers.get("Content-Type", "")
+        if "video/mp4" not in content_type:
+            return False, f"Error: Content-Type {content_type} is not video/mp4"
+
+        # Check the content signature (first few bytes of the file)
+        # Reading the first 8 bytes to verify MP4 signature
+        file_signature = next(response.iter_content(8))
+        if file_signature[:4] != b'\x00\x00\x00\x18' and file_signature[4:8] != b'ftyp':
+            return False, "Error: File does not have a valid MP4 signature."
+
+        return True, "Success: URL contains a valid MP4 file."
+    except Exception as e:
+        return False, f"Request failed: {type(e)} {e}"

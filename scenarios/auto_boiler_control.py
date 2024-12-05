@@ -18,7 +18,8 @@ def auto_boiler_control(trigger_type=None, var_name=None, value=None, old_value=
     showers_eid = kwargs.get('SHOWERS_EID', 'number.boiler_expected_number_of_shower')
     showers_discount = kwargs.get('SHOWERS_DISCOUNT', 5)
     showers = kwargs.get('SHOWERS', 4)
-
+    force_on = kwargs.get('FORCE_ON', False)
+    trigger_name = kwargs.get('TRIGGER')
 
     if any([_ for _ in (discount_period_eid, boiler_eid) if _ is None]):
         log.error(f"{__name__} not all args are set:\n{pformat(locals())}")
@@ -54,10 +55,15 @@ def auto_boiler_control(trigger_type=None, var_name=None, value=None, old_value=
 
     discount_period_on = discount_period_e.is_on()
     boiler_mode_needed = discount_on_mode if discount_period_on else discount_off_mode
+    boiler_mode_needed = discount_on_mode if force_on else boiler_mode_needed
     showers_needed = showers_discount if discount_period_on else showers
     temperature_needed = target_temperature_discount if discount_period_on else target_temperature
 
-    msg = f'{__name__}:\ndiscount_period: {discount_period_on}'
+    msg = f'💧🔥{__name__}:\nforce_on: {force_on}'
+    if trigger_name:
+        msg += f'\ntrigger_name: {trigger_name}'
+
+    msg += f'\ndiscount_period: {discount_period_on}'
     action_taken = False
     if boiler_mode_current != boiler_mode_needed:
         msg += f"\nboiler_mode_needed: {boiler_mode_needed} vs {boiler_mode_current}.\nSetting mode to {boiler_mode_needed}."

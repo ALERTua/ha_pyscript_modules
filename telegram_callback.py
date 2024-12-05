@@ -1,5 +1,6 @@
 # https://hacs-pyscript.readthedocs.io/en/stable/reference.html
 from imports_base import *  # cyclic
+import common_tools as tools
 from entities.entity import entity
 from entities.ha import HA
 
@@ -7,7 +8,7 @@ state.persist(TELEGRAM_CALLBACKS)
 
 
 def register_telegram_callback(actions, remove_markup=False, add_text=None):
-    tstamp = pendulum.now('local').timestamp()
+    tstamp = dt_util.now().timestamp()
     timestamp = str(tstamp).replace('.', '')
     task_name = f"tg_cb_{timestamp}_{randint(0, 999)}"
     if not isinstance(actions, list):
@@ -37,11 +38,13 @@ def remove_telegram_callbacks(trigger_type=None, var_name=None, value=None, old_
     # log.info(f"remove_telegram_callbacks start")
     for cb_name, kb_dict in attrs.items():
         cb_timestamp = kb_dict.get('timestamp')
-        cb_date = ha.datetime_p(cb_timestamp)
-        date_diff = ha.datetime_p() - cb_date
-        cb_delete =  date_diff.in_hours() > 24
+        cb_date = tools.dt_from_timestamp(cb_timestamp)
+        date_diff = ha.datetime_dt() - cb_date
+
+        hours = tools.timedelta_hours(date_diff)
+        cb_delete = hours > 24
         if cb_delete:
-            log.info(f"{cb_name}: hours: {date_diff.in_hours()} delete: {cb_delete}")
+            log.info(f"{cb_name}: hours: {hours} delete: {cb_delete}")
             ent.delattr(cb_name)
 
     # log.info(f"remove_telegram_callbacks done")

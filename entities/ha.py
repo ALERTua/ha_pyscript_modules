@@ -4,6 +4,7 @@ from imports_base import *
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
 from homeassistant.helpers import template, device_registry, entity_registry, entity as entity_helper
 from entities.device import Device
+from zoneinfo import ZoneInfo
 
 
 class HA:
@@ -40,22 +41,14 @@ class HA:
 
     @staticmethod
     def dt_from_string(dt_str):
-        return datetime.fromisoformat(dt_str)
+        if dt_str not in (None, 'unknown', 'unavailable'):
+            return datetime.fromisoformat(dt_str)
 
     def datetime_dt(self):
         return template.now(hass)
 
     def datetime_dt_utc(self):
         return template.utcnow(hass)
-
-    def datetime_p(self, timestamp=None):
-        if timestamp is None:
-            datetime_dt = self.datetime_dt()
-            timestamp = datetime_dt.timestamp()
-
-        tz = self.time_zone_pytz()
-        output = pendulum.from_timestamp(timestamp, tz=tz)
-        return output
 
     def boot_timestamp(self):
         return self.host_info.get('boot_timestamp')
@@ -96,10 +89,10 @@ class HA:
     def time_zone_str(self):
         return self.config.time_zone
 
-    def time_zone_pytz(self):
-        from pendulum.tz import Timezone
-        return Timezone(hass.config.time_zone)
+    def time_zone(self):
+        return ZoneInfo(self.time_zone_str())
 
+    # noinspection PyMethodMayBeStatic
     def render_template(self, template_, *args, **kwargs):
         """
             returns template.Template("{{ states('light.office') == 'off' }}", hass).async_render()
@@ -108,6 +101,7 @@ class HA:
         result = tmpl.async_render(*args, **kwargs)
         return result
 
+    # noinspection PyMethodMayBeStatic
     def _device_registry(self):
         return device_registry.async_get(hass)
 

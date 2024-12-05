@@ -117,11 +117,11 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
 
     if real_temp >= wanted_temp + tolerance_up:  # off
         msg = f':white_check_mark: real({real_temp}) >= wanted({wanted_temp}) + tolerance_up({tolerance_up})'
-        msgs.add(msg, debug=True)
+        msgs.add(msg)
         if valve_state != 'off':
             if valve_target_temp != wanted_temp:
                 msg = f"{vlv} {wanted_temp} reached. Setting Valve Temperature {valve_target_temp} to {wanted_temp}."
-                msgs.add(msg, debug=True)
+                msgs.add(msg)
                 valve_entity.set_temperature(temperature=wanted_temp, hvac_mode=valve_state)
             if allow_turning_off:
                 if valve_position is None or valve_position > 15:
@@ -132,7 +132,7 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
 
     elif real_temp >= wanted_temp:
         msg = f'{vlv} real {real_temp} >= {wanted_temp} wanted, but not above tolerance {tolerance_up}. Breaking'
-        log.debug(msg)
+        # log.debug(msg)
         # msgs.add(msg)
         # msgs.send()
         return
@@ -155,11 +155,11 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
     elif valve_cur_temp >= wanted_temp + tolerance_up + OVERTEMP_PROTECTION:  # off?
         msg = (f':white_check_mark:  {vlv} current temp({valve_cur_temp}) >= wanted({wanted_temp}) + '
                f'tolerance_up({tolerance_up}) + overtemp_protection({OVERTEMP_PROTECTION})')
-        msgs.add(msg, debug=True)
+        msgs.add(msg)
         if valve_target_temp != wanted_temp:
             msg = (f"{vlv} temp({valve_cur_temp}) >= wanted_temp({wanted_temp}) + tolerance_up({tolerance_up}) "
                    f"+ overtemp_protection({OVERTEMP_PROTECTION})")
-            msgs.add(msg, debug=True)
+            msgs.add(msg)
             valve_entity.set_temperature(temperature=wanted_temp, hvac_mode=valve_state)
         if allow_turning_off and valve_state != 'off':
             if valve_position is None or valve_position > 15:
@@ -168,7 +168,7 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
         msgs.send()
         return
     else:
-        msgs.add(f'{vlv} real {real_temp} <> {wanted_temp} wanted', debug=True)
+        msgs.add(f'{vlv} real {real_temp} <> {wanted_temp} wanted')
 
     # log.debug(f"{vlv} valve_min_temp: {valve_min_temp}")
     # log.debug(f"{vlv} valve_max_temp: {valve_max_temp}")
@@ -193,7 +193,7 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
     if ((temp_diff > 0 and temp_difference_abs < tolerance_up)
             or (temp_diff < 0 and temp_difference_abs < tolerance_down)):
         msg = f"{vlv} Temperature difference too low. Setting Valve Temperature to {wanted_temp}."
-        msgs.add(msg, debug=True)
+        msgs.add(msg)
         valve_entity.set_temperature(temperature=wanted_temp, hvac_mode=valve_state)
     else:
         msgs.add(f'{vlv} Setting temperature {valve_target_temp} to {target_temp}')
