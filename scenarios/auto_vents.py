@@ -70,8 +70,6 @@ def auto_vents(trigger_type=None, var_name=None, value=None, old_value=None, con
 
     for action in actions:
         wanted_entity_id = action.get('wanted_entity_id')
-        wanted_entity = Entity(wanted_entity_id)
-        wanted_entity_friendly_name = wanted_entity.friendly_name()
         trigger_name = kwargs.get('trigger', '')
         wanted_state = action.get('wanted_state')
         if not isinstance(wanted_entity_id, list):
