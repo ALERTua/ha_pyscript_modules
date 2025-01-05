@@ -62,7 +62,7 @@ class DiscordMsgBucket(MsgBucket):
 
     def _send(self):
         dt_str = tools.dt_to_datetime_string()
-        msg = f"{dt_str} {self._str()}"
+        msg = f"{dt_str}\n{self._str()}"
         # log.debug(f"sending {self.__class__.__name__} with args: {self.args}, kwargs: {self.kwargs}")
         tools.discord_message(msg=msg, *self.args, **self.kwargs)
 

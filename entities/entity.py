@@ -79,6 +79,9 @@ def entity(entity_id, debug=False):
     elif domain == 'notify':
         from entities.companion import Companion
         output = Companion(entity_id)
+    elif domain == 'select':
+        from entities.select import Select
+        output = Select(entity_id)
     else:
         output = Entity(entity_id)
 
@@ -297,7 +300,7 @@ class Entity:
             log.debug(hour)
         """
         start_time = start_time.astimezone(timezone.utc)
-        end_time = end_time or ha.datetime_dt()
+        end_time = end_time or ha.datetime()
         end_time = end_time.astimezone(timezone.utc)
 
         entity_id = self.entity_id

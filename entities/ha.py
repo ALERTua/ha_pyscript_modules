@@ -22,13 +22,12 @@ class HA:
     @staticmethod
     def dt_from_string(dt_str):
         if dt_str not in (None, 'unknown', 'unavailable'):
-            return datetime.fromisoformat(dt_str)
+            iso = datetime.fromisoformat(dt_str)
+            output = dt_util.as_local(iso)
+            return output
 
-    def datetime_dt(self):
-        return template.now(hass)
-
-    def datetime_dt_utc(self):
-        return template.utcnow(hass)
+    def datetime(self):
+        return dt_util.now(time_zone=self.time_zone())
 
     def ip(self):
         return self.config.api.host

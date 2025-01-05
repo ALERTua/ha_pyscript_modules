@@ -60,6 +60,6 @@ def float_(obj):
 
 def int_(obj):
     try:
-        return int(obj)
+        return int(float(obj))
     except:
-        return 666
+        return -666

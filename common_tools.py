@@ -4,10 +4,12 @@ import requests
 import unicodedata as ud
 from datetime import datetime
 import humanize
-
+from entities.ha import HA
 from mutagen.mp3 import MP3
 
 latin_letters = {}
+
+ha = HA()
 
 
 def state_bool(state_):
@@ -229,9 +231,9 @@ def friendly_name(entity_id):
 
 def timedelta_words(value: timedelta | float, months: bool = True, minimum_unit: str = "seconds", locale: str = 'uk_UA') -> str:
     if locale == 'en':
-        humanize.i18n.deactivate()
+        task.executor(humanize.i18n.deactivate)
     else:
-        humanize.i18n.activate(locale)
+        task.executor(humanize.i18n.activate, locale)
     return humanize.naturaldelta(value, months=months, minimum_unit=minimum_unit)
 
 
@@ -242,9 +244,9 @@ def dt_words(value: datetime | timedelta | float,
              when: datetime | None = None,
              locale: str = 'uk_UA') -> str:
     if locale == 'en':
-        humanize.i18n.deactivate()
+        task.executor(humanize.i18n.deactivate)
     else:
-        humanize.i18n.activate(locale)
+        task.executor(humanize.i18n.activate, locale)
     return humanize.naturaltime(value, future=future, months=months, minimum_unit=minimum_unit, when=when)
 
 
@@ -277,11 +279,11 @@ def dt_from_timestamp(timestamp):
         timestamp = timestamp
     else:
         timestamp = timestamp.timestamp()
-    return datetime.fromtimestamp(timestamp, tz=dt_util.DEFAULT_TIME_ZONE)
+    return datetime.fromtimestamp(timestamp, tz=ha.time_zone())
 
 
 def dt_diff(dt: datetime) -> timedelta:
-    now = datetime.now()
+    now = datetime.now(tz=ha.time_zone())
     if now > dt:
         return now - dt
 
@@ -290,7 +292,7 @@ def dt_diff(dt: datetime) -> timedelta:
 
 def dt_to_datetime_string(dt: datetime = None) -> str:
     if dt is None:
-        dt = datetime.now()
+        dt = datetime.now(tz=ha.time_zone())
 
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -318,7 +320,7 @@ action: {action}
 exception: {type(e)} {e}""")
 
 
-def speak_language_from_code(lang_code):
+def tts_edge_voice_from_language_code(lang_code):
     if lang_code in ('ua',):
         voice = choice(
             (

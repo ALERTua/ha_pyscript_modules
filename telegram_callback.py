@@ -39,7 +39,7 @@ def remove_telegram_callbacks(trigger_type=None, var_name=None, value=None, old_
     for cb_name, kb_dict in attrs.items():
         cb_timestamp = kb_dict.get('timestamp')
         cb_date = tools.dt_from_timestamp(cb_timestamp)
-        date_diff = ha.datetime_dt() - cb_date
+        date_diff = ha.datetime() - cb_date
 
         hours = tools.timedelta_hours(date_diff)
         cb_delete = hours > 24
