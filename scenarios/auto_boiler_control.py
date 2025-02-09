@@ -63,22 +63,33 @@ def auto_boiler_control(trigger_type=None, var_name=None, value=None, old_value=
     if trigger_name:
         msg += f'\ntrigger_name: {trigger_name}'
 
+    current_temp = boiler_e.state('current_temperature')
+    msg += f"\ncurrent_temp: {current_temp}"
+
+    bottom_temp = state.get('sensor.boiler_bottom_tank_water_temperature')
+    msg += f"\nbottom_temp: {bottom_temp}"
+
+    msg += f"\nshowers_remaining: {showers_current}"
+
     msg += f'\ndiscount_period: {discount_period_on}'
     action_taken = False
     if boiler_mode_current != boiler_mode_needed:
         msg += f"\nboiler_mode_needed: {boiler_mode_needed} vs {boiler_mode_current}.\nSetting mode to {boiler_mode_needed}."
         boiler_e.set_operation_mode(boiler_mode_needed)
         action_taken = True
+        task.sleep(5)
 
     if showers_current != showers_needed:
         msg += f"\nshowers_needed: {showers_needed} vs {showers_current}.\nSetting showers to {showers_needed}."
         showers_e.set_value(showers_needed)
         action_taken = True
+        task.sleep(5)
 
     if target_temperature_current != temperature_needed:
         msg += f"\ntemperature_needed: {temperature_needed} vs {target_temperature_current}.\nSetting temperature to {temperature_needed}."
         target_temperature_e.set_value(temperature_needed)
         action_taken = True
+        task.sleep(5)
 
     if action_taken:
         log.debug(msg)

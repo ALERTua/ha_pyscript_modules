@@ -241,7 +241,7 @@ POWER_OUTAGE_IB = 'input_boolean.power_outage_calendar'
 POWER = POWER_SENSOR = 'binary_sensor.power'
 INTERNET = INTERNET_SENSOR = 'binary_sensor.internet'
 ALARM_SENSOR_ID = 'binary_sensor.kyiv_alarm'
-LLM_STANDARD = "conversation.gemma2_9b_instruct_q5_k_m"
+LLM_STANDARD = "conversation.llm"
 # SENSOR_DATETIME = 'sensor.datetime_full'
 
 COMPANION_ALERT = 'notify.mobile_app_alert_s_s24'

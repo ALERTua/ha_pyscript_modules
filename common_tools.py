@@ -382,7 +382,18 @@ def round_temp_float(temp_float, precision=0.5, round_result=1):
     return round(round(temp_float / precision, 0) * precision, round_result)
 
 
-def converse(txt, agent_id='conversation.air_raid_summary', language='UA', conversation_id=''):
+def converse_stringify_numbers(txt, agent_id=LLM_STANDARD, language='UA', conversation_id=''):
+    prompt = f"""
+    тобі буде надано фразу, що містить цифри 
+    перепиши цю фразу прописом, замінюючи цифри на їх прописну версію написання.
+    наприклад "сьогодні 1001 день війни" треба переписати так: "Сьогодні тисяча перший день війни"
+    наприклад "я не бачу 3 помідорів" треба переписати так: "я не бачу трьох помідорів"
+    наприклад "це сталося у 1220 році" треба переписати так: "це сталося у тисяча двісті двадцятому році"
+    Ось сама фраза:
+    {txt}"""
+    return converse(prompt, agent_id=agent_id, language=language, conversation_id=conversation_id)
+
+def converse(txt, agent_id=LLM_STANDARD, language='UA', conversation_id=''):
     log.debug(f"Conversing {language} {agent_id}\n{txt}\n___")
     # noinspection PyArgumentList
     response = conversation.process(agent_id=agent_id, language=language, text=txt,
