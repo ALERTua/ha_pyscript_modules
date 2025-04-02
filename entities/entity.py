@@ -205,6 +205,9 @@ class Entity:
             eid = self.entity_id
             return state.get(eid)
 
+    def state_translated(self):
+        return template.StateTranslated(hass)(self.entity_id)
+
     def is_on(self):
         return self.state() == 'on'
 
@@ -230,10 +233,12 @@ class Entity:
         return f"({self.entity_id} != 'off')"
 
     def is_unavailable(self):
-        return self.state() == 'unavailable'
+        _state = self.state()
+        return _state == 'unavailable'
 
     def is_unknown(self):
-        return self.state() == 'unknown'
+        _state = self.state()
+        return _state == 'unknown'
 
     def config_entry_id(self):
         if self.ha_state is None:

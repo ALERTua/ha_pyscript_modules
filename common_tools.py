@@ -36,7 +36,7 @@ def telegram_message_alert_ha_public(msg=None, disable_notification=False, **kwa
     )
 
 
-def telegram_message_alert_ha_private(msg=None, disable_notification=False, **kwargs):
+def telegram_message_alert_ha_private(msg=None, disable_notification=True, **kwargs):
     return telegram_message(
         msg=msg,
         disable_notification=disable_notification,
@@ -191,6 +191,22 @@ def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=0.5, timeout=
     # log.debug(f"Entering {entity_id} idle state waiting. current state: {current_state}")
     # task.sleep(0.5)
 
+
+def speaker_play_file(speaker_entity_ids, filename, media_content_type='audio/mp3', **kwargs):
+    pre_snd_ext_path = sound_ext_path(filename)
+    return media_player.play_media(entity_id=speaker_entity_ids, media_content_type=media_content_type,
+                                   media_content_id=pre_snd_ext_path, **kwargs)
+
+def mass_play_file(speaker_entity_ids, filename, use_pre_announce=False):
+    pre_snd_ext_path = sound_ext_path(filename)
+    # noinspection PyTypeChecker
+    return music_assistant.play_announcement(
+        entity_id=speaker_entity_ids,
+        url=pre_snd_ext_path,
+        use_pre_announce=use_pre_announce,
+    )
+    # return media_player.play_media(entity_id=speaker_entity_ids, media_content_type=media_content_type,
+    #                                media_content_id=pre_snd_ext_path, **kwargs)
 
 def quiet_hours():
     return state.get('binary_sensor.quiet_hours') == 'on'

@@ -24,14 +24,22 @@ class MediaPlayer(Switch):
             return
 
         homeassistant.turn_on(entity_id=self.entity_id)
+        task.sleep(0.5)
         volume = self.volume()
+        i = 0
+        delay = 0.25
+        max_i = 10 * (1 / delay)
         while volume is None:
+            if i >= max_i:
+                break
+
             volume = self.volume()
             if volume is None:
-                task.sleep(0.1)
+                task.sleep(delay)
+                i += delay
 
         self.volume_set(0)
-        task.sleep(0.2)
+        task.sleep(0.5)
         self.volume_set(volume)
 
 # # off

@@ -14,6 +14,19 @@ E_ALERT_COMPANION = Companion(
     wifi_ip_eid='sensor.alert_s_s24_wifi_ip_address',
 )
 
+E_TABLET_COMPANION = Companion(
+    entity_id=COMPANION_TABLET,
+    ringer_mode_eid='sensor.alert_s_redmi_pad_pro_ringer_mode',
+    battery_level_eid='sensor.alert_s_redmi_pad_pro_battery_level',
+    battery_level_state_eid='sensor.alert_s_redmi_pad_pro_battery_state',
+    dnd_eid='sensor.alert_s_redmi_pad_pro_do_not_disturb_sensor',
+    charging_eid='binary_sensor.alert_s_redmi_pad_pro_is_charging',
+    public_ip_eid='sensor.alert_s_redmi_pad_pro_public_ip_address',
+    wifi_bssid_eid='sensor.alert_s_redmi_pad_pro_wi_fi_bssid',
+    wifi_ssid_eid='sensor.alert_s_redmi_pad_pro_wi_fi_connection',
+    wifi_ip_eid='sensor.alert_s_redmi_pad_pro_wi_fi_ip_address',
+)
+
 E_CATBIRD_COMPANION = Companion(
     entity_id=COMPANION_CATBIRD,
     ringer_mode_eid=None,
