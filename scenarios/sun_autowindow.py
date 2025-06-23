@@ -3,7 +3,7 @@ from pyscript_mock import *
 from entities.window import Window
 
 
-WEATHER_ENTITY_ID = 'weather.accuweather'
+WEATHER_ENTITY_ID = 'weather.home'
 AZIMUTH_LOW = 210
 AZIMUTH_HIGH = 298
 ELEVATION_LOW = 0
@@ -145,8 +145,8 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
         (70, None, 44, False),
         (80, None, 39, False),
         (90, None, 25, False),
-        (100, None, 0.8, False),
-        (60, None, 0.5, True),
+        (100, None, 1.0, False),
+        (60, None, 0.7, True),
         (position_open, None, ELEVATION_LOW, True),
     ]
 
@@ -243,6 +243,9 @@ def illumination_autowindow(trigger_type=None, var_name=None, value=None, old_va
     illumination_sensor = kwargs.get('illumination_sensor', None)
     illumination_threshold_open = int(kwargs.get('illumination_threshold_open', 200))
     illumination_threshold_close = int(kwargs.get('illumination_threshold_close', 200))
+    temperature_sensor = kwargs.get('temperature_sensor', None)
+    temperature_outside_sensor = kwargs.get('temperature_outside_sensor', None)
+    temperature_limit_top = int(kwargs.get('temperature_limit_top', 24))
     window = Window(window_entity_id, reverse=reverse)
     if debug:
         log.debug(f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}")
@@ -253,7 +256,7 @@ def illumination_autowindow(trigger_type=None, var_name=None, value=None, old_va
         log.debug(f"{__name__}: window position is None. Breaking.")
         return
 
-    force = False
+    force_open = False
     i_sensor = entity(illumination_sensor)
     try:
         illumination = int(i_sensor.state())
@@ -262,51 +265,55 @@ def illumination_autowindow(trigger_type=None, var_name=None, value=None, old_va
         return
 
     if debug:
-        log.debug(f"{__name__}: {window_fn} illumination: {illumination_threshold_open} <= {illumination} <= {illumination_threshold_close}")
+        log.debug(f"{__name__}: {window_fn} illumination: {illumination_threshold_close} ~ {illumination} ~ {illumination_threshold_open}")
 
-    window_position = window_position_current
+    window_position_new = window_position_current
+
     if illumination <= illumination_threshold_open:
-        window_position = window_position_current + 10 if not reverse else window_position_current - 10
+        window_position_new = window_position_current - 10
+        force_open = True
         if debug:
-            log.debug(f"{__name__}: illumination is less than open threshold: {illumination} <= {illumination_threshold_open}. Setting {window_position=}. {window_position_current=}")
+            log.debug(f"{__name__}: illumination is less than open threshold: {illumination} <= {illumination_threshold_open}. Setting {window_position_new=}. {window_position_current=}")
 
     elif illumination >= illumination_threshold_close:
-        window_position = window_position_current - 10 if not reverse else window_position_current + 10
+        window_position_new = window_position_current + 10
         if debug:
-            log.debug(f"{__name__}: illumination is more than open threshold: {illumination} <= {illumination_threshold_close}. Setting {window_position=}. {window_position_current=}")
+            log.debug(f"{__name__}: illumination is more than open threshold: {illumination} <= {illumination_threshold_close}. Setting {window_position_new=}. {window_position_current=}")
 
-    if reverse:
-        window_position = min(window_position, position_close)
-        window_position = max(window_position, position_open)
-    else:
-        window_position = max(window_position, position_close)
-        window_position = min(window_position, position_open)
+    if temperature_sensor:
+        temperature_inside = float_(entity(temperature_sensor).state())
 
-    if window_position_current == window_position:
+        temperature_outside = float_(entity(temperature_outside_sensor).state())
+        if temperature_outside > temperature_limit_top:
+            if debug:
+                log.debug(f"{__name__}: temperature outside is more than limit: {temperature_outside} > {temperature_limit_top}.")
+            window_position_new = position_close
+        else:
+            if debug:
+                log.debug(f"{__name__}: temperature outside is less than limit: {temperature_outside} < {temperature_limit_top}.")
+
+    if debug:
+        log.debug(f"{__name__}: before limit {window_position_new=} {position_close=} {position_open=}")
+    window_position_new = min(window_position_new, position_close)
+    window_position_new = max(window_position_new, position_open)
+    if debug:
+        log.debug(f"{__name__}: after limit {window_position_new=}")
+
+    if window_position_current == window_position_new:
         if debug:
             log.debug(f"{__name__}: {window_fn} position is already: {window_position_current}. Breaking.")
         return
-
-    # if not force and window_position_current > window_position:
-    #     if debug:
-    #         log.debug(f"{__name__}: Won't close({window_position}) {window_fn} that is already closed({window_position_current}).")
-    #     return
+    elif window_position_current > window_position_new and not force_open:
+        if debug:
+            log.debug(f"{__name__}: Won't close {window_fn}: already closed more: {window_position_current}. Breaking.")
+        return
+    elif force_open:
+        if debug:
+            log.debug(f"{__name__}: Force open.")
 
     msg = f"""Illumination: {illumination}.
-Setting {window_fn} position from {window_position_current} to {window_position}"""
+Setting {window_fn} position from {window_position_current} to {window_position_new}"""
     log.info(f"{__name__}:\n{msg}")
 
-    # input_boolean_ = kwargs.get('input_boolean')
-    # action_turn_off = f"input_boolean.turn_off(entity_id='{input_boolean_}')"
-    # cb_turn_off = register_telegram_callback(action_turn_off)
-    # action_open_cover = f"cover.set_cover_position(entity_id='{window.entity_id}', position={position_open})"
-    # cb_open_cover = register_telegram_callback(action_open_cover)
-    # inline = [
-    #     [
-    #         [f"Turn Off Automation", cb_turn_off],
-    #         [f"Open {window_fn}", cb_open_cover],
-    #     ],
-    # ]
-    # tools.telegram_message(msg, inline_keyboard=inline, disable_notification=True)
     tools.discord_message(msg, target=['1223990700266356847'])
-    window.position_set(window_position)
+    window.position_set(window_position_new)

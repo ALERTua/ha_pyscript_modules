@@ -30,6 +30,14 @@ def conditional(*conditions, and_=True, debug=False):
     )
     """
 
+    if not conditions:
+        def decorator(fn):
+            @functools.wraps(fn)
+            def wrapper():
+                return fn()
+            return wrapper
+        return decorator
+
     def decorator(fn):
         joint = 'and' if and_ else 'or'
         expr = ''

@@ -13,11 +13,27 @@ class MediaPlayer(Switch):
         return tools.wait_speaker_idle(self.entity_id, state_check_now=state_check_now, state_hold=state_hold,
                                        timeout=timeout)
 
-    def volume_set(self, volume_level: float):
+    def volume_set(self, volume_level: float):  # 1.0
         return media_player.volume_set(entity_id=self.entity_id, volume_level=volume_level)
+
+    def volume_up(self):
+        return media_player.volume_up(entity_id=self.entity_id)
+
+    def volume_down(self):
+        return media_player.volume_down(entity_id=self.entity_id)
 
     def volume(self):
         return self.state(attr='volume_level', default=None) or None
+
+    def volume_limit(self, lower=0.0, upper=1.0):
+        current_volume = self.volume()
+        if current_volume is None:
+            return
+
+        if current_volume < lower:
+            self.volume_set(lower)
+        elif current_volume > upper:
+            self.volume_set(upper)
 
     def turn_on(self):
         if self.is_on():

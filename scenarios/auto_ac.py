@@ -325,8 +325,8 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     if change_temperature and ac_temperature != target_temperature and temp_difference_abs > 0:
         msgs.add(f'Setting {ac_friendly_name} temperature {ac_temperature} to '
                  f'{target_temperature_min}-{target_temperature}-{target_temperature_max}')
-        ac_entity.set_temperature(hvac_mode=wanted_state, temperature=target_temperature,
-                                  target_temp_high=target_temperature_max, target_temp_low=target_temperature_min)
+        ac_entity.set_temperature(hvac_mode=wanted_state, temperature=target_temperature)
+                                  # target_temp_high=target_temperature_max, target_temp_low=target_temperature_min)
         task.sleep(ac_action_wait)
 
     if msgs.msgs:

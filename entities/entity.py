@@ -6,6 +6,7 @@ from entities.ha import HA
 import homeassistant.helpers.template as template
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/entity.py
 import homeassistant.helpers.entity as entity_helper
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.recorder import get_instance
 from homeassistant.components.recorder.statistics import statistics_during_period
 from typing import Literal, Optional
@@ -238,13 +239,26 @@ class Entity:
 
     def is_unknown(self):
         _state = self.state()
-        return _state == 'unknown'
+        return _state == "unknown"
 
     def config_entry_id(self):
         if self.ha_state is None:
-            return
+            return None
 
         return template.config_entry_id(hass, self.entity_id)
+
+    def config_entry(self) -> ConfigEntry:
+        config_entry_id = self.config_entry_id()
+        config_entry: ConfigEntry = hass.config_entries.async_get_entry(config_entry_id)
+        return config_entry
+
+    def config_entry_disabled(self) -> bool:
+        config_entry_id = self.config_entry_id()
+        if config_entry_id is None:
+            return False
+
+        output = template.config_entry_attr(hass, config_entry_id, attr_name='disabled_by')
+        return output is not None
 
     def device_id(self):
         if self.ha_state is None:
