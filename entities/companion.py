@@ -132,7 +132,7 @@ class Companion(Entity):
         timeout: 10 # How many seconds the notification should be received by the device
         visibility: public
         tts_text: "Motion has been detected"
-        media_stream: "alarm_stream"
+        media_stream: "alarm_stream_max"
         notification_icon: "mdi:cellphone"
         intent_package_name: "com.urbandroid.sleep"
         intent_extras: "MAX_RAW_DATA:0.2;0.2;0.4;0.3;5.4;6.8;1.2:float[]"

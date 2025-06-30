@@ -253,3 +253,5 @@ COMPANION_ALERT = 'notify.mobile_app_alert_s_s24'
 COMPANION_TABLET = 'notify.mobile_app_alert_s_redmi_pad_pro'
 COMPANION_CATBIRD = 'notify.mobile_app_kateryna_drozd'
 GUESTS_IB = 'input_boolean.guests'
+
+RAIN_INCOMING = 'input_boolean.rain_incoming'

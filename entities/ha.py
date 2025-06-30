@@ -5,6 +5,7 @@ from imports_base import *
 from homeassistant.helpers import template, device_registry, entity_registry, entity as entity_helper
 from entities.device import Device
 from zoneinfo import ZoneInfo
+from datetime import datetime
 
 
 class HA:
@@ -26,7 +27,7 @@ class HA:
             output = dt_util.as_local(iso)
             return output
 
-    def datetime(self):
+    def datetime(self) -> datetime.datetime:
         return dt_util.now(time_zone=self.time_zone())
 
     def ip(self):
