@@ -1,5 +1,6 @@
 # https://hacs-pyscript.readthedocs.io/en/stable/reference.html
 from imports_base import *
+import math
 import requests
 import unicodedata as ud
 from datetime import datetime
@@ -393,9 +394,22 @@ def only_roman_chars(unistr):
     # return all(is_latin(uchr) for uchr in unistr if uchr.isalpha())
 
 
+# round to closest precision, then round to round_result
 def round_temp_float(temp_float, precision=0.5, round_result=1):
     temp_float = float(temp_float)
     return round(round(temp_float / precision, 0) * precision, round_result)
+
+
+# round down to closest precision, then round to round_result
+def round_down(value, precision=1.0, round_result=None):
+    result = math.floor(float(value) / precision) * precision
+    return round(result, round_result) if round_result is not None else result
+
+
+# round up to closest precision, then round to round_result
+def round_up(value, precision=1.0, round_result=None):
+    result = math.ceil(float(value) / precision) * precision
+    return round(result, round_result) if round_result is not None else result
 
 
 def converse_stringify_numbers(txt, agent_id=LLM_STANDARD, language='UA', conversation_id=''):

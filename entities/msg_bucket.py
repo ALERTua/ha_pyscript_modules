@@ -12,7 +12,7 @@ class MsgBucket:
 
     def _init_(self, name=None, separator='\n', debug=False, *args, **kwargs):
         self.name = name or self.__class__.__name__
-        self.msgs = []
+        self.msgs: list[str] = []
         self.separator = separator
         self.args = args
         self.kwargs = kwargs
