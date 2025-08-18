@@ -155,6 +155,7 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     boost_temp_difference = float(kwargs.get('boost_trigger_difference', DEFAULT_BOOST_TEMP_DIFFERENCE))
     allowed_modes_selector = kwargs.get('allowed_modes_selector', None)
     fan_speed_limit = kwargs.get('fan_speed_limit', None)
+    fan_speed_limit_min = kwargs.get('fan_speed_limit_min', None)
     allow_turning_off = kwargs.get('allow_turning_off', True)
     discord_target = kwargs.get('discord_target', DEFAULT_DISCORD_TARGET)
 
@@ -310,7 +311,12 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
         if fan_speed_limit is not None:
             wanted_fan_speed = min(wanted_fan_speed, int(fan_speed_limit))
             if DEBUG:
-                log.debug(f"after min: {wanted_fan_speed}")
+                log.debug(f"after fan_speed_limit: {wanted_fan_speed}")
+
+        if fan_speed_limit_min is not None:
+            wanted_fan_speed = max(wanted_fan_speed, int(fan_speed_limit_min))
+            if DEBUG:
+                log.debug(f"after fan_speed_limit_min: {wanted_fan_speed}")
 
         if wanted_fan_speed > len(FAN_MODES) - 1:
             preset_target = PRESET_MODE_BOOST
