@@ -245,7 +245,7 @@ def illumination_autowindow(trigger_type=None, var_name=None, value=None, old_va
     illumination_threshold_close = int(kwargs.get('illumination_threshold_close', 200))
     temperature_sensor = kwargs.get('temperature_sensor', None)
     temperature_outside_sensor = kwargs.get('temperature_outside_sensor', None)
-    temperature_limit_top = int(kwargs.get('temperature_limit_top', 24))
+    temperature_limit_top = int(kwargs.get('temperature_limit_top', 26))
     window = Window(window_entity_id, reverse=reverse)
     if debug:
         log.debug(f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}")
