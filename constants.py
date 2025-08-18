@@ -217,6 +217,7 @@ TELEGRAM_CHAT_ALERT_HA_PRIVATE = SECRET('telegram_chat_alert_ha_private')
 TELEGRAM_CHAT_ALERT_VIDEO = SECRET('telegram_chat_alert_video')
 DISCORD_CHANNEL_HA = SECRET('discord_channel_ha')
 SERVER_URL_EXTERNAL = SECRET('server_url_external')
+SERVER_URL_INTERNAL = SECRET('server_url_internal')
 
 ROUTER_USERNAME = SECRET('router_username')
 ROUTER_PASSWORD = SECRET('router_password')
