@@ -557,3 +557,8 @@ def check_mp4_file(url):
         return True, "Success: URL contains a valid MP4 file."
     except Exception as e:
         return False, f"Request failed: {type(e)} {e}"
+
+
+def get_weekday_ukrainian():
+    weekdays = ['понеділок', 'вівторок', 'середа', 'четвер', 'п\'ятниця', 'субота', 'неділя']
+    return weekdays[ha.datetime().weekday()]
