@@ -9,7 +9,7 @@ class MediaPlayer(Switch):
         self.entity_id = entity_id
         self.init()
 
-    def wait_idle(self, state_check_now=True, state_hold=0.25, timeout=None):
+    def wait_idle(self, state_check_now=True, state_hold=2.0, timeout=None):
         return tools.wait_speaker_idle(self.entity_id, state_check_now=state_check_now, state_hold=state_hold,
                                        timeout=timeout)
 
