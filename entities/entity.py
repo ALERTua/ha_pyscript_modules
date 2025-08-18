@@ -281,9 +281,27 @@ class Entity:
         last_changed = self.ha_state.last_changed
         return tools.dt_from_timestamp(last_changed)
 
+    def last_reported(self) -> datetime:
+        last_reported = self.ha_state.last_reported
+        return tools.dt_from_timestamp(last_reported)
+
     def last_updated(self) -> datetime:
         last_updated = self.ha_state.last_updated
         return tools.dt_from_timestamp(last_updated)
+
+    def last_active(self):
+        return min(
+            self.last_updated(),
+            self.last_changed(),
+            self.last_reported(),
+        )
+
+    def last_active_older_than(self, days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0):
+        now = ha.datetime()
+        delta = timedelta(days=days, seconds=seconds, microseconds=microseconds,
+                milliseconds=milliseconds, minutes=minutes, hours=hours, weeks=weeks)
+        past = now - delta
+        return past > self.last_active(), self.last_active()
 
     def area_id(self):
         return template.area_id(hass, self.entity_id)
