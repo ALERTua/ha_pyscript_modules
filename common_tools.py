@@ -122,7 +122,7 @@ def expand_sound_data(sound_name):
 
 
 def sound_ext_path(sound_name):
-    output = f"{SERVER_URL_EXTERNAL}{EXTERNAL_MEDIA_BASE}{sound_name}"
+    output = f"{SERVER_URL_INTERNAL}{EXTERNAL_MEDIA_BASE}{sound_name}"
     return output
 
 
