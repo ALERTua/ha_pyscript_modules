@@ -82,3 +82,9 @@ def speaker_idle(entity_id):
     _ = entity(entity_id)
     return f"(hass.states.get('{entity_id}') in ('off', 'on', 'idle') or {entity_id} in ('off', 'on', 'idle'))"
     # return f"{entity_id} in ('off', 'on', 'idle') "
+
+
+def entity_last_seen_not_older_than(entity_id: str, **kwargs):
+    e = entity(entity_id)
+    _last_seen_older, _when = e.last_active_older_than(**kwargs)
+    return not _last_seen_older
