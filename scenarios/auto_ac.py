@@ -158,6 +158,7 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     fan_speed_limit_min = kwargs.get('fan_speed_limit_min', None)
     allow_turning_off = kwargs.get('allow_turning_off', True)
     discord_target = kwargs.get('discord_target', DEFAULT_DISCORD_TARGET)
+    debug = kwargs.get('debug', DEBUG)
 
     cur_temp_entity = entity(cur_temp_entity_id)
     cur_temp = round(float(cur_temp_entity.state()), 1)
@@ -207,12 +208,27 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     wanted_state = HVAC_MODE_OFF
     preset_target = PRESET_MODE_OFF
 
+    if debug:
+        log.debug(f"{temp_high_bar=} {cur_temp=} {wanted_temp=} {temp_low_bar=}")
+
     if cur_temp > temp_high_bar:
         msgs.add(f'{cur_temp} > ↑{temp_high_bar}')
         wanted_state = HVAC_MODE_COOL
+        if debug:
+            log.debug(f"{cur_temp=} > {temp_high_bar=}: {wanted_state=}")
     elif cur_temp < temp_low_bar:  # got it
         msgs.add(f'{cur_temp} < ↓{temp_low_bar}')
         wanted_state = HVAC_MODE_HEAT
+        if debug:
+            log.debug(f"{cur_temp=} < {temp_low_bar=}: {wanted_state=}")
+    elif cur_temp == wanted_temp:
+        if debug:
+            log.debug(f"{cur_temp=} == {wanted_temp=}")
+        msgs.add(f'{ac_friendly_name} temperature reached: {wanted_state}. Turning off.')
+        msgs.send()
+        turn_off(ac_entity, allow_turning_off, ac_action_wait)
+        return
+
     else:
         wanted_state = ac_hvac_mode
         msgs.add(f'{temp_high_bar} ↑ {cur_temp} ↓ {temp_low_bar}')
@@ -226,13 +242,13 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
         msgs.add(f"wanted_state: {wanted_state}")
 
     if ac_hvac_mode != HVAC_MODE_OFF and wanted_state == HVAC_MODE_OFF:
-        if DEBUG:
+        if debug:
             log.debug(f"{ac_friendly_name} wanted_state off. Turning off.")
         msgs.send()
         turn_off(ac_entity, allow_turning_off, ac_action_wait)
         return
     elif ac_hvac_mode == HVAC_MODE_OFF and wanted_state == HVAC_MODE_OFF:
-        if DEBUG:
+        if debug:
             log.debug(f"{ac_friendly_name} ac_hvac_mode == wanted_state == {HVAC_MODE_OFF}")
         return
 
@@ -296,31 +312,31 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     if change_fan_speed:  # and temp_difference_ok
         wanted_fan_speed = abs(float(len(FAN_MODES)) * (temp_difference or 0.1) / float(boost_temp_difference or 2))
         wanted_fan_speed -= 1  # indexes from 0
-        if DEBUG:
+        if debug:
             log.debug(f"before mod: {wanted_fan_speed}")
         if (wanted_fan_speed_div := wanted_fan_speed % 1.0) >= 0.5:
             wanted_fan_speed -= wanted_fan_speed_div
             wanted_fan_speed += 1
-            if DEBUG:
+            if debug:
                 log.debug(f"after mod: {wanted_fan_speed}")
 
         wanted_fan_speed = int(round(wanted_fan_speed, 0))
-        if DEBUG:
+        if debug:
             log.debug(f"after int: {wanted_fan_speed}")
 
         if fan_speed_limit is not None:
             wanted_fan_speed = min(wanted_fan_speed, int(fan_speed_limit))
-            if DEBUG:
+            if debug:
                 log.debug(f"after fan_speed_limit: {wanted_fan_speed}")
 
         if fan_speed_limit_min is not None:
             wanted_fan_speed = max(wanted_fan_speed, int(fan_speed_limit_min))
-            if DEBUG:
+            if debug:
                 log.debug(f"after fan_speed_limit_min: {wanted_fan_speed}")
 
         if wanted_fan_speed > len(FAN_MODES) - 1:
             preset_target = PRESET_MODE_BOOST
-            if DEBUG:
+            if debug:
                 log.debug(f"too much boost: {wanted_fan_speed} > {len(FAN_MODES) - 1}")
         else:
             wanted_fan_speed = max(min(wanted_fan_speed, len(FAN_MODES) - 1), 0)
@@ -354,12 +370,12 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
         ac_entity.set_temperature(hvac_mode=wanted_state, temperature=target_temperature)
                                   # target_temp_high=target_temperature_max, target_temp_low=target_temperature_min)
         task.sleep(ac_action_wait)
-    elif change_temperature and ac_temperature == target_temperature:
-        msgs.add(f'{ac_friendly_name} temperature is already {target_temperature}')
+    elif ac_temperature == target_temperature:
+        msgs.add(f'{ac_friendly_name} temperature already set to {target_temperature}')
 
     if msgs.msgs:
         msgs.msgs = msgs_init + msgs.msgs
         msgs.send()
     else:
-        if DEBUG:
+        if debug:
             log.debug(f"{__name__}: nothing to do for {ac_friendly_name}")
