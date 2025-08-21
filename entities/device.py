@@ -23,3 +23,11 @@ class Device:
         # homeassistant.enable_device(device_id=self.device_id)  # https://spook.boo
         registry = device_registry.async_get(hass)
         registry.async_update_device(device_id=self.device_id, disabled_by=None)
+
+    def disabled(self):
+        ha_device = self.ha_device()
+        if ha_device is not None:
+            return ha_device.disabled_by is not None
+
+    def enabled(self):
+        return not self.disabled()
