@@ -290,7 +290,7 @@ class Entity:
         return tools.dt_from_timestamp(last_updated)
 
     def last_active(self):
-        return min(
+        return max(
             self.last_updated(),
             self.last_changed(),
             self.last_reported(),
@@ -301,7 +301,10 @@ class Entity:
         delta = timedelta(days=days, seconds=seconds, microseconds=microseconds,
                 milliseconds=milliseconds, minutes=minutes, hours=hours, weeks=weeks)
         past = now - delta
-        return past > self.last_active(), self.last_active()
+        last_active = self.last_active()
+        output = past > last_active
+        # log.debug(f"{past=} > {last_active=} = {output=}")
+        return output, last_active
 
     def area_id(self):
         return template.area_id(hass, self.entity_id)
