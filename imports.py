@@ -87,4 +87,4 @@ def speaker_idle(entity_id):
 def entity_last_seen_not_older_than(entity_id: str, **kwargs):
     e = entity(entity_id)
     last_seen_older, _ = e.last_active_older_than(**kwargs)
-    return last_seen_older
+    return not last_seen_older

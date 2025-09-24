@@ -8,6 +8,7 @@ DEBUG = False
 DEFAULT_BOOST_TEMP_DIFFERENCE = 1.5
 DEFAULT_TEMP_TOLERANCE_UP = 0.5
 DEFAULT_TEMP_TOLERANCE_DOWN = 0.1
+DEFAULT_TEMP_DIFFERENCE_FACTOR = 1.0
 DEFAULT_HOLD = HOLD_1M
 PRECISION = 0.1
 MIN_TEMP = 18
@@ -148,6 +149,7 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
 
     tolerance_up = float(kwargs.get('tolerance_up', DEFAULT_TEMP_TOLERANCE_UP))
     tolerance_down = kwargs.get('tolerance_down', DEFAULT_TEMP_TOLERANCE_DOWN)
+    temp_difference_factor = float(kwargs.get('temp_difference_factor', DEFAULT_TEMP_DIFFERENCE_FACTOR))
 
     cur_temp_entity_id = kwargs.get('cur_temp_entity')
     change_temperature = kwargs.get('change_temperature', True)
@@ -259,34 +261,32 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
         return
 
     # AC thinks it's 26 = but it's 24.  wanted 22.    proportion (26/24)*22
-    target_temperature = round((ac_inside_temp/cur_temp) * wanted_temp, 2)  # just for visual clarity
+    target_temperature = round((ac_inside_temp/cur_temp) * wanted_temp, 2)
     msgs.add(f'{ac_friendly_name} target_temperature raw: {target_temperature}')
+    target_temperature = round(target_temperature, 2)  # just for visual clarity
+    msgs.add(f'target_temperature round: {target_temperature}')
+
+    msgs.add(f'temp_difference_factor: {temp_difference_factor}')
 
     if wanted_temp > cur_temp:  # heating
         # `+ ac_precision + tolerance_up` makes it more agressive
         # can be just `+ tolerance_up` or just `+ ac_precision`
         target_temperature = target_temperature + ac_precision + tolerance_up
+        target_temperature *= temp_difference_factor
         target_temperature = tools.round_up(target_temperature, ac_precision)
     elif wanted_temp < cur_temp:  # cooling
         target_temperature = target_temperature - ac_precision - tolerance_down
+        target_temperature /= temp_difference_factor
         target_temperature = tools.round_down(target_temperature, ac_precision)
     else:
         target_temperature = ac_temperature
 
-    msgs.add(f'{ac_friendly_name} target_temperature rounded: {target_temperature}')
-
-    target_temperature_max = target_temperature + tolerance_up
-    target_temperature_min = target_temperature - tolerance_down
+    msgs.add(f'target_temperature rounded: {target_temperature}')
 
     target_temperature = max(target_temperature, MIN_TEMP)
-    target_temperature_max = max(target_temperature_max, MIN_TEMP)
-    target_temperature_min = max(target_temperature_min, MIN_TEMP)
-
     target_temperature = min(target_temperature, MAX_TEMP)
-    target_temperature_max = min(target_temperature_max, MAX_TEMP)
-    target_temperature_min = min(target_temperature_min, MAX_TEMP)
 
-    msgs.add(f'{ac_friendly_name} target_temperature minmaxed: {target_temperature} vs ac_inside {ac_inside_temp}')
+    msgs.add(f'target_temperature minmaxed: {target_temperature} vs ac_inside {ac_inside_temp}')
 
     try:
         index_try = FAN_MODES.index(ac_fan_speed)
@@ -365,8 +365,7 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
         task.sleep(ac_action_wait)
 
     if change_temperature and ac_temperature != target_temperature and temp_difference_abs > 0:
-        msgs.add(f'Setting {ac_friendly_name} temperature {ac_temperature} to '
-                 f'{target_temperature_min}-{target_temperature}-{target_temperature_max}')
+        msgs.add(f'Setting {ac_friendly_name} temperature {ac_temperature} to {target_temperature}')
         ac_entity.set_temperature(hvac_mode=wanted_state, temperature=target_temperature)
                                   # target_temp_high=target_temperature_max, target_temp_low=target_temperature_min)
         task.sleep(ac_action_wait)
