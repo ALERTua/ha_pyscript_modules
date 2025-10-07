@@ -11,6 +11,9 @@ class Number(Entity):
         self._old_toggle_state = None
 
     def set_value(self, value):
+        if self.entity_domain == 'input_number':
+            return input_number.set_value(entity_id=self.entity_id, value=value)
+
         return number.set_value(entity_id=self.entity_id, value=value)
 
     def min(self):
@@ -39,4 +42,5 @@ class Number(Entity):
         else:
             new_state = _state - float(self.step())
 
+        log.debug(f"toggling {self.entity_id} {_state}->{new_state}")
         self.set_value(new_state)

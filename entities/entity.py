@@ -68,7 +68,7 @@ def entity(entity_id, debug=False):
     elif domain == 'cover':
         from entities.window import Cover
         output = Cover(entity_id)
-    elif domain == 'number':
+    elif domain in ('input_number', 'number'):
         from entities.number import Number
         output = Number(entity_id)
     elif domain == 'water_heater':
@@ -296,14 +296,31 @@ class Entity:
             self.last_reported(),
         )
 
-    def last_active_older_than(self, days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0):
+    def last_active_older_than(self, days=0, seconds=0, microseconds=0, milliseconds=0,
+                               minutes=0, hours=0, weeks=0, debug=False):
         now = ha.datetime()
+        if debug:
+            log.debug(f"{now=}")
+
         delta = timedelta(days=days, seconds=seconds, microseconds=microseconds,
                 milliseconds=milliseconds, minutes=minutes, hours=hours, weeks=weeks)
+        if debug:
+            log.debug(f"{delta=}")
+
         past = now - delta
+        if debug:
+            log.debug(f"{past=}")
+
         last_active = self.last_active()
+        if debug:
+            log.debug(f"{last_active=}")
+
         output = past > last_active
-        # log.debug(f"{past=} > {last_active=} = {output=}")
+        if debug:
+            log.debug(f"{output=}")
+
+        if debug:
+            log.debug(f"{past=} > {last_active=} = {output=}")
         return output, last_active
 
     def area_id(self):

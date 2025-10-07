@@ -317,3 +317,5 @@ Setting {window_fn} position from {window_position_current} to {window_position_
 
     tools.discord_message(msg, target=['1223990700266356847'])
     window.position_set(window_position_new)
+    task.sleep(0.7)
+    window.stop()

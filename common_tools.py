@@ -399,6 +399,7 @@ def only_roman_chars(unistr):
 
 # round to closest precision, then round to round_result
 def round_temp_float(temp_float, precision=0.5, round_result=1):
+    precision = precision or 1
     temp_float = float(temp_float)
     return round(round(temp_float / precision, 0) * precision, round_result)
 

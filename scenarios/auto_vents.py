@@ -121,10 +121,11 @@ def auto_vents(trigger_type=None, var_name=None, value=None, old_value=None, con
         if func:
             funcname = func.__name__.replace('homeassistant.', '')
             func_kwargs_str = f" with {func_kwargs}" if func_kwargs else ''
-            log.info(f"condition monitor for {wanted_entity_friendly_name} {var_name}"
-                     f" @ {wanted_entity_cur_state}: executing {func.__name__}{func_kwargs_str}")
+            log.info(f"condition monitor for {wanted_entity_friendly_name} that is "
+                     f"{wanted_entity_cur_state}, triggered by {var_name}: {old_value}->{value}:"
+                     f" executing {func.__name__}{func_kwargs_str}")
             msg = f"🪶{__name__}:\n" \
-                  f"{friendly_name}> {trigger_type}{trigger_name} triggered on {var_name} value {value}. \n" \
+                  f"{friendly_name}> {trigger_type}{trigger_name} triggered on {var_name} {old_value}->{value}. \n" \
                   f"{wanted_entity_friendly_name} was {wanted_entity_cur_state} " \
                   f"from {lc_str} \n" \
                   f"{lc_now} \n" \
