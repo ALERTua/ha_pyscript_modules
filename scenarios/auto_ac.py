@@ -1,5 +1,4 @@
 from imports import *
-from pyscript_mock import *
 from entities.climate import Climate
 from entities.entity import Entity
 

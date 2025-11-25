@@ -1,5 +1,4 @@
 from imports import *
-from pyscript_mock import *
 from entities.entity import Entity
 
 # # EXAMPLE

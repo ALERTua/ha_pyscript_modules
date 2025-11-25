@@ -1,5 +1,4 @@
 from imports import *
-from pyscript_mock import *
 from entities.water_heater import WaterHeater
 
 DISCORD_CHATS = ['1262407979920261161']

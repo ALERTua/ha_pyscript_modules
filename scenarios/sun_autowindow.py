@@ -1,5 +1,4 @@
 from imports import *
-from pyscript_mock import *
 from entities.window import Window
 
 
@@ -281,7 +280,7 @@ def illumination_autowindow(trigger_type=None, var_name=None, value=None, old_va
             log.debug(f"{__name__}: illumination is more than open threshold: {illumination} <= {illumination_threshold_close}. Setting {window_position_new=}. {window_position_current=}")
 
     if temperature_sensor:
-        temperature_inside = float_(entity(temperature_sensor).state())
+        # temperature_inside = float_(entity(temperature_sensor).state())
 
         temperature_outside = float_(entity(temperature_outside_sensor).state())
         if temperature_outside > temperature_limit_top:
@@ -317,5 +316,5 @@ Setting {window_fn} position from {window_position_current} to {window_position_
 
     tools.discord_message(msg, target=['1223990700266356847'])
     window.position_set(window_position_new)
-    task.sleep(0.7)
+    task.sleep(1.0)
     window.stop()

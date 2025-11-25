@@ -53,8 +53,8 @@ BEDROOM_AUTO_AC = 'input_boolean.bedroom_auto_ac'
 BEDROOM_SPEAKER = 'media_player.mass_bedroom_speaker'
 BEDROOM_HUMIDIFIER = 'switch.bedroom_humidifier'
 BEDROOM_HUMIDIFIER_POWER = 'sensor.bedroom_humidifier_power'
-BEDROOM_DIMMER = 'light.miboxer_tl'
 BEDROOM_LED_BOTTOM = 'light.bedroom_led_bottom'
+BEDROOM_LED_BOTTOM_MIN = 21
 BEDROOM_LED_TOP = 'light.bedroom_led_top'
 
 BEDROOM_WINDOW = 'cover.bedroom_window_tl'
@@ -102,6 +102,7 @@ ROOM_AUTO_AC = 'input_boolean.room_auto_ac'
 ROOM_VALVE = 'climate.valve_room'
 ROOM_AUTOVALVE_IB = 'input_boolean.room_auto_valve'
 ROOM_LIGHT = 'light.room'
+ROOM_ACCENT_LIGHT = 'switch.room_accent_light'
 
 KITCHEN_WINDOW = 'cover.kitchen_window_tl'
 # KITCHEN_WINDOW_CLOUD = 'cover.kitchen_window_cloud'
@@ -129,10 +130,12 @@ LAUNDRY_LIGHT = 'light.laundry'
 LAUNDRY_VALVE_COLD = 'switch.valve_cold'
 GROUP_LEAK = 'group.water_leak_group'
 GROUP_VALVES = 'group.water_valves'
-SERVER_TEMPERATURE = 'sensor.alert_server_package_id_0_temperature'
-MINI_TEMPERATURE = 'sensor.mini_package_id_0_temperature'
-SERVER_RAM_USED_PERCENT = 'sensor.server_ram_used_percent'
+SERVER_TEMPERATURE = 'sensor.alert_server_cpu_temperature'
+MINI_TEMPERATURE = 'sensor.mini_cpu_temperature'
+SERVER_RAM_USED_PERCENT = 'sensor.alert_server_ram_usage'
+MINI_RAM_USED_PERCENT = 'sensor.mini_ram_usage'
 BOILER = 'water_heater.boiler'
+BOILER_CONTROL_MODE = 'input_select.boiler_control_mode'
 LAUNDRY_SPEAKER = 'media_player.mass_microusb_speaker'
 LAUNDRY_DELTA_2_PLUG = 'switch.delta_2_plug_4'
 
@@ -141,6 +144,7 @@ LIGHT_SHOWER_LED = 'light.shower_led'
 LIGHT_MAIN = 'light.main_switch'
 LIGHT_BATHROOM_TOP = 'light.bathroom'
 LIGHT_BATHROOM_LED = 'light.bathroom_led'
+LIGHT_BATHROOM_LED_MIN = 21
 
 SOMEONE_HOME = 'binary_sensor.someone_s_home'
 CATBIRD_HOME = 'binary_sensor.catbird_s_home'
@@ -163,7 +167,7 @@ LOCK = 'lock.door'
 # LAUNDRY_BT_SPEAKER = 'media_player.bs_3'  # 15:08:01:24:08:1A
 MUSIC_SPEAKER = 'media_player.mass_music_speakers'
 RELAX_SPEAKER = 'media_player.mass_relax'
-HA_SPEAKER = 'media_player.mini'
+HA_SPEAKER = 'media_player.mass_mini'
 CHROMECAST_BROADCAST = 'media_player.mass_broadcast'
 CHROMECAST_ALL_SPEAKERS = 'media_player.mass_all_speakers'
 LIST_BROADCAST_SPEAKERS = [
@@ -242,8 +246,9 @@ FRIGATE_URL = SECRET('frigate_url')
 
 XIAOMI_HUB_MAC = SECRET('xiaomi_hub_mac')
 
-OUTAGE_CALENDAR_EID = 'calendar.yasno_group_3_outages_calendar'
-NEXT_OUTAGE_DATETIME_EID = 'input_datetime.next_outage_datetime'
+OUTAGE_CALENDAR_EID = 'calendar.kiiv_dtek_3_1_planned_outages'
+OUTAGE_CALENDAR_UPDATE_EID = 'sensor.kiiv_dtek_3_1_schedule_data_changed_on'
+NEXT_OUTAGE_DATETIME_EID = 'sensor.kiiv_dtek_3_1_next_planned_outage'
 POWER_OUTAGE_IB = 'input_boolean.power_outage_calendar'
 POWER = POWER_SENSOR = 'binary_sensor.power'
 INTERNET = INTERNET_SENSOR = 'binary_sensor.internet'

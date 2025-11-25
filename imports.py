@@ -5,11 +5,6 @@ from imports_base import *
 from entities.entity import entity
 from entities.ha import HA
 from entities.msg_bucket import MsgBucket, DiscordMsgBucket
-from homeassistant.const import EVENT_CALL_SERVICE
-# https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
-import homeassistant.helpers.template as template
-# https://github.com/home-assistant/core/blob/master/homeassistant/helpers/entity.py
-import homeassistant.helpers.entity as entity_helper
 
 ha = HA()
 
@@ -24,12 +19,11 @@ def entity_not_exists(entity_id):
 def entity_exists_1(entity_id, debug=False):
     _ = entity(entity_id)
     output = f"(hass.states.get('{entity_id}') not in {UNK_S} and {entity_id} not in {UNK_S}) "
+    # output = f"{entity_id}.has_value()"
     if debug:
         log.debug(f"entity_exists: {output} entity {entity_id} state: {hass.states.get(entity_id)}")
 
     return output
-    # return f"{entity_id} not in {UNK_S} "
-    # return f"hass.states.get('{entity_id}') is not None "
 
 
 def entity_exists(*entity_ids, debug=False):

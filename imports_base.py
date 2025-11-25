@@ -6,10 +6,16 @@ from datetime import datetime, timedelta, date
 from typing import TYPE_CHECKING, Iterable, List, Dict, Collection, Callable, Any, Literal, Optional
 from copy import copy
 from homeassistant.util import dt as dt_util
+from homeassistant.const import EVENT_CALL_SERVICE
+# https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
+import homeassistant.helpers.template as template
+# https://github.com/home-assistant/core/blob/master/homeassistant/helpers/entity.py
+import homeassistant.helpers.entity as entity_helper
+
 import functools
 from constants import *
-from pyscript_mock import *
-
+from stubs.pyscript_builtins import *
+from stubs.pyscript_generated import *
 
 UNK_O = ('unavailable', 'unknown', 'null', None, 'none', 'None')
 UNK_S = str(UNK_O)

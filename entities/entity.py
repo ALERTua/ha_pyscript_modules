@@ -6,11 +6,13 @@ from entities.ha import HA
 import homeassistant.helpers.template as template
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/entity.py
 import homeassistant.helpers.entity as entity_helper
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.components.recorder import get_instance
 from homeassistant.components.recorder.statistics import statistics_during_period
-from typing import Literal, Optional
+from typing import Literal, Optional, TYPE_CHECKING
 from datetime import datetime, timezone
+
+if TYPE_CHECKING:
+    from entities.config_entry import Config_Entry
 
 ha = HA()
 
@@ -53,6 +55,9 @@ def entity(entity_id, debug=False):
     elif domain == 'climate':
         from entities.climate import Climate
         output = Climate(entity_id)
+    elif domain == 'calendar':
+        from entities.calendar import Calendar
+        output = Calendar(entity_id)
     elif domain == 'light':
         from entities.light import Light
         output = Light(entity_id)
@@ -83,6 +88,9 @@ def entity(entity_id, debug=False):
     elif domain == 'select':
         from entities.select import Select
         output = Select(entity_id)
+    elif config_entry_id := hass.config_entries.async_get_entry(entity_id):
+        from entities.config_entry import Config_Entry
+        output = Config_Entry(config_entry_id.entry_id)
     else:
         output = Entity(entity_id)
 
@@ -175,6 +183,9 @@ class Entity:
         # attrs = self.attrs()
         # log.debug(f"{self.entity_id} attrs after:\n{pformat(attrs)}")
 
+    def entity(self):
+        return ha.entity_registry().async_get(self.entity_id)
+
     def exists(self) -> bool:
         return state.exist(self.entity_id)
 
@@ -245,20 +256,15 @@ class Entity:
         if self.ha_state is None:
             return None
 
-        return template.config_entry_id(hass, self.entity_id)
+        entity_id = self.entity_id
+        if self.entity_id:
+            return template.config_entry_id(hass, entity_id)
 
-    def config_entry(self) -> ConfigEntry:
+    def config_entry(self) -> Config_Entry:
         config_entry_id = self.config_entry_id()
-        config_entry: ConfigEntry = hass.config_entries.async_get_entry(config_entry_id)
-        return config_entry
-
-    def config_entry_disabled(self) -> bool:
-        config_entry_id = self.config_entry_id()
-        if config_entry_id is None:
-            return False
-
-        output = template.config_entry_attr(hass, config_entry_id, attr_name='disabled_by')
-        return output is not None
+        if config_entry_id:
+            from entities.config_entry import Config_Entry
+            return Config_Entry(config_entry_id=config_entry_id)
 
     def device_id(self):
         if self.ha_state is None:

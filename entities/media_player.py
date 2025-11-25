@@ -58,6 +58,35 @@ class MediaPlayer(Switch):
         task.sleep(0.5)
         self.volume_set(volume)
 
+    def media_title(self):
+        return self.state('media_title')
+
+    def media_content_id(self):
+        return self.state('media_content_id')
+
+    def media_artist(self):
+        return self.state('media_artist')
+
+    def media_album_name(self):
+        return self.state('media_album_name')
+
+    def media_album_artist(self):
+        return self.state('media_album_artist')
+
+    def media_content_type(self):
+        return self.state('media_content_type')  # music
+
+    def media_app_id(self):
+        return self.state('app_id')  # music_assistant
+
+    def media_shuffle(self):
+        return self.state('shuffle')
+
+    def media_repeat(self):
+        return self.state('repeat')
+
+
+
 # # off
 # {'entity_id': 'media_player.shower_speaker',
 #  'state': 'off',

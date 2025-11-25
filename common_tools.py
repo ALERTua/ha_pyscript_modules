@@ -147,7 +147,7 @@ def task_wait(func, *args, **kwargs):
     log.info(f"task_wait {func_name} finished")
 
 
-def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=2.5, timeout=30):
+def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=2.5, timeout=30, turn_on=False):
     """
     https://hacs-pyscript.readthedocs.io/en/stable/reference.html#task-waiting
     """
@@ -163,12 +163,14 @@ def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=2.5, timeout=
     for entity_id in entity_ids:
         if (current_state := state.get(entity_id)) in off_states:
             # task_wait(media_player.turn_on, entity_id=entity_id)
-            media_player.turn_on(entity_id=entity_id)
+            if turn_on:
+                media_player.turn_on(entity_id=entity_id)
         elif current_state in UNK_O:
             continue
         elif current_state in idle_states:
             # task_wait(media_player.turn_on, entity_id=entity_id)
-            media_player.turn_on(entity_id=entity_id)
+            if turn_on:
+                media_player.turn_on(entity_id=entity_id)
             output.append(entity_id)
             continue
         # elif current_state == 'playing':
@@ -188,7 +190,8 @@ def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=2.5, timeout=
         state_hold = None
         state_check_now = True
     # log.info(f"wait started {state_hold}")
-    task.wait_until(statement, timeout=timeout, state_hold=state_hold, state_check_now=state_check_now)
+    if turn_on:
+        task.wait_until(statement, timeout=timeout, state_hold=state_hold, state_check_now=state_check_now)
     # log.info(f"wait finished")
     return output
 
@@ -292,14 +295,17 @@ def timestamp_to_date(timestamp: datetime | int | float | None = None, _format: 
     return timestamp.strftime(_format)
 
 
-def dt_from_timestamp(timestamp):
+def dt_from_timestamp(timestamp, replace_microseconds=True):
     if isinstance(timestamp, str):
         timestamp = float(timestamp)
     if isinstance(timestamp, float):
         timestamp = timestamp
     else:
         timestamp = timestamp.timestamp()
-    return datetime.fromtimestamp(timestamp, tz=ha.time_zone())
+    output = datetime.fromtimestamp(timestamp, tz=ha.time_zone())
+    if replace_microseconds:
+        output.replace(microsecond=0)
+    return output
 
 
 def dt_diff(dt: datetime) -> timedelta:
