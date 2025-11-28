@@ -66,6 +66,9 @@ BEDROOM_VALVE = 'climate.valve_bedroom'
 BEDROOM_AUTOVALVE_IB = 'input_boolean.bedroom_auto_valve'
 BEDROOM_VALVE_POSITION = 'sensor.valve_bedroom_position'
 
+BOILER_BOTTOM_TEMP = 'sensor.boiler_bottom_tank_water_temperature'
+BOILER_SHOWERS_REMAINING = 'sensor.boiler_number_of_shower_remaining'
+
 OFFICE_HUMIDIFIER = 'switch.office_humidifier'
 OFFICE_HUMIDIFIER_POWER = 'sensor.office_humidifier_power'
 OFFICE_HUMIDITY = 'sensor.office_humidity_latest'
