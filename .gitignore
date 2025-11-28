@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 pyscript_mock
 .idea
+/stubs/
