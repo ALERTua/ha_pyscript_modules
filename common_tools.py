@@ -500,21 +500,25 @@ async def converse_frigate_event(
         detail: Literal['', 'high', 'low'] = '',
         expose_images: bool = False,
 ):
-    output = llmvision.video_analyzer(
-        event_id=event_id,
-        provider=provider,
-        message=message,
-        include_filename=include_filename,
-        max_tokens=max_tokens,
-        temperature=temperature,
-        model=model,
-        remember=remember,
-        # video_file=video_file,
-        max_frames=max_frames,
-        # target_width=target_width,
-        # detail=detail,
-        expose_images=expose_images,
-    ) or {}
+    try:
+        output = llmvision.video_analyzer(
+            event_id=event_id,
+            provider=provider,
+            message=message,
+            include_filename=include_filename,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            model=model,
+            remember=remember,
+            # video_file=video_file,
+            max_frames=max_frames,
+            # target_width=target_width,
+            # detail=detail,
+            expose_images=expose_images,
+        ) or {}
+    except:
+        output = {}
+
     response_text = output.get('response_text', '')
     log.debug(f"{model} response for {event_id}:\n{response_text}")
     return response_text

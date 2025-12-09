@@ -2,7 +2,7 @@
 # https://hacs-pyscript.readthedocs.io/en/stable/
 from imports_base import *
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
-from homeassistant.helpers import template, device_registry, entity_registry, entity as entity_helper
+from homeassistant.helpers import template, device_registry, entity_registry, entity as entity_helper, area_registry
 from entities.device import Device
 from zoneinfo import ZoneInfo
 from datetime import datetime
@@ -89,6 +89,10 @@ class HA:
     @staticmethod
     def entity_registry():
         return entity_registry.async_get(hass)
+
+    @staticmethod
+    def area_registry():
+        return area_registry.async_get(hass)
 
     def get_entity(self, entity_id_or_uuid: str):
         entity_registry_ = self.entity_registry()

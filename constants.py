@@ -20,9 +20,6 @@ HOLD_2D = HOLD_1D * 2
 HOLD_3D = HOLD_1D * 3
 HOLD_1W = HOLD_1D * 7
 
-QUIET_HOURS_START = 22
-QUIET_HOURS_END = 8
-
 UPTIME = 'sensor.ha_uptime_seconds'
 
 # "cron(min hr dom mon dow)"
@@ -54,7 +51,7 @@ BEDROOM_SPEAKER = 'media_player.mass_bedroom_speaker'
 BEDROOM_HUMIDIFIER = 'switch.bedroom_humidifier'
 BEDROOM_HUMIDIFIER_POWER = 'sensor.bedroom_humidifier_power'
 BEDROOM_LED_BOTTOM = 'light.bedroom_led_bottom'
-BEDROOM_LED_BOTTOM_MIN = 21
+LED_MIN_PCT = 21
 BEDROOM_LED_TOP = 'light.bedroom_led_top'
 
 BEDROOM_WINDOW = 'cover.bedroom_window_tl'
@@ -147,7 +144,6 @@ LIGHT_SHOWER_LED = 'light.shower_led'
 LIGHT_MAIN = 'light.main_switch'
 LIGHT_BATHROOM_TOP = 'light.bathroom'
 LIGHT_BATHROOM_LED = 'light.bathroom_led'
-LIGHT_BATHROOM_LED_MIN = 21
 
 SOMEONE_HOME = 'binary_sensor.someone_s_home'
 CATBIRD_HOME = 'binary_sensor.catbird_s_home'
@@ -165,6 +161,7 @@ GATEWAY_V2_MAC = '04:CF:8C:9D:06:61'
 SERVER_AVAILABLE_SENSOR = 'binary_sensor.alert_server_web'
 
 LOCK = 'lock.door'
+EVENING = 'binary_sensor.evening'
 
 # https://github.com/adrgumula/HomeAssitantBluetoothSpeaker?tab=readme-ov-file
 # LAUNDRY_BT_SPEAKER = 'media_player.bs_3'  # 15:08:01:24:08:1A

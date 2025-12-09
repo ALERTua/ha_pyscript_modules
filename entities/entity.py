@@ -2,9 +2,7 @@
 from imports_base import *
 import common_tools as tools
 from entities.ha import HA
-# https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
 import homeassistant.helpers.template as template
-# https://github.com/home-assistant/core/blob/master/homeassistant/helpers/entity.py
 import homeassistant.helpers.entity as entity_helper
 from homeassistant.components.recorder import get_instance
 from homeassistant.components.recorder.statistics import statistics_during_period
@@ -13,6 +11,7 @@ from datetime import datetime, timezone
 
 if TYPE_CHECKING:
     from entities.config_entry import Config_Entry
+    from entities.device import Device
 
 ha = HA()
 
@@ -198,9 +197,6 @@ class Entity:
     def domain(self) -> str:
         return self.ha_state.domain
 
-    def area(self):
-        return self.ha_state.object_id
-
     def as_str(self):
         return f"[{self.__class__.__name__}]({self.entity_id}){self.friendly_name()}"
 
@@ -252,7 +248,7 @@ class Entity:
         _state = self.state()
         return _state == "unknown"
 
-    def config_entry_id(self):
+    def config_entry_id(self) -> str | None:
         if self.ha_state is None:
             return None
 
@@ -260,28 +256,30 @@ class Entity:
         if self.entity_id:
             return template.config_entry_id(hass, entity_id)
 
-    def config_entry(self) -> Config_Entry:
+        return None
+
+    def config_entry(self) -> Config_Entry | None:
         config_entry_id = self.config_entry_id()
         if config_entry_id:
             from entities.config_entry import Config_Entry
             return Config_Entry(config_entry_id=config_entry_id)
 
-    def device_id(self):
-        if self.ha_state is None:
-            return
+        return None
 
-        return template.device_id(hass, self.entity_id)
+    def device_id(self) -> str | None:
+        ha_entity = self.entity()
 
-    def device(self):
+        if ha_entity is None:
+            return None
+
+        return ha_entity.device_id
+
+    def device(self) -> Device | None:
         if device_id := self.device_id():
             from entities.device import Device
             return Device(device_id)
 
-    def device_entities(self):
-        if self.ha_state is None:
-            return
-
-        return template.device_entities(hass, self.device_id())
+        return None
 
     def last_changed(self) -> datetime:
         last_changed = self.ha_state.last_changed
@@ -330,7 +328,12 @@ class Entity:
         return output, last_active
 
     def area_id(self):
-        return template.area_id(hass, self.entity_id)
+        ha_entity = self.entity()
+
+        if ha_entity is None:
+            return None
+
+        return ha_entity.area_id
 
     def area_name(self):
         return template.area_name(hass, self.entity_id)
