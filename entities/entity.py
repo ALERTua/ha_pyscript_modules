@@ -240,6 +240,9 @@ class Entity:
     def is_not_off_str(self):
         return f"({self.entity_id} != 'off')"
 
+    def is_available(self):
+        return not self.is_unavailable() and not self.is_unknown()
+
     def is_unavailable(self):
         _state = self.state()
         return _state == 'unavailable'
@@ -335,9 +338,6 @@ class Entity:
 
         return ha_entity.area_id
 
-    def area_name(self):
-        return template.area_name(hass, self.entity_id)
-
     def capability(self, capability):
         return entity_helper.get_capability(hass, self.entity_id, capability)
 
@@ -355,7 +355,8 @@ class Entity:
             start_time: datetime,
             end_time: Optional[datetime],
             period: Literal["5minute", "day", "hour", "week", "month"],
-            types: Literal["last_reset", "max", "mean", "min", "state", "sum"]):
+            types: Literal["last_reset", "max", "mean", "min", "state", "sum"]
+    ):
         """
         start_time = datetime.today().replace(day=1)
         end_time = datetime.today()

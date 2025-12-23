@@ -31,7 +31,7 @@ SHOWER_HUMIDITY = 'sensor.shower_humidity_latest'
 SHOWER_TEMPERATURE = 'sensor.shower_temperature_latest'
 SHOWER_FAN = 'switch.shower_vents_l1'
 SHOWER_FAN_SLOW = 'switch.shower_vents_l2'
-SHOWER_SPEAKER = 'media_player.mass_shower_speaker'
+SHOWER_SPEAKER = 'media_player.mass_shower_speaker_ss'
 SHOWER_FLOOR = 'climate.shower_floor'
 
 BATHROOM_FAN = 'fan.bathroom'
@@ -136,7 +136,7 @@ SERVER_RAM_USED_PERCENT = 'sensor.alert_server_ram_usage'
 MINI_RAM_USED_PERCENT = 'sensor.mini_ram_usage'
 BOILER = 'water_heater.boiler'
 BOILER_CONTROL_MODE = 'input_select.boiler_control_mode'
-LAUNDRY_SPEAKER = 'media_player.mass_microusb_speaker'
+LAUNDRY_SPEAKER = 'media_player.mass_mini'
 LAUNDRY_DELTA_2_PLUG = 'switch.delta_2_plug_4'
 
 LIGHT_SHOWER_TOP = 'light.shower'
@@ -148,6 +148,7 @@ LIGHT_BATHROOM_LED = 'light.bathroom_led'
 SOMEONE_HOME = 'binary_sensor.someone_s_home'
 CATBIRD_HOME = 'binary_sensor.catbird_s_home'
 ALERT_HOME = 'binary_sensor.alert_s_home'
+
 
 
 ACTION_CALLBACKS = 'pyscript.action_callbacks'
@@ -165,8 +166,8 @@ EVENING = 'binary_sensor.evening'
 
 # https://github.com/adrgumula/HomeAssitantBluetoothSpeaker?tab=readme-ov-file
 # LAUNDRY_BT_SPEAKER = 'media_player.bs_3'  # 15:08:01:24:08:1A
-MUSIC_SPEAKER = 'media_player.mass_music_speakers'
-RELAX_SPEAKER = 'media_player.mass_relax'
+MUSIC_SPEAKER = 'media_player.mass_music_ss'
+RELAX_SPEAKER = 'media_player.mass_relax_ss'
 HA_SPEAKER = 'media_player.mass_mini'
 CHROMECAST_BROADCAST = 'media_player.mass_broadcast'
 CHROMECAST_ALL_SPEAKERS = 'media_player.mass_all_speakers'
@@ -210,7 +211,7 @@ MEDIA_CONTENT_TYPE = 'audio/mp3'
 
 def SECRET(value):
     # noinspection PyUnresolvedReferences
-    return pyscript.config.get('secrets', {}).get(value)
+    return pyscript.config.get('secrets', {}).get(value)  # noqa: F821
 
 
 TELEGRAM_ALERT_ID = SECRET('telegram_alert_id')

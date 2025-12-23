@@ -65,15 +65,19 @@ def conditional(*conditions, and_=True, debug=False):
     return decorator
 
 
-def float_(obj):
+def float_(obj, default=None):
     try:
         return float(obj)
     except:
-        return -666
+        if default is not None:
+            return default
+        return -666.0
 
 
-def int_(obj):
+def int_(obj, default=None):
     try:
         return int(float(obj))
     except:
+        if default is not None:
+            return default
         return -666
