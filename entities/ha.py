@@ -3,6 +3,7 @@
 from imports_base import *
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
 from homeassistant.helpers import template, device_registry, entity_registry, entity as entity_helper, area_registry
+from homeassistant.exceptions import TemplateError
 from entities.device import Device
 from zoneinfo import ZoneInfo
 from datetime import datetime
@@ -63,7 +64,11 @@ class HA:
             returns template.Template("{{ states('light.office') == 'off' }}", hass).async_render()
         """
         tmpl = template.Template(template_, hass)
-        result = tmpl.async_render(*args, **kwargs)
+        try:
+            result = tmpl.async_render(*args, **kwargs)
+        except TemplateError:
+            return None
+
         return result
 
     # noinspection PyMethodMayBeStatic

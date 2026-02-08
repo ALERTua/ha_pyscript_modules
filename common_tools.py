@@ -63,7 +63,7 @@ def telegram_message(msg=None, disable_notification=True, **kwargs):  # message_
         return
 
     kwargs.setdefault('parse_mode', 'markdown')
-    kwargs.setdefault('disable_web_page_preview', False)
+    kwargs.setdefault('disable_web_page_preview', True)
 
     msg_limit = 4096
     msgs = [msg[i:i + msg_limit] for i in range(0, len(msg), msg_limit)]
@@ -221,6 +221,21 @@ def quiet_hours():
     # output = hours > QUIET_HOURS_START or hours < QUIET_HOURS_END
     # return output
 
+
+def broadcast_allowed():
+    if state.get('binary_sensor.audio_alerts') != 'on':
+        return False
+
+    if state.get('input_boolean.audio_alerts') != 'on':
+        return False
+
+    if quiet_hours():
+        return False
+
+    if state.get(SOMEONE_ASLEEP) == 'on':
+        return False
+
+    return True
 
 def friendly_name(entity_id):
     if entity_id:
@@ -573,3 +588,10 @@ def check_mp4_file(url):
 def get_weekday_ukrainian():
     weekdays = ['понеділок', 'вівторок', 'середа', 'четвер', 'п\'ятниця', 'субота', 'неділя']
     return weekdays[ha.datetime().weekday()]
+
+
+def cur_voltage(default_=0.0) -> float | None:
+    try:
+        return ha.render_template("{{ states('%s') | default(%s) | float | round(1) }}" % (IN_VOLTAGE, default_))
+    except:
+        return None

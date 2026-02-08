@@ -168,8 +168,8 @@ EVENING = 'binary_sensor.evening'
 
 # https://github.com/adrgumula/HomeAssitantBluetoothSpeaker?tab=readme-ov-file
 # LAUNDRY_BT_SPEAKER = 'media_player.bs_3'  # 15:08:01:24:08:1A
-MUSIC_SPEAKER = 'media_player.mass_music_ss'
-RELAX_SPEAKER = 'media_player.mass_relax_ss'
+MUSIC_SPEAKER = 'media_player.mass_music_speakers'
+RELAX_SPEAKER = 'media_player.mass_relax'
 HA_SPEAKER = 'media_player.mass_mini'
 CHROMECAST_BROADCAST = 'media_player.mass_broadcast'
 CHROMECAST_ALL_SPEAKERS = 'media_player.mass_all_speakers'
@@ -249,11 +249,12 @@ FRIGATE_URL = SECRET('frigate_url')
 
 XIAOMI_HUB_MAC = SECRET('xiaomi_hub_mac')
 
-OUTAGE_CALENDAR_EID = 'calendar.kiiv_dtek_3_1_planned_outages'
-OUTAGE_CALENDAR_UPDATE_EID = 'sensor.kiiv_dtek_3_1_schedule_data_changed_on'
-NEXT_OUTAGE_DATETIME_EID = 'sensor.kiiv_dtek_3_1_next_planned_outage'
+OUTAGE_CALENDAR_EID = 'calendar.dtek_planned_outages'
+OUTAGE_CALENDAR_UPDATE_EID = 'sensor.dtek_schedule_data_changed_on'
+NEXT_OUTAGE_DATETIME_EID = 'sensor.dtek_next_planned_outage'
 POWER_OUTAGE_IB = 'input_boolean.power_outage_calendar'
-POWER = POWER_SENSOR = 'binary_sensor.power'
+ELECTRICITY_SENSOR = 'sensor.dtek_electricity'
+POWER = POWER_SENSOR = 'input_boolean.power'
 INTERNET = INTERNET_SENSOR = 'binary_sensor.internet'
 ALARM_SENSOR_ID = 'binary_sensor.kyiv_alarm'
 LLM_STANDARD = "conversation.llm"
@@ -265,3 +266,5 @@ COMPANION_CATBIRD = 'notify.mobile_app_kateryna_drozd'
 GUESTS_IB = 'input_boolean.guests'
 
 RAIN_INCOMING = 'input_boolean.rain_incoming'
+
+IN_VOLTAGE = 'sensor.delta_pro_api_ac_in_volts'

@@ -24,7 +24,7 @@ class Calendar(Entity):
         )
         """
         {
-            'calendar.kiiv_dtek_3_1_planned_outages': {
+            'calendar.dtek_planned_outages': {
                 'events': [
                     {
                         'description': 'Definite',

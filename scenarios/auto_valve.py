@@ -9,7 +9,7 @@ MAX_TEMP = 29
 DEFAULT_NOTIFICATION_CHANNEL = '1194571076949262408'
 DEFAULT_VALVE_HOLD = HOLD_3M
 DEFAULT_VALVE_HOLD_FALSE = HOLD_3M
-DEFAULT_TEMP_FACTOR = 1.0
+DEFAULT_TEMP_FACTOR = 1.25
 OVERTEMP_PROTECTION = 3
 
 DEBUG = False
@@ -112,9 +112,12 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
     msgs.msgs = msgs_init
 
     temp_diff = float(real_temp - wanted_temp)
+    temp_diff = round(temp_diff, 1)
+    msgs.add(f'temp_diff {temp_diff}', debug=debug)
     if temp_diff_factor != 1.0:
         temp_diff *= temp_diff_factor
-        msgs.add(f'temp_diff after factor: {temp_diff}', debug=debug)
+        temp_diff = round(temp_diff, 1)
+        msgs.add(f'temp_diff after factor {temp_diff_factor}: {temp_diff}', debug=debug)
 
     temp_diff = round(temp_diff, 1)
     msgs.add(f'temp_diff rounded: {temp_diff}', debug=debug)
@@ -123,8 +126,8 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
     temp_difference_abs = abs(temp_diff)
     # log.debug(f"temp_difference_abs={temp_difference_abs}")
 
-    if real_temp >= wanted_temp + tolerance_up:  # off
-        msg = f':white_check_mark: real({real_temp}) >= wanted({wanted_temp}) + tolerance_up({tolerance_up})'
+    if temp_diff >= 0 or real_temp >= wanted_temp + tolerance_up:  # off
+        msg = f':white_check_mark: temp_diff({temp_diff}) real({real_temp}) >= wanted({wanted_temp}) + tolerance_up({tolerance_up})'
         msgs.add(msg, debug=debug)
         if valve_state != 'off':
             if valve_target_temp != wanted_temp:
@@ -135,20 +138,15 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
                 if valve_position is None or valve_position > 15:
                     msgs.add(f'position: {valve_position}. Turning off', debug=debug)
                     valve_entity.turn_off()
-            msgs.send()
-        return
-
-    elif real_temp >= wanted_temp:
-        msg = f'{vlv} real {real_temp} >= {wanted_temp} wanted, but not above tolerance {tolerance_up}. Breaking'
-        if debug:
-            log.debug(msg)
-            msgs.add(msg)
+            elif hvac_mode_on and valve_state != hvac_mode_on:
+                valve_entity.set_hvac_mode(hvac_mode_on)
+                task.sleep(5)
             msgs.send()
         return
 
     elif real_temp < wanted_temp - tolerance_down:  # on
         msgs.add(f'real {real_temp} < {wanted_temp} wanted', debug=debug)
-        if allow_turning_off and valve_state == 'off':
+        if allow_turning_off and valve_state != hvac_mode_on:
             msgs.add('Turning on', debug=debug)
             valve_entity.turn_on()
             task.sleep(5)
@@ -189,16 +187,20 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
     target_temp = min(target_temp, valve_max_temp, MAX_TEMP)
     # log.debug(f"{vlv} target_temp 3: {target_temp}")
 
+    msgs.add(f"valve_cur_temp: {valve_cur_temp},"
+             f" wanted_temp: {wanted_temp},"
+             f" target_temp: {target_temp}", debug=debug)
+
     valve_state = valve_entity.state()
     # log.debug(f"{vlv} valve_state: {valve_state}")
-    if valve_target_temp == target_temp:  # todo: ?!
-    #     if valve_target_temp != wanted_temp:
-    #         msg = f"{vlv} No Temperature difference. Setting Valve Temperature to {wanted_temp}."
-    #         log.debug(msg)
-    #         msgs.add(msg)
-    #         valve_entity.set_temperature(temperature=wanted_temp, hvac_mode=valve_state)
-    #         msgs.send()
-        return
+    # if valve_target_temp == target_temp:  # todo: ?!
+    # #     if valve_target_temp != wanted_temp:
+    # #         msg = f"{vlv} No Temperature difference. Setting Valve Temperature to {wanted_temp}."
+    # #         log.debug(msg)
+    # #         msgs.add(msg)
+    # #         valve_entity.set_temperature(temperature=wanted_temp, hvac_mode=valve_state)
+    # #         msgs.send()
+    #     return
 
     if ((temp_diff > 0 and temp_difference_abs < tolerance_up)
             or (temp_diff < 0 and temp_difference_abs < tolerance_down)):
