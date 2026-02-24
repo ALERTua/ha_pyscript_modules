@@ -31,7 +31,7 @@ SHOWER_HUMIDITY = 'sensor.shower_humidity_latest'
 SHOWER_TEMPERATURE = 'sensor.shower_temperature_latest'
 SHOWER_FAN = 'switch.shower_vents_l1'
 SHOWER_FAN_SLOW = 'switch.shower_vents_l2'
-SHOWER_SPEAKER = 'media_player.mass_shower_speaker_ss'
+SHOWER_SPEAKER = 'media_player.mass_shower_speaker'
 SHOWER_FLOOR = 'climate.shower_floor'
 
 BATHROOM_FAN = 'fan.bathroom'
@@ -138,7 +138,7 @@ BOILER = 'water_heater.boiler'
 BOILER_CONTROL_MODE = 'input_select.boiler_control_mode'
 LAUNDRY_SPEAKER = 'media_player.mass_laundry_speaker'
 LAUNDRY_SPEAKER_CAST = 'media_player.laundry_speaker'
-LAUNDRY_SPEAKER_SS = 'media_player.mass_laundry_speaker_ss'
+LAUNDRY_SPEAKER_SS = 'media_player.mass_laundry_speaker'
 LAUNDRY_DELTA_2_PLUG = 'switch.delta_2_plug_4'
 
 LIGHT_SHOWER_TOP = 'light.shower'
@@ -257,7 +257,7 @@ ELECTRICITY_SENSOR = 'sensor.dtek_electricity'
 POWER = POWER_SENSOR = 'input_boolean.power'
 INTERNET = INTERNET_SENSOR = 'binary_sensor.internet'
 ALARM_SENSOR_ID = 'binary_sensor.kyiv_alarm'
-LLM_STANDARD = "conversation.llm"
+LLM_STANDARD = "conversation.openrouter_free"
 # SENSOR_DATETIME = 'sensor.datetime_full'
 
 COMPANION_ALERT = 'notify.mobile_app_alert_s_s24'
@@ -267,4 +267,4 @@ GUESTS_IB = 'input_boolean.guests'
 
 RAIN_INCOMING = 'input_boolean.rain_incoming'
 
-IN_VOLTAGE = 'sensor.delta_pro_api_ac_in_volts'
+IN_VOLTAGE = 'sensor.ecoflow_input_voltage_combi'

@@ -29,6 +29,7 @@ def state_bool(state_):
 
 
 def telegram_message_alert_ha_public(msg=None, disable_notification=False, **kwargs):
+    # kwargs.setdefault('message_thread_id', 1)
     return telegram_message(
         msg=msg,
         disable_notification=disable_notification,

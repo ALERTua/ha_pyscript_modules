@@ -206,6 +206,9 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     allowed_modes.append(HVAC_MODE_FAN)
     allowed_modes.append(HVAC_MODE_OFF)
 
+    if HVAC_MODE_COOL not in allowed_modes:
+        allow_turning_off = True
+
     wanted_state = HVAC_MODE_OFF
     preset_target = PRESET_MODE_OFF
 
@@ -261,18 +264,19 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
 
     # AC thinks it's 26 = but it's 24.  wanted 22.    proportion (26/24)*22
     target_temperature = round((ac_inside_temp/cur_temp) * wanted_temp, 2)
-    msgs.add(f'{ac_friendly_name} target_temperature raw: {target_temperature}')
-    target_temperature = round(target_temperature, 2)  # just for visual clarity
-    msgs.add(f'target_temperature round: {target_temperature}')
+    msgs.add(f'{ac_friendly_name} target_temperature raw: {target_temperature}: {ac_inside_temp=} {cur_temp=} {wanted_temp=}')
 
     msgs.add(f'temp_difference_factor: {temp_difference_factor}')
 
     if wanted_temp > cur_temp:  # heating
         # `+ ac_precision + tolerance_up` makes it more agressive
         # can be just `+ tolerance_up` or just `+ ac_precision`
-        target_temperature = target_temperature + ac_precision + tolerance_up
+        # target_temperature = target_temperature + ac_precision + tolerance_up
+        # msgs.add(f'target_temperature rounded 0: {target_temperature} {ac_precision=} {tolerance_up=}')
         target_temperature *= temp_difference_factor
+        msgs.add(f'target_temperature rounded 1: {target_temperature} {temp_difference_factor=}')
         target_temperature = tools.round_up(target_temperature, ac_precision)
+        msgs.add(f'target_temperature rounded 2: {target_temperature} {ac_precision=}')
     elif wanted_temp < cur_temp:  # cooling
         target_temperature = target_temperature - ac_precision - tolerance_down
         target_temperature /= temp_difference_factor
