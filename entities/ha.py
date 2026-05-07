@@ -1,5 +1,10 @@
 # https://github.com/custom-components/pyscript
 # https://hacs-pyscript.readthedocs.io/en/stable/
+from homeassistant.config_entries import ConfigEntries
+from homeassistant.helpers.area_registry import AreaRegistry
+from homeassistant.helpers.device_registry import DeviceRegistry
+from homeassistant.helpers.entity_registry import EntityRegistry
+
 from imports_base import *
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
 from homeassistant.helpers import template, device_registry, entity_registry, entity as entity_helper, area_registry
@@ -28,7 +33,7 @@ class HA:
             output = dt_util.as_local(iso)
             return output
 
-    def datetime(self) -> datetime.datetime:
+    def datetime(self) -> datetime:
         return dt_util.now(time_zone=self.time_zone())
 
     def ip(self):
@@ -63,6 +68,7 @@ class HA:
         """
             returns template.Template("{{ states('light.office') == 'off' }}", hass).async_render()
         """
+        # noinspection PyUnresolvedReferences
         tmpl = template.Template(template_, hass)
         try:
             result = tmpl.async_render(*args, **kwargs)
@@ -72,7 +78,8 @@ class HA:
         return result
 
     # noinspection PyMethodMayBeStatic
-    def _device_registry(self):
+    def _device_registry(self) -> DeviceRegistry:
+        # noinspection PyTypeChecker
         return device_registry.async_get(hass)
 
     def ha_devices(self, filter_func=None) -> list[device_registry.DeviceEntry]:
@@ -91,12 +98,14 @@ class HA:
             output = [Device(_.id) for _ in output]
         return output
 
-    @staticmethod
-    def entity_registry():
+    # noinspection PyMethodMayBeStatic
+    def entity_registry(self) -> EntityRegistry:
+        # noinspection PyTypeChecker
         return entity_registry.async_get(hass)
 
-    @staticmethod
-    def area_registry():
+    # noinspection PyMethodMayBeStatic
+    def area_registry(self) -> AreaRegistry:
+        # noinspection PyTypeChecker
         return area_registry.async_get(hass)
 
     def get_entity(self, entity_id_or_uuid: str):
@@ -109,8 +118,11 @@ class HA:
 
     def validate_entity_id(self, entity_id_or_uuid: str):
         entity_registry_ = self.entity_registry()
-        return entity_registry.async_resolve_entity_id(entity_registry_, entity_id_or_uuid)
+        return entity_registry.async_validate_entity_id(entity_registry_, entity_id_or_uuid)
 
     @staticmethod
     def get_device_class(entity_id: str):
         return entity_helper.get_device_class(hass, entity_id)
+
+    def config_entries(self):
+        return ConfigEntries(hass, self.config)

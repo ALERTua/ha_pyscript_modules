@@ -183,7 +183,7 @@ class Entity:
         # log.debug(f"{self.entity_id} attrs after:\n{pformat(attrs)}")
 
     def entity(self):
-        return ha.entity_registry().async_get(self.entity_id)
+        return ha.get_entity(self.entity_id)
 
     def exists(self) -> bool:
         return state.exist(self.entity_id)
@@ -255,9 +255,10 @@ class Entity:
         if self.ha_state is None:
             return None
 
-        entity_id = self.entity_id
         if self.entity_id:
-            return template.config_entry_id(hass, entity_id)
+            ent = self.entity()
+            if ent:
+                return ent.config_entry_id
 
         return None
 

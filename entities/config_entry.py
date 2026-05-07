@@ -1,5 +1,6 @@
 # https://github.com/custom-components/pyscript
 from homeassistant.config_entries import ConfigEntry, ConfigEntryDisabler
+
 from imports_base import *
 
 
@@ -10,11 +11,11 @@ class Config_Entry:
 
     def hass_config_entry(self)-> ConfigEntry:
         config_entry_id = self.config_entry_id
-        return hass.config_entries.async_get_entry(config_entry_id)
+        return hass.config_entries.async_get_known_entry(config_entry_id)
 
     def disabled(self):
-        config_entry_id = self.config_entry_id
-        return template.config_entry_attr(hass, config_entry_id, attr_name='disabled_by') is not None
+        ce = self.hass_config_entry()
+        return ce.disabled_by
 
     def disable(self):
         config_entry_id = self.config_entry_id
