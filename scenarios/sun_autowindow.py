@@ -5,7 +5,7 @@ from entities.window import Window
 WEATHER_ENTITY_ID = 'weather.home'
 AZIMUTH_LOW = 210
 AZIMUTH_HIGH = 298
-ELEVATION_LOW = 0
+ELEVATION_LOW = 0.3
 ELEVATION_HIGH = 59
 DEBUG = False
 

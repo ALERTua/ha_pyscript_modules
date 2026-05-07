@@ -25,6 +25,7 @@ UPTIME = 'sensor.ha_uptime_seconds'
 # "cron(min hr dom mon dow)"
 TIME_TRIGGER_HOURLY = 'cron(0 * * * *)'
 TIME_TRIGGER_DAILY = 'cron(0 12 * * *)'
+TIME_TRIGGER_MONTHLY = 'cron(0 6 1 * *)'
 TIME_TRIGGER_EVERY_MINUTE = 'cron(* * * * *)'
 
 SHOWER_HUMIDITY = 'sensor.shower_humidity_latest'
@@ -103,6 +104,7 @@ ROOM_VALVE = 'climate.valve_room'
 ROOM_AUTOVALVE_IB = 'input_boolean.room_auto_valve'
 ROOM_LIGHT = 'light.room'
 ROOM_ACCENT_LIGHT = 'switch.room_accent_light'
+ROOM_ACCENT_LIGHT_2 = 'switch.room_plants_led'
 
 KITCHEN_WINDOW = 'cover.kitchen_window_tl'
 # KITCHEN_WINDOW_CLOUD = 'cover.kitchen_window_cloud'
@@ -154,8 +156,8 @@ ALERT_HOME = 'binary_sensor.alert_s_home'
 
 
 ACTION_CALLBACKS = 'pyscript.action_callbacks'
-ALERT_ASLEEP = 'binary_sensor.alert_is_asleep'
-CATBIRD_ASLEEP = 'binary_sensor.catbird_is_asleep'
+ALERT_ASLEEP = 'input_boolean.alert_asleep'
+CATBIRD_ASLEEP = 'input_boolean.catbird_asleep'
 SOMEONE_ASLEEP = 'binary_sensor.someone_is_asleep'
 EVERYBODY_ASLEEP = 'binary_sensor.everybody_asleep'
 HALLWAY_GATEWAY_LUMEN = 'sensor.xiaomi_gateway_illumination'
@@ -222,7 +224,10 @@ TELEGRAM_CHAT_ALERT_HA = SECRET('telegram_chat_alert_ha')
 TELEGRAM_TOPIC_ALERT_HA_URGENT = SECRET('telegram_chat_alert_ha_public_topic_urgent')
 
 TELEGRAM_CHAT_ALERT_HA_PRIVATE = SECRET('telegram_chat_alert_ha_private')
+# TELEGRAM_CHAT_ALERT_HA_PRIVATE = 'notify.telegram_bot_726633577_1001875044171'
+TELEGRAM_CHAT_ALERT_HA_PRIVATE_TOPIC_HA = 7024
 TELEGRAM_CHAT_ALERT_VIDEO = SECRET('telegram_chat_alert_video')
+TELEGRAM_CHAT_ALERT_VIDEO_SNAPSHOTS = SECRET('telegram_chat_alert_video_snapshots')
 DISCORD_CHANNEL_HA = SECRET('discord_channel_ha')
 SERVER_URL_EXTERNAL = SECRET('server_url_external')
 SERVER_URL_INTERNAL = SECRET('server_url_internal')

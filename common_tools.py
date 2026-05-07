@@ -33,7 +33,7 @@ def telegram_message_alert_ha_public(msg=None, disable_notification=False, **kwa
     return telegram_message(
         msg=msg,
         disable_notification=disable_notification,
-        target=TELEGRAM_CHAT_ALERT_HA,
+        chat_id=[TELEGRAM_CHAT_ALERT_HA],
         **kwargs
     )
 
@@ -42,7 +42,7 @@ def telegram_message_alert_ha_private(msg=None, disable_notification=True, **kwa
     return telegram_message(
         msg=msg,
         disable_notification=disable_notification,
-        target=TELEGRAM_CHAT_ALERT_HA_PRIVATE,
+        chat_id=[TELEGRAM_CHAT_ALERT_HA_PRIVATE],
         reply_to_message_id=7024,
         **kwargs
     )
@@ -65,7 +65,7 @@ def telegram_message(msg=None, disable_notification=True, **kwargs):  # message_
 
     kwargs.setdefault('parse_mode', 'markdown')
     kwargs.setdefault('disable_web_page_preview', True)
-
+    kwargs.setdefault('chat_id', [TELEGRAM_CHAT_ALERT_HA_PRIVATE])
     msg_limit = 4096
     msgs = [msg[i:i + msg_limit] for i in range(0, len(msg), msg_limit)]
     for msg in msgs:
@@ -79,17 +79,19 @@ def telegram_video_url(url, caption=None, disable_notification=True, target=None
 
     caption = caption or ''
     target = target or TELEGRAM_CHAT_ALERT_VIDEO
-    return telegram_bot.send_video(url=url, caption=caption, disable_notification=disable_notification, target=target,
-                                   verify_ssl=False, **kwargs)
+    return telegram_bot.send_video(url=url, caption=caption, disable_notification=disable_notification,
+                                   chat_id=[target], verify_ssl=False, **kwargs)
 
 
-def telegram_photo(url, caption=None, disable_notification=True, **kwargs):
+def telegram_photo(url, caption=None, disable_notification=True, target=None, **kwargs):
     if not url:
         log.error("Couldn't send telegram video url: url is None or empty")
         return
 
     caption = caption or ''
-    return telegram_bot.send_photo(url=url, caption=caption, disable_notification=disable_notification, **kwargs)
+    target = target or TELEGRAM_CHAT_ALERT_VIDEO_SNAPSHOTS
+    return telegram_bot.send_photo(url=url, caption=caption, chat_id=[target],
+                                   disable_notification=disable_notification, **kwargs)
 
 
 def discord_message(msg, target=None, **kwargs):
@@ -202,8 +204,8 @@ def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=2.5, timeout=
 
 def speaker_play_file(speaker_entity_ids, filename, media_content_type='audio/mp3', **kwargs):
     pre_snd_ext_path = sound_ext_path(filename)
-    return media_player.play_media(entity_id=speaker_entity_ids, media_content_type=media_content_type,
-                                   media_content_id=pre_snd_ext_path, **kwargs)
+    return media_player.play_media(entity_id=speaker_entity_ids, media=dict(media_content_type=media_content_type,
+                                   media_content_id=pre_snd_ext_path), **kwargs)
 
 def mass_play_file(speaker_entity_ids, filename, use_pre_announce=False):
     pre_snd_ext_path = sound_ext_path(filename)
