@@ -111,7 +111,9 @@ def turn_off(ac_entity, allow_turning_off=True, ac_action_wait=4):
             task.sleep(ac_action_wait)
 
 
-def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs):
+def auto_ac(
+    trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs
+):
     #     'entity_id': 'climate.ac_office',
     #     'state': 'cool',
     #     'attributes': {
@@ -148,12 +150,16 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
 
     tolerance_up = float(kwargs.get('tolerance_up', DEFAULT_TEMP_TOLERANCE_UP))
     tolerance_down = kwargs.get('tolerance_down', DEFAULT_TEMP_TOLERANCE_DOWN)
-    temp_difference_factor = float(kwargs.get('temp_difference_factor', DEFAULT_TEMP_DIFFERENCE_FACTOR))
+    temp_difference_factor = float(
+        kwargs.get('temp_difference_factor', DEFAULT_TEMP_DIFFERENCE_FACTOR)
+    )
 
     cur_temp_entity_id = kwargs.get('cur_temp_entity')
     change_temperature = kwargs.get('change_temperature', True)
     change_fan_speed = kwargs.get('change_fan_speed', True)
-    boost_temp_difference = float(kwargs.get('boost_trigger_difference', DEFAULT_BOOST_TEMP_DIFFERENCE))
+    boost_temp_difference = float(
+        kwargs.get('boost_trigger_difference', DEFAULT_BOOST_TEMP_DIFFERENCE)
+    )
     allowed_modes_selector = kwargs.get('allowed_modes_selector', None)
     fan_speed_limit = kwargs.get('fan_speed_limit', None)
     fan_speed_limit_min = kwargs.get('fan_speed_limit_min', None)
@@ -182,7 +188,9 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     ac_action_wait = 3
     ac_inside_temp = float(ac_entity.state('current_temperature', cur_temp) or cur_temp)
 
-    msgs = DiscordMsgBucket(name=f"{__name__} for {ac_friendly_name}", target=discord_target)
+    msgs = DiscordMsgBucket(
+        name=f"{__name__} for {ac_friendly_name}", target=discord_target
+    )
 
     wanted_temp_entity = entity(wanted_temp_entity_id)
     wanted_temp_entity_friendly_name = wanted_temp_entity.friendly_name()
@@ -228,7 +236,9 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     elif cur_temp == wanted_temp:
         if debug:
             log.debug(f"{cur_temp=} == {wanted_temp=}")
-        msgs.add(f'{ac_friendly_name} temperature reached: {wanted_state}. Turning off.')
+        msgs.add(
+            f'{ac_friendly_name} temperature reached: {wanted_state}. Turning off.'
+        )
         msgs.send()
         turn_off(ac_entity, allow_turning_off, ac_action_wait)
         return
@@ -238,7 +248,9 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
         msgs.add(f'{temp_high_bar} ↑ {cur_temp} ↓ {temp_low_bar}')
 
     if wanted_state not in allowed_modes:
-        msgs.add(f'{ac_friendly_name} wanted_state unallowed: {wanted_state}. Turning off.')
+        msgs.add(
+            f'{ac_friendly_name} wanted_state unallowed: {wanted_state}. Turning off.'
+        )
         msgs.send()
         turn_off(ac_entity, allow_turning_off, ac_action_wait)
         return
@@ -253,18 +265,24 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
         return
     elif ac_hvac_mode == HVAC_MODE_OFF and wanted_state == HVAC_MODE_OFF:
         if debug:
-            log.debug(f"{ac_friendly_name} ac_hvac_mode == wanted_state == {HVAC_MODE_OFF}")
+            log.debug(
+                f"{ac_friendly_name} ac_hvac_mode == wanted_state == {HVAC_MODE_OFF}"
+            )
         return
 
     if ac_hvac_mode != HVAC_MODE_OFF and ac_hvac_mode not in allowed_modes:
-        msgs.add(f'{ac_friendly_name} current state unallowed: {ac_hvac_mode}. Turning off.')
+        msgs.add(
+            f'{ac_friendly_name} current state unallowed: {ac_hvac_mode}. Turning off.'
+        )
         msgs.send()
         turn_off(ac_entity, allow_turning_off, ac_action_wait)
         return
 
     # AC thinks it's 26 = but it's 24.  wanted 22.    proportion (26/24)*22
-    target_temperature = round((ac_inside_temp/cur_temp) * wanted_temp, 2)
-    msgs.add(f'{ac_friendly_name} target_temperature raw: {target_temperature}: {ac_inside_temp=} {cur_temp=} {wanted_temp=}')
+    target_temperature = round((ac_inside_temp / cur_temp) * wanted_temp, 2)
+    msgs.add(
+        f'{ac_friendly_name} target_temperature raw: {target_temperature}: {ac_inside_temp=} {cur_temp=} {wanted_temp=}'
+    )
 
     msgs.add(f'temp_difference_factor: {temp_difference_factor}')
 
@@ -274,7 +292,9 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
         # target_temperature = target_temperature + ac_precision + tolerance_up
         # msgs.add(f'target_temperature rounded 0: {target_temperature} {ac_precision=} {tolerance_up=}')
         target_temperature *= temp_difference_factor
-        msgs.add(f'target_temperature rounded 1: {target_temperature} {temp_difference_factor=}')
+        msgs.add(
+            f'target_temperature rounded 1: {target_temperature} {temp_difference_factor=}'
+        )
         target_temperature = tools.round_up(target_temperature, ac_precision)
         msgs.add(f'target_temperature rounded 2: {target_temperature} {ac_precision=}')
     elif wanted_temp < cur_temp:  # cooling
@@ -289,7 +309,9 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
     target_temperature = max(target_temperature, MIN_TEMP)
     target_temperature = min(target_temperature, MAX_TEMP)
 
-    msgs.add(f'target_temperature minmaxed: {target_temperature} vs ac_inside {ac_inside_temp}')
+    msgs.add(
+        f'target_temperature minmaxed: {target_temperature} vs ac_inside {ac_inside_temp}'
+    )
 
     try:
         index_try = FAN_MODES.index(ac_fan_speed)
@@ -313,7 +335,11 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
         task.sleep(ac_action_wait)
 
     if change_fan_speed:  # and temp_difference_ok
-        wanted_fan_speed = abs(float(len(FAN_MODES)) * (temp_difference or 0.1) / float(boost_temp_difference or 2))
+        wanted_fan_speed = abs(
+            float(len(FAN_MODES))
+            * (temp_difference or 0.1)
+            / float(boost_temp_difference or 2)
+        )
         wanted_fan_speed -= 1  # indexes from 0
         if debug:
             log.debug(f"before mod: {wanted_fan_speed}")
@@ -354,11 +380,14 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
                 wanted_fan_speed = FAN_MODES[wanted_fan_speed]
             except Exception as e:
                 tools.telegram_message_alert_ha_private(
-                    f"error wanted_fan_speed: {wanted_fan_speed} of {FAN_MODES} {type(e)} {e}")
+                    f"error wanted_fan_speed: {wanted_fan_speed} of {FAN_MODES} {type(e)} {e}"
+                )
                 wanted_fan_speed = FAN_MODES[0]
 
             if ac_fan_speed != wanted_fan_speed:
-                msgs.add(f'Setting fan speed {ac_fan_speed} to {wanted_fan_speed}/{len(FAN_MODES)}')
+                msgs.add(
+                    f'Setting fan speed {ac_fan_speed} to {wanted_fan_speed}/{len(FAN_MODES)}'
+                )
                 ac_entity.set_fan_mode(wanted_fan_speed)
                 task.sleep(ac_action_wait)
 
@@ -367,10 +396,18 @@ def auto_ac(trigger_type=None, var_name=None, value=None, old_value=None, contex
         ac_entity.set_preset_mode(preset_target)
         task.sleep(ac_action_wait)
 
-    if change_temperature and ac_temperature != target_temperature and temp_difference_abs > 0:
-        msgs.add(f'Setting {ac_friendly_name} temperature {ac_temperature} to {target_temperature}')
-        ac_entity.set_temperature(hvac_mode=wanted_state, temperature=target_temperature)
-                                  # target_temp_high=target_temperature_max, target_temp_low=target_temperature_min)
+    if (
+        change_temperature
+        and ac_temperature != target_temperature
+        and temp_difference_abs > 0
+    ):
+        msgs.add(
+            f'Setting {ac_friendly_name} temperature {ac_temperature} to {target_temperature}'
+        )
+        ac_entity.set_temperature(
+            hvac_mode=wanted_state, temperature=target_temperature
+        )
+        # target_temp_high=target_temperature_max, target_temp_low=target_temperature_min)
         task.sleep(ac_action_wait)
     elif ac_temperature == target_temperature:
         msgs.add(f'{ac_friendly_name} temperature already set to {target_temperature}')

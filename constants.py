@@ -103,8 +103,8 @@ ROOM_AUTO_AC = 'input_boolean.room_auto_ac'
 ROOM_VALVE = 'climate.valve_room'
 ROOM_AUTOVALVE_IB = 'input_boolean.room_auto_valve'
 ROOM_LIGHT = 'light.room'
-ROOM_ACCENT_LIGHT = 'switch.room_accent_light'
-ROOM_ACCENT_LIGHT_2 = 'switch.room_plants_led'
+ROOM_ACCENT_LIGHT = 'light.room_accent'
+ROOM_ACCENT_LIGHT_2 = 'light.plants_led'
 
 KITCHEN_WINDOW = 'cover.kitchen_window_tl'
 # KITCHEN_WINDOW_CLOUD = 'cover.kitchen_window_cloud'
@@ -132,10 +132,10 @@ LAUNDRY_LIGHT = 'light.laundry'
 LAUNDRY_VALVE_COLD = 'switch.valve_cold'
 GROUP_LEAK = 'group.water_leak_group'
 GROUP_VALVES = 'group.water_valves'
-SERVER_TEMPERATURE = 'sensor.alert_server_cpu_temperature'
-MINI_TEMPERATURE = 'sensor.mini_cpu_temperature'
-SERVER_RAM_USED_PERCENT = 'sensor.alert_server_ram_usage'
-MINI_RAM_USED_PERCENT = 'sensor.mini_ram_usage'
+SERVER_TEMPERATURE = 'sensor.alert_server_temperature'
+MINI_TEMPERATURE = 'sensor.mini_temperature'
+SERVER_RAM_USED_PERCENT = 'sensor.alert_server_ram'
+MINI_RAM_USED_PERCENT = 'sensor.mini_ram'
 BOILER = 'water_heater.boiler'
 BOILER_CONTROL_MODE = 'input_select.boiler_control_mode'
 LAUNDRY_SPEAKER = 'media_player.mass_laundry_speaker'
@@ -152,7 +152,6 @@ LIGHT_BATHROOM_LED = 'light.bathroom_led'
 SOMEONE_HOME = 'binary_sensor.someone_s_home'
 CATBIRD_HOME = 'binary_sensor.catbird_s_home'
 ALERT_HOME = 'binary_sensor.alert_s_home'
-
 
 
 ACTION_CALLBACKS = 'pyscript.action_callbacks'
@@ -185,12 +184,7 @@ LIST_BROADCAST_SPEAKERS = [
     SHOWER_SPEAKER,
 ]
 
-LIST_AC = [
-    BEDROOM_AC,
-    OFFICE_AC,
-    KITCHEN_AC,
-    ROOM_AC
-]
+LIST_AC = [BEDROOM_AC, OFFICE_AC, KITCHEN_AC, ROOM_AC]
 LIST_AUTO_AC = [
     BEDROOM_AUTO_AC,
     OFFICE_AUTO_AC,

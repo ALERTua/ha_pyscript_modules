@@ -17,8 +17,12 @@ def state_bool(state_):
     if state_ is None:
         return None
 
-    on_states = ['on', ]
-    off_states = ['off', ]
+    on_states = [
+        'on',
+    ]
+    off_states = [
+        'off',
+    ]
     state_ = state_.lower()
     if state_ in on_states:
         return True
@@ -34,7 +38,7 @@ def telegram_message_alert_ha_public(msg=None, disable_notification=False, **kwa
         msg=msg,
         disable_notification=disable_notification,
         chat_id=[TELEGRAM_CHAT_ALERT_HA],
-        **kwargs
+        **kwargs,
     )
 
 
@@ -44,16 +48,18 @@ def telegram_message_alert_ha_private(msg=None, disable_notification=True, **kwa
         disable_notification=disable_notification,
         chat_id=[TELEGRAM_CHAT_ALERT_HA_PRIVATE],
         reply_to_message_id=7024,
-        **kwargs
+        **kwargs,
     )
 
 
-def telegram_message(msg=None, disable_notification=True, **kwargs):  # message_thread_id
+def telegram_message(
+    msg=None, disable_notification=True, **kwargs
+):  # message_thread_id
     # inline = [
     #     [
-    #         ["Text btn1", "/button1"], 
+    #         ["Text btn1", "/button1"],
     #         ["Text btn2", "/button2"]
-    #     ], 
+    #     ],
     #     [
     #         ["Text btn3", "/button3"]
     #     ]
@@ -67,20 +73,30 @@ def telegram_message(msg=None, disable_notification=True, **kwargs):  # message_
     kwargs.setdefault('disable_web_page_preview', True)
     kwargs.setdefault('chat_id', [TELEGRAM_CHAT_ALERT_HA_PRIVATE])
     msg_limit = 4096
-    msgs = [msg[i:i + msg_limit] for i in range(0, len(msg), msg_limit)]
+    msgs = [msg[i : i + msg_limit] for i in range(0, len(msg), msg_limit)]
     for msg in msgs:
-        telegram_bot.send_message(message=msg, disable_notification=disable_notification, **kwargs)
+        telegram_bot.send_message(
+            message=msg, disable_notification=disable_notification, **kwargs
+        )
 
 
-def telegram_video_url(url, caption=None, disable_notification=True, target=None, **kwargs):
+def telegram_video_url(
+    url, caption=None, disable_notification=True, target=None, **kwargs
+):
     if not url:
         log.error("Couldn't send telegram video url: url is None or empty")
         return
 
     caption = caption or ''
     target = target or TELEGRAM_CHAT_ALERT_VIDEO
-    return telegram_bot.send_video(url=url, caption=caption, disable_notification=disable_notification,
-                                   chat_id=[target], verify_ssl=False, **kwargs)
+    return telegram_bot.send_video(
+        url=url,
+        caption=caption,
+        disable_notification=disable_notification,
+        chat_id=[target],
+        verify_ssl=False,
+        **kwargs,
+    )
 
 
 def telegram_photo(url, caption=None, disable_notification=True, target=None, **kwargs):
@@ -90,8 +106,13 @@ def telegram_photo(url, caption=None, disable_notification=True, target=None, **
 
     caption = caption or ''
     target = target or TELEGRAM_CHAT_ALERT_VIDEO_SNAPSHOTS
-    return telegram_bot.send_photo(url=url, caption=caption, chat_id=[target],
-                                   disable_notification=disable_notification, **kwargs)
+    return telegram_bot.send_photo(
+        url=url,
+        caption=caption,
+        chat_id=[target],
+        disable_notification=disable_notification,
+        **kwargs,
+    )
 
 
 def discord_message(msg, target=None, **kwargs):
@@ -105,7 +126,7 @@ def discord_message(msg, target=None, **kwargs):
 
     target = [int(_) for _ in target]
     split = int(2000 * 0.9)
-    messages = [msg[i: i + split] for i in range(0, len(msg), split)]
+    messages = [msg[i : i + split] for i in range(0, len(msg), split)]
     for message in messages:
         # log.debug(f"Sending discord message len {len(message)}")
         try:  # errors during ha relaunch
@@ -150,7 +171,9 @@ def task_wait(func, *args, **kwargs):
     log.info(f"task_wait {func_name} finished")
 
 
-def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=2.5, timeout=30, turn_on=False):
+def wait_speaker_idle(
+    entity_ids, state_check_now=True, state_hold=2.5, timeout=30, turn_on=False
+):
     """
     https://hacs-pyscript.readthedocs.io/en/stable/reference.html#task-waiting
     """
@@ -158,7 +181,10 @@ def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=2.5, timeout=
     if not isinstance(entity_ids, List):
         entity_ids = [entity_ids]
     entity_ids = list(set(entity_ids))
-    idle_states = ('idle', 'on',)
+    idle_states = (
+        'idle',
+        'on',
+    )
     off_states = ('off',)
     statement = 'True'
     waiting = False
@@ -194,7 +220,12 @@ def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=2.5, timeout=
         state_check_now = True
     # log.info(f"wait started {state_hold}")
     if turn_on:
-        task.wait_until(statement, timeout=timeout, state_hold=state_hold, state_check_now=state_check_now)
+        task.wait_until(
+            statement,
+            timeout=timeout,
+            state_hold=state_hold,
+            state_check_now=state_check_now,
+        )
     # log.info(f"wait finished")
     return output
 
@@ -202,10 +233,18 @@ def wait_speaker_idle(entity_ids, state_check_now=True, state_hold=2.5, timeout=
     # task.sleep(0.5)
 
 
-def speaker_play_file(speaker_entity_ids, filename, media_content_type='audio/mp3', **kwargs):
+def speaker_play_file(
+    speaker_entity_ids, filename, media_content_type='audio/mp3', **kwargs
+):
     pre_snd_ext_path = sound_ext_path(filename)
-    return media_player.play_media(entity_id=speaker_entity_ids, media=dict(media_content_type=media_content_type,
-                                   media_content_id=pre_snd_ext_path), **kwargs)
+    return media_player.play_media(
+        entity_id=speaker_entity_ids,
+        media=dict(
+            media_content_type=media_content_type, media_content_id=pre_snd_ext_path
+        ),
+        **kwargs,
+    )
+
 
 def mass_play_file(speaker_entity_ids, filename, use_pre_announce=False):
     pre_snd_ext_path = sound_ext_path(filename)
@@ -217,6 +256,7 @@ def mass_play_file(speaker_entity_ids, filename, use_pre_announce=False):
     )
     # return media_player.play_media(entity_id=speaker_entity_ids, media_content_type=media_content_type,
     #                                media_content_id=pre_snd_ext_path, **kwargs)
+
 
 def quiet_hours():
     return state.get('binary_sensor.quiet_hours') == 'on'
@@ -239,6 +279,7 @@ def broadcast_allowed():
         return False
 
     return True
+
 
 def friendly_name(entity_id):
     if entity_id:
@@ -270,7 +311,12 @@ def friendly_name(entity_id):
 #     log.debug(f"Connected to PyCharm Debugger @ {ip}:{port}")
 
 
-def timedelta_words(value: timedelta | float, months: bool = True, minimum_unit: str = "seconds", locale: str = 'uk_UA') -> str:
+def timedelta_words(
+    value: timedelta | float,
+    months: bool = True,
+    minimum_unit: str = "seconds",
+    locale: str = 'uk_UA',
+) -> str:
     if locale == 'en':
         task.executor(humanize.i18n.deactivate)
     else:
@@ -278,24 +324,30 @@ def timedelta_words(value: timedelta | float, months: bool = True, minimum_unit:
     return humanize.naturaldelta(value, months=months, minimum_unit=minimum_unit)
 
 
-def dt_words(value: datetime | timedelta | float,
-             future: bool = False,
-             months: bool = True,
-             minimum_unit: str = "seconds",
-             when: datetime | None = None,
-             locale: str = 'uk_UA') -> str:
+def dt_words(
+    value: datetime | timedelta | float,
+    future: bool = False,
+    months: bool = True,
+    minimum_unit: str = "seconds",
+    when: datetime | None = None,
+    locale: str = 'uk_UA',
+) -> str:
     if locale == 'en':
         task.executor(humanize.i18n.deactivate)
     else:
         task.executor(humanize.i18n.activate, locale)
-    return humanize.naturaltime(value, future=future, months=months, minimum_unit=minimum_unit, when=when)
+    return humanize.naturaltime(
+        value, future=future, months=months, minimum_unit=minimum_unit, when=when
+    )
 
 
 def filename_timestamp():
     return "%s" % timestamp_to_date()
 
 
-def timestamp_to_date(timestamp: datetime | int | float | None = None, _format: str = '%Y-%m-%d_%H-%M-%S') -> str:
+def timestamp_to_date(
+    timestamp: datetime | int | float | None = None, _format: str = '%Y-%m-%d_%H-%M-%S'
+) -> str:
     """
     Convert a timestamp (datetime, int, or float) to a formatted date string.
 
@@ -366,12 +418,7 @@ exception: {type(e)} {e}""")
 
 def tts_edge_voice_from_language_code(lang_code):
     if lang_code in ('ua',):
-        voice = choice(
-            (
-                'uk-UA-PolinaNeural',
-                'uk-UA-OstapNeural'
-            )
-        )
+        voice = choice(('uk-UA-PolinaNeural', 'uk-UA-OstapNeural'))
     else:
         voice = choice(
             (
@@ -440,7 +487,9 @@ def round_up(value, precision=1.0, round_result=None):
     return round(result, round_result) if round_result is not None else result
 
 
-def converse_stringify_numbers(txt, agent_id=LLM_STANDARD, language='UA', conversation_id=''):
+def converse_stringify_numbers(
+    txt, agent_id=LLM_STANDARD, language='UA', conversation_id=''
+):
     prompt = f"""
     тобі буде надано фразу, що містить цифри 
     перепиши цю фразу прописом, замінюючи цифри на їх прописну версію написання.
@@ -449,13 +498,24 @@ def converse_stringify_numbers(txt, agent_id=LLM_STANDARD, language='UA', conver
     наприклад "це сталося у 1220 році" треба переписати так: "це сталося у тисяча двісті двадцятому році"
     Ось сама фраза:
     {txt}"""
-    return converse(prompt, agent_id=agent_id, language=language, conversation_id=conversation_id)
+    return converse(
+        prompt, agent_id=agent_id, language=language, conversation_id=conversation_id
+    )
+
 
 def converse(txt, agent_id=LLM_STANDARD, language='UA', conversation_id=''):
     log.debug(f"Conversing {language} {agent_id}\n{txt}\n___")
     # noinspection PyArgumentList
-    response = conversation.process(agent_id=agent_id, language=language, text=txt,
-                                    conversation_id=conversation_id, return_response=True) or {}
+    response = (
+        conversation.process(
+            agent_id=agent_id,
+            language=language,
+            text=txt,
+            conversation_id=conversation_id,
+            return_response=True,
+        )
+        or {}
+    )
     """
     {
         'conversation_id': '01J4PM01TN6X0JKXKY4VS2Q792', 
@@ -477,7 +537,12 @@ def converse(txt, agent_id=LLM_STANDARD, language='UA', conversation_id=''):
         }
     }
     """
-    answer = response.get('response', {}).get('speech', {}).get('plain', {}).get('speech', '')
+    answer = (
+        response.get('response', {})
+        .get('speech', {})
+        .get('plain', {})
+        .get('speech', '')
+    )
     log.debug(f"Conversation answer for {language} {agent_id}\n{answer}")
     return answer, response
 
@@ -503,37 +568,41 @@ PROMPT = """
 Кадри не містять активності. Відповідь: "На кадрах активність відсутня."  
 """
 
+
 async def converse_frigate_event(
-        event_id: str,
-        provider: str = PROVIDER,
-        message: str = PROMPT,
-        include_filename: bool = True,
-        max_tokens: int = 250,
-        temperature: float = 0.3,
-        model: str = MODEL,
-        remember: bool = True,
-        video_file: str = "",
-        max_frames: int = 10,
-        target_width: int = 3840,
-        detail: Literal['', 'high', 'low'] = '',
-        expose_images: bool = False,
+    event_id: str,
+    provider: str = PROVIDER,
+    message: str = PROMPT,
+    include_filename: bool = True,
+    max_tokens: int = 250,
+    temperature: float = 0.3,
+    model: str = MODEL,
+    remember: bool = True,
+    video_file: str = "",
+    max_frames: int = 10,
+    target_width: int = 3840,
+    detail: Literal['', 'high', 'low'] = '',
+    expose_images: bool = False,
 ):
     try:
-        output = llmvision.video_analyzer(
-            event_id=event_id,
-            provider=provider,
-            message=message,
-            include_filename=include_filename,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            model=model,
-            remember=remember,
-            # video_file=video_file,
-            max_frames=max_frames,
-            # target_width=target_width,
-            # detail=detail,
-            expose_images=expose_images,
-        ) or {}
+        output = (
+            llmvision.video_analyzer(
+                event_id=event_id,
+                provider=provider,
+                message=message,
+                include_filename=include_filename,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                model=model,
+                remember=remember,
+                # video_file=video_file,
+                max_frames=max_frames,
+                # target_width=target_width,
+                # detail=detail,
+                expose_images=expose_images,
+            )
+            or {}
+        )
     except:
         output = {}
 
@@ -558,7 +627,10 @@ def try_except(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            log.warning(f"{func.__name__} failed: {type(e)} {e}")
+            try:
+                log.warning(f"{func.__name__} failed: {type(e)} {e}")
+            except:
+                log.warning(f"{func} failed: {type(e)} {e}")
 
     return wrapper
 
@@ -566,7 +638,9 @@ def try_except(func):
 def check_mp4_file(url):
     try:
         # Send a GET request with streaming to avoid downloading the entire file
-        response = task.executor(requests.get, url=url, verify=False, stream=True, timeout=10)
+        response = task.executor(
+            requests.get, url=url, verify=False, stream=True, timeout=10
+        )
 
         # Check HTTP status code
         if response.status_code != 200:
@@ -589,12 +663,23 @@ def check_mp4_file(url):
 
 
 def get_weekday_ukrainian():
-    weekdays = ['понеділок', 'вівторок', 'середа', 'четвер', 'п\'ятниця', 'субота', 'неділя']
+    weekdays = [
+        'понеділок',
+        'вівторок',
+        'середа',
+        'четвер',
+        'п\'ятниця',
+        'субота',
+        'неділя',
+    ]
     return weekdays[ha.datetime().weekday()]
 
 
 def cur_voltage(default_=0.0) -> float | None:
     try:
-        return ha.render_template("{{ states('%s') | default(%s) | float | round(1) }}" % (IN_VOLTAGE, default_))
+        return ha.render_template(
+            "{{ states('%s') | default(%s) | float | round(1) }}"
+            % (IN_VOLTAGE, default_)
+        )
     except:
         return None

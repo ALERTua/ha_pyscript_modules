@@ -1,7 +1,7 @@
 from imports import *
 from pyoverkiz.const import SUPPORTED_SERVERS
 from pyoverkiz.client import OverkizClient
-from pyoverkiz.enums import Server, OverkizState, OverkizCommand
+from pyoverkiz.enums import Server, OverkizCommand
 from pyoverkiz.models import Command
 
 
@@ -11,8 +11,13 @@ DEVICE_URL = SECRET('cozytouch_device_url')
 
 
 class AtlanticWaterHeater:
-    def __init__(self, username=USERNAME, password=PASSWORD, server=SUPPORTED_SERVERS[Server.ATLANTIC_COZYTOUCH],
-                 device_url=DEVICE_URL):
+    def __init__(
+        self,
+        username=USERNAME,
+        password=PASSWORD,
+        server=SUPPORTED_SERVERS[Server.ATLANTIC_COZYTOUCH],
+        device_url=DEVICE_URL,
+    ):
         self.username = username
         self.password = password
         self.server = server
@@ -22,7 +27,9 @@ class AtlanticWaterHeater:
     def client(self):
         if self._client is None or self._client.session.closed:
             log.debug("Starting Overkiz session")
-            self._client = OverkizClient(self.username, self.password, server=self.server)
+            self._client = OverkizClient(
+                self.username, self.password, server=self.server
+            )
             result = self._client.login()
             log.debug(f"Overkiz session result: {result}")
         return self._client

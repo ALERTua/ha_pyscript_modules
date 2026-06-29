@@ -40,7 +40,9 @@ DEBUG = False
 #                           context=context, **kwargs)
 
 
-def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs):
+def sun_autowindow(
+    trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs
+):
     window_entity_id = kwargs.get('window_entity_id')
     if not window_entity_id:
         log.info("Cannot _sun_autowindow: no window_entity_id")
@@ -57,7 +59,9 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     illumination_threshold_close = int(kwargs.get('illumination_threshold_close', 200))
     window = Window(window_entity_id, reverse=reverse)
     if DEBUG:
-        log.debug(f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}")
+        log.debug(
+            f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}"
+        )
     window_fn = window.friendly_name()
 
     sun_state = state.getattr('sun.sun')
@@ -107,28 +111,32 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
             pass
 
         if illumination <= illumination_threshold_open:
-            slightly_less_open_position = max(window_position_current - 10, position_open)
+            slightly_less_open_position = max(
+                window_position_current - 10, position_open
+            )
             window.position_set(slightly_less_open_position)
             if DEBUG:
-                log.debug(f"{__name__}: illumination is less than threshold: {illumination} <= {illumination_threshold_close}. Setting {slightly_less_open_position=}. {window_position_current=}")
+                log.debug(
+                    f"{__name__}: illumination is less than threshold: {illumination} <= {illumination_threshold_close}. Setting {slightly_less_open_position=}. {window_position_current=}"
+                )
             return
 
-
     cloud_coverage = int(weather_e.attrs().get('cloud_coverage', 0))
-    if (elevation > 5
-            and cloud_coverage_limit
-            and cloud_coverage
-            and cloud_coverage > cloud_coverage_limit):
+    if (
+        elevation > 5
+        and cloud_coverage_limit
+        and cloud_coverage
+        and cloud_coverage > cloud_coverage_limit
+    ):
         window.position_set(position_open)
         if DEBUG:
-            log.debug(f"{__name__}: cloud_coverage is too high: {cloud_coverage}. Breaking.")
+            log.debug(
+                f"{__name__}: cloud_coverage is too high: {cloud_coverage}. Breaking."
+            )
         return
 
     uv_index = int(weather_e.attrs().get('uv_index', 0))
-    if (elevation > 5
-            and uv_index_limit
-            and uv_index
-            and uv_index < uv_index_limit):
+    if elevation > 5 and uv_index_limit and uv_index and uv_index < uv_index_limit:
         window.position_set(position_open)
         if DEBUG:
             log.debug(f"{__name__}: uv_index is too low: {uv_index}. Breaking.")
@@ -139,7 +147,12 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     # if 4 <= month <= 8:  # [april,august]
     steps = [
         # window_position_, step_high, step_low, step_force
-        (50, ELEVATION_HIGH, 48, False),  # {step_high (or previous step_low)} >= {elevation} > {step_low}
+        (
+            50,
+            ELEVATION_HIGH,
+            48,
+            False,
+        ),  # {step_high (or previous step_low)} >= {elevation} > {step_low}
         (60, None, 46, False),
         (70, None, 44, False),
         (80, None, 39, False),
@@ -152,7 +165,9 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     window_position = prev_high = position_open
     force = False
     if DEBUG:
-        log.debug(f"Sun position: azimuth {azimuth}/{max_azimuth} elevation {elevation}/{ELEVATION_LOW}")
+        log.debug(
+            f"Sun position: azimuth {azimuth}/{max_azimuth} elevation {elevation}/{ELEVATION_LOW}"
+        )
 
     if sun_control:
         if azimuth > max_azimuth or elevation < ELEVATION_LOW:
@@ -161,8 +176,9 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
             if DEBUG:
                 log.debug(f'''{min_azimuth} < azimuth {azimuth} > {max_azimuth}
                           {ELEVATION_LOW} > elevation {elevation} > {ELEVATION_HIGH}''')
-        elif ((cloud_coverage_limit and cloud_coverage > cloud_coverage_limit)
-              or (uv_index_limit and uv_index < uv_index_limit)):
+        elif (cloud_coverage_limit and cloud_coverage > cloud_coverage_limit) or (
+            uv_index_limit and uv_index < uv_index_limit
+        ):
             window_position = position_open
             force = True
             if DEBUG:
@@ -177,7 +193,9 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
                     force = step_force
                     window_position_current = window.position()
                     real_wanted_window_position = min(window_position, position_limit)
-                    if window_position_current != real_wanted_window_position:  # print only if a change needs to be made
+                    if (
+                        window_position_current != real_wanted_window_position
+                    ):  # print only if a change needs to be made
                         if DEBUG:
                             log.debug(f'''{window_fn}:
                                       step: {window_position_}, {step_high}, {step_low}, {step_force}
@@ -186,11 +204,18 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
 
     window_position = min(window_position, position_limit)
 
-    if window_position_current is not None and int_(window_position_current) == window_position:
+    if (
+        window_position_current is not None
+        and int_(window_position_current) == window_position
+    ):
         # log.debug(f"{__name__}: {window_fn} position is already: {window_position_current}. Breaking.")
         return
 
-    if not force and window_position_current is not None and int_(window_position_current) > window_position:
+    if (
+        not force
+        and window_position_current is not None
+        and int_(window_position_current) > window_position
+    ):
         # log.debug(f"{__name__}: Won't close({window_position}) {window_fn} that is already "
         #           f"closed({window_position_current}).")
         return
@@ -199,14 +224,21 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     if illumination_sensor is not None:
         i_sensor = entity(illumination_sensor)
         illumination = int_(i_sensor.state())
-        if illumination <= illumination_threshold_close and int_(window_position_current) > window_position:
+        if (
+            illumination <= illumination_threshold_close
+            and int_(window_position_current) > window_position
+        ):
             window.position_set(position_open)
             if DEBUG:
-                log.debug(f"{__name__}: illumination is less than threshold: {illumination} <= {illumination_threshold_close}.")
+                log.debug(
+                    f"{__name__}: illumination is less than threshold: {illumination} <= {illumination_threshold_close}."
+                )
             return
         elif illumination >= illumination_threshold_close:
             window_position_current = window.position()
-            slightly_less_open_position = max(window_position_current - 10, position_open)
+            slightly_less_open_position = max(
+                window_position_current - 10, position_open
+            )
             window.position_set(slightly_less_open_position)
 
     msg = f"""Azimuth: {azimuth} Elevation: {elevation}
@@ -229,7 +261,9 @@ def sun_autowindow(trigger_type=None, var_name=None, value=None, old_value=None,
     window.position_set(window_position)
 
 
-def illumination_autowindow(trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs):
+def illumination_autowindow(
+    trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs
+):
     window_entity_id = kwargs.get('window_entity_id')
     if not window_entity_id:
         log.info("Cannot _sun_autowindow: no window_entity_id")
@@ -244,10 +278,12 @@ def illumination_autowindow(trigger_type=None, var_name=None, value=None, old_va
     illumination_threshold_close = int(kwargs.get('illumination_threshold_close', 200))
     temperature_sensor = kwargs.get('temperature_sensor', None)
     temperature_outside_sensor = kwargs.get('temperature_outside_sensor', None)
-    temperature_limit_top = int(kwargs.get('temperature_limit_top', 26))
+    temperature_limit_top = int(kwargs.get('temperature_limit_top', 28))
     window = Window(window_entity_id, reverse=reverse)
     if debug:
-        log.debug(f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}")
+        log.debug(
+            f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}"
+        )
     window_fn = window.friendly_name()
 
     window_position_current: int = window.position()
@@ -264,7 +300,9 @@ def illumination_autowindow(trigger_type=None, var_name=None, value=None, old_va
         return
 
     if debug:
-        log.debug(f"{__name__}: {window_fn} illumination: {illumination_threshold_close} ~ {illumination} ~ {illumination_threshold_open}")
+        log.debug(
+            f"{__name__}: {window_fn} illumination: {illumination_threshold_close} ~ {illumination} ~ {illumination_threshold_open}"
+        )
 
     window_position_new = window_position_current
 
@@ -272,27 +310,39 @@ def illumination_autowindow(trigger_type=None, var_name=None, value=None, old_va
         window_position_new = window_position_current - 10
         force_open = True
         if debug:
-            log.debug(f"{__name__}: illumination is less than open threshold: {illumination} <= {illumination_threshold_open}. Setting {window_position_new=}. {window_position_current=}")
+            log.debug(
+                f"{__name__}: illumination is less than open threshold: {illumination} <= {illumination_threshold_open}. Setting {window_position_new=}. {window_position_current=}"
+            )
 
     elif illumination >= illumination_threshold_close:
         window_position_new = window_position_current + 10
         if debug:
-            log.debug(f"{__name__}: illumination is more than open threshold: {illumination} <= {illumination_threshold_close}. Setting {window_position_new=}. {window_position_current=}")
+            log.debug(
+                f"{__name__}: illumination is more than open threshold: {illumination} <= {illumination_threshold_close}. Setting {window_position_new=}. {window_position_current=}"
+            )
 
     if temperature_sensor:
         # temperature_inside = float_(entity(temperature_sensor).state())
 
-        temperature_outside = float_(entity(temperature_outside_sensor).state())
-        if temperature_outside > temperature_limit_top:
+        temperature_outside = float_(
+            state.get(temperature_outside_sensor), default=temperature_limit_top - 1
+        )
+        if temperature_outside >= temperature_limit_top:
             if debug:
-                log.debug(f"{__name__}: temperature outside is more than limit: {temperature_outside} > {temperature_limit_top}.")
+                log.debug(
+                    f"{__name__}: temperature outside is more than limit: {temperature_outside} > {temperature_limit_top}."
+                )
             window_position_new = position_close
         else:
             if debug:
-                log.debug(f"{__name__}: temperature outside is less than limit: {temperature_outside} < {temperature_limit_top}.")
+                log.debug(
+                    f"{__name__}: temperature outside is less than limit: {temperature_outside} < {temperature_limit_top}."
+                )
 
     if debug:
-        log.debug(f"{__name__}: before limit {window_position_new=} {position_close=} {position_open=}")
+        log.debug(
+            f"{__name__}: before limit {window_position_new=} {position_close=} {position_open=}"
+        )
     window_position_new = min(window_position_new, position_close)
     window_position_new = max(window_position_new, position_open)
     if debug:
@@ -300,11 +350,15 @@ def illumination_autowindow(trigger_type=None, var_name=None, value=None, old_va
 
     if window_position_current == window_position_new:
         if debug:
-            log.debug(f"{__name__}: {window_fn} position is already: {window_position_current}. Breaking.")
+            log.debug(
+                f"{__name__}: {window_fn} position is already: {window_position_current}. Breaking."
+            )
         return
     elif window_position_current > window_position_new and not force_open:
         if debug:
-            log.debug(f"{__name__}: Won't close {window_fn}: already closed more: {window_position_current}. Breaking.")
+            log.debug(
+                f"{__name__}: Won't close {window_fn}: already closed more: {window_position_current}. Breaking."
+            )
         return
     elif force_open:
         if debug:

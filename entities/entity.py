@@ -50,45 +50,59 @@ def entity(entity_id, debug=False):
 
     if domain == 'binary_sensor':
         from entities.binary_sensor import BinarySensor
+
         output = BinarySensor(entity_id)
     elif domain == 'climate':
         from entities.climate import Climate
+
         output = Climate(entity_id)
     elif domain == 'calendar':
         from entities.calendar import Calendar
+
         output = Calendar(entity_id)
     elif domain == 'light':
         from entities.light import Light
+
         output = Light(entity_id)
     elif domain == 'media_player':
         from entities.media_player import MediaPlayer
+
         output = MediaPlayer(entity_id)
     elif domain == 'sensor':
         from entities.sensor import Sensor
+
         output = Sensor(entity_id)
     elif domain in ('switch', 'input_boolean', 'fan'):
         from entities.switch import Switch
+
         output = Switch(entity_id)
     elif domain == 'cover':
         from entities.window import Cover
+
         output = Cover(entity_id)
     elif domain in ('input_number', 'number'):
         from entities.number import Number
+
         output = Number(entity_id)
     elif domain == 'water_heater':
         from entities.water_heater import WaterHeater
+
         output = WaterHeater(entity_id)
     elif domain == 'lock':
         from entities.lock import Lock
+
         output = Lock(entity_id)
     elif domain == 'notify':
         from entities.companion import Companion
+
         output = Companion(entity_id)
     elif domain == 'select':
         from entities.select import Select
+
         output = Select(entity_id)
     elif config_entry_id := hass.config_entries.async_get_entry(entity_id):
         from entities.config_entry import Config_Entry
+
         output = Config_Entry(config_entry_id.entry_id)
     else:
         output = Entity(entity_id)
@@ -266,6 +280,7 @@ class Entity:
         config_entry_id = self.config_entry_id()
         if config_entry_id:
             from entities.config_entry import Config_Entry
+
             return Config_Entry(config_entry_id=config_entry_id)
 
         return None
@@ -281,6 +296,7 @@ class Entity:
     def device(self) -> Device | None:
         if device_id := self.device_id():
             from entities.device import Device
+
             return Device(device_id)
 
         return None
@@ -304,14 +320,30 @@ class Entity:
             self.last_reported(),
         )
 
-    def last_active_older_than(self, days=0, seconds=0, microseconds=0, milliseconds=0,
-                               minutes=0, hours=0, weeks=0, debug=False):
+    def last_active_older_than(
+        self,
+        days=0,
+        seconds=0,
+        microseconds=0,
+        milliseconds=0,
+        minutes=0,
+        hours=0,
+        weeks=0,
+        debug=False,
+    ):
         now = ha.datetime()
         if debug:
             log.debug(f"{now=}")
 
-        delta = timedelta(days=days, seconds=seconds, microseconds=microseconds,
-                milliseconds=milliseconds, minutes=minutes, hours=hours, weeks=weeks)
+        delta = timedelta(
+            days=days,
+            seconds=seconds,
+            microseconds=microseconds,
+            milliseconds=milliseconds,
+            minutes=minutes,
+            hours=hours,
+            weeks=weeks,
+        )
         if debug:
             log.debug(f"{delta=}")
 
@@ -352,11 +384,11 @@ class Entity:
         return entity_helper.get_unit_of_measurement(hass, self.entity_id)
 
     async def get_history(
-            self,
-            start_time: datetime,
-            end_time: Optional[datetime],
-            period: Literal["5minute", "day", "hour", "week", "month"],
-            types: Literal["last_reset", "max", "mean", "min", "state", "sum"]
+        self,
+        start_time: datetime,
+        end_time: Optional[datetime],
+        period: Literal["5minute", "day", "hour", "week", "month"],
+        types: Literal["last_reset", "max", "mean", "min", "state", "sum"],
     ):
         """
         start_time = datetime.today().replace(day=1)
@@ -377,9 +409,19 @@ class Entity:
             return
 
         entity_ids = [entity_id]
-        log.debug(f"Getting {types} {period} history for {entity_ids}: {start_time} to {end_time}")
+        log.debug(
+            f"Getting {types} {period} history for {entity_ids}: {start_time} to {end_time}"
+        )
         output = await get_instance(hass).async_add_executor_job(
-            statistics_during_period, hass, start_time, end_time, entity_ids, period, None, types)
+            statistics_during_period,
+            hass,
+            start_time,
+            end_time,
+            entity_ids,
+            period,
+            None,
+            types,
+        )
 
         if output:
             return output.get(entity_id)

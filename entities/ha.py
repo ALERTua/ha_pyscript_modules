@@ -6,6 +6,7 @@ from homeassistant.helpers.device_registry import DeviceRegistry
 from homeassistant.helpers.entity_registry import EntityRegistry
 
 from imports_base import *
+
 # https://github.com/home-assistant/core/blob/master/homeassistant/helpers/template.py
 from homeassistant.helpers import template, device_registry, entity_registry, entity as entity_helper, area_registry
 from homeassistant.exceptions import TemplateError
@@ -66,7 +67,7 @@ class HA:
     # noinspection PyMethodMayBeStatic
     def render_template(self, template_, *args, **kwargs):
         """
-            returns template.Template("{{ states('light.office') == 'off' }}", hass).async_render()
+        returns template.Template("{{ states('light.office') == 'off' }}", hass).async_render()
         """
         # noinspection PyUnresolvedReferences
         tmpl = template.Template(template_, hass)
@@ -114,11 +115,15 @@ class HA:
 
     def resolve_entity_id(self, entity_id_or_uuid: str):
         entity_registry_ = self.entity_registry()
-        return entity_registry.async_resolve_entity_id(entity_registry_, entity_id_or_uuid)
+        return entity_registry.async_resolve_entity_id(
+            entity_registry_, entity_id_or_uuid
+        )
 
     def validate_entity_id(self, entity_id_or_uuid: str):
         entity_registry_ = self.entity_registry()
-        return entity_registry.async_validate_entity_id(entity_registry_, entity_id_or_uuid)
+        return entity_registry.async_validate_entity_id(
+            entity_registry_, entity_id_or_uuid
+        )
 
     @staticmethod
     def get_device_class(entity_id: str):

@@ -38,6 +38,7 @@ class Climate(Switch):
         'context': {'id': '01HWWK3Q5M86HYM5SYD8A0Y2MN', 'parent_id': None, 'user_id': None}
     }
     """
+
     # noinspection PyMissingConstructor
     def __init__(self, entity_id):
         self.entity_id = entity_id
@@ -64,16 +65,28 @@ class Climate(Switch):
         if self.ha_state is None:
             return
 
-        return climate.set_hvac_mode(entity_id=self.entity_id, hvac_mode=hvac_mode, *args, **kwargs)
+        return climate.set_hvac_mode(
+            entity_id=self.entity_id, hvac_mode=hvac_mode, *args, **kwargs
+        )
 
     def set_preset_mode(self, preset_mode, *args, **kwargs):
         # log.debug(f"set_preset_mode for {self.as_str()} to {preset_mode}")
         if self.ha_state is None:
             return
 
-        return climate.set_preset_mode(entity_id=self.entity_id, preset_mode=preset_mode, *args, **kwargs)
+        return climate.set_preset_mode(
+            entity_id=self.entity_id, preset_mode=preset_mode, *args, **kwargs
+        )
 
-    def set_temperature(self, hvac_mode=None, temperature=None, target_temp_high=None, target_temp_low=None, *args, **kwargs):
+    def set_temperature(
+        self,
+        hvac_mode=None,
+        temperature=None,
+        target_temp_high=None,
+        target_temp_low=None,
+        *args,
+        **kwargs,
+    ):
         if self.ha_state is None:
             return
 
@@ -92,14 +105,16 @@ class Climate(Switch):
 
     def set_fan_mode(self, fan_mode, *args, **kwargs):
         """
-            action: climate.set_fan_mode
-            data:
-            fan_mode: Auto
-            target:
-            entity_id: climate.ac_office
+        action: climate.set_fan_mode
+        data:
+        fan_mode: Auto
+        target:
+        entity_id: climate.ac_office
         """
         if self.ha_state is None:
             return
 
         # log.debug(f"set_fan_mode for {self.as_str()} to {fan_mode}")
-        return climate.set_fan_mode(entity_id=self.entity_id, fan_mode=fan_mode, *args, **kwargs)
+        return climate.set_fan_mode(
+            entity_id=self.entity_id, fan_mode=fan_mode, *args, **kwargs
+        )

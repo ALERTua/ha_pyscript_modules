@@ -3,6 +3,7 @@ from imports_base import *
 from entities.entity import Entity
 from homeassistant.components.calendar import CalendarEvent
 
+
 class Calendar(Entity):
     # noinspection PyMissingConstructor
     def __init__(self, entity_id):
@@ -45,6 +46,7 @@ class Calendar(Entity):
                     end=dt_util.as_local(dt_util.parse_datetime(_['end'])),
                     summary=_['summary'],
                     description=_['description'],
-                ) for _ in output
+                )
+                for _ in output
             ]
         return output

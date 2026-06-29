@@ -25,7 +25,9 @@ class Router:  # Edgerouter
         url = self.url
         data = self.data
         session = self.session
-        response = task.executor(session.post, url=url, data=data, verify=False, timeout=5)
+        response = task.executor(
+            session.post, url=url, data=data, verify=False, timeout=5
+        )
         if not response.ok:
             log.error("Router reboot not ok")
             return False
@@ -43,7 +45,12 @@ class Router:  # Edgerouter
         headers = self.headers
         cookies = self.cookies
         try:
-            task.executor(session.post, f"{url}/api/edge/operation/reboot.json", headers=headers, cookies=cookies,
-                          verify=False)
+            task.executor(
+                session.post,
+                f"{url}/api/edge/operation/reboot.json",
+                headers=headers,
+                cookies=cookies,
+                verify=False,
+            )
         except Exception as e:
             log.error(f"Error rebooting router via API: {type(e)} {e}")

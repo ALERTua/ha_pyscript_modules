@@ -31,6 +31,7 @@ class WaterHeater(Switch):
     'context': {'id': '01J2TXH1A482NZV30Z5KHTGFMQ', 'parent_id': None, 'user_id': None}
     }
     """
+
     # noinspection PyMissingConstructor
     def __init__(self, entity_id):
         self.entity_id = entity_id
@@ -63,7 +64,9 @@ class WaterHeater(Switch):
         if self.ha_state is None:
             return
 
-        return water_heater.set_operation_mode(entity_id=self.entity_id, operation_mode=operation_mode)
+        return water_heater.set_operation_mode(
+            entity_id=self.entity_id, operation_mode=operation_mode
+        )
 
     def set_temperature(self, operation_mode=None, temperature=None):
         if self.ha_state is None:

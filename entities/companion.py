@@ -3,11 +3,11 @@ from entities.entity import Entity
 import pickle
 from urllib.parse import quote as urlquote
 
+
 class RingerMode:
     NORMAL = "normal"
     SILENT = "silent"
     VIBRATE = "vibrate"
-
 
 
 def companion_actions_dict(*actions: tuple[str, str, str]):
@@ -32,22 +32,23 @@ class Companion(Entity):
     """
     https://companion.home-assistant.io/docs/notifications/notification-commands
     """
+
     RingerMode = RingerMode
     companion_actions_dict = companion_actions_dict
 
     # noinspection PyMissingConstructor
     def __init__(
-            self,
-            entity_id: str,
-            ringer_mode_eid: str = None,
-            battery_level_eid: str = None,
-            battery_level_state_eid: str = None,
-            dnd_eid: str = None,
-            charging_eid: str = None,
-            public_ip_eid: str = None,
-            wifi_bssid_eid: str = None,
-            wifi_ssid_eid: str = None,
-            wifi_ip_eid: str = None,
+        self,
+        entity_id: str,
+        ringer_mode_eid: str = None,
+        battery_level_eid: str = None,
+        battery_level_state_eid: str = None,
+        dnd_eid: str = None,
+        charging_eid: str = None,
+        public_ip_eid: str = None,
+        wifi_bssid_eid: str = None,
+        wifi_ssid_eid: str = None,
+        wifi_ip_eid: str = None,
     ):
         self.entity_id = entity_id
 
@@ -71,7 +72,11 @@ class Companion(Entity):
         if ringer_mode is None and self.ringer_mode_eid:
             return state.get(self.ringer_mode_eid)
 
-        if ringer_mode and self.ringer_mode_eid and ringer_mode == state.get(self.ringer_mode_eid):
+        if (
+            ringer_mode
+            and self.ringer_mode_eid
+            and ringer_mode == state.get(self.ringer_mode_eid)
+        ):
             return
 
         log.debug(f"Setting {self.entity_id} ringer mode to {ringer_mode}")
@@ -106,11 +111,18 @@ class Companion(Entity):
         if self.wifi_ip_eid:
             return state.get(self.wifi_ip_eid)
 
-    def dnd(self, dnd: Literal["alarms_only", "off", "priority_only", "total_silence"] = None):
+    def dnd(
+        self,
+        dnd: Literal["alarms_only", "off", "priority_only", "total_silence"] = None,
+    ):
         if dnd is None and self.dnd_eid:
             return state.get(self.dnd_eid)
 
-        if dnd is not None and self.dnd_eid is not None and dnd == state.get(self.dnd_eid):
+        if (
+            dnd is not None
+            and self.dnd_eid is not None
+            and dnd == state.get(self.dnd_eid)
+        ):
             log.debug(f"{self.entity_id} dnd is already {dnd}")
             return
 
@@ -146,32 +158,34 @@ class Companion(Entity):
         return self._call(title=title, message=message, data=kwargs)
 
     def actions(
-            self,
-            message: str,
-            title: str = '',
-            *actions: tuple[str, str, str],
-            **kwargs,
+        self,
+        message: str,
+        title: str = '',
+        *actions: tuple[str, str, str],
+        **kwargs,
     ):
         """
-            comp = entity(COMPANION_ALERT)
-            action_close = '''log.debug('actions_close before 3 sec wait')
-task.sleep(3)
-log.debug('actions_close after 3 sec wait')'''
-            action_open = '''log.debug('action_open before 3 sec wait')
-task.sleep(3)
-log.debug('action_open after 3 sec wait')'''
+                    comp = entity(COMPANION_ALERT)
+                    action_close = '''log.debug('actions_close before 3 sec wait')
+        task.sleep(3)
+        log.debug('actions_close after 3 sec wait')'''
+                    action_open = '''log.debug('action_open before 3 sec wait')
+        task.sleep(3)
+        log.debug('action_open after 3 sec wait')'''
 
-            actions = (
-                ('action_open', 'Open', action_open),
-                ('action_close', 'Close', action_close),
-            )
+                    actions = (
+                        ('action_open', 'Open', action_open),
+                        ('action_close', 'Close', action_close),
+                    )
 
-            comp.actions('actions message', 'actions title', *actions)
+                    comp.actions('actions message', 'actions title', *actions)
 
         """
         kwargs.update(companion_actions_dict(*actions))
         kw = dict(message=message, title=title, **kwargs)
-        log.debug(f"companion acitons: {self.entity_domain=} {self.entity_name=} actions:\n{pformat(kw)}")
+        log.debug(
+            f"companion acitons: {self.entity_domain=} {self.entity_name=} actions:\n{pformat(kw)}"
+        )
         return self.message(**kw)
 
     def request_location_update(self):
@@ -186,11 +200,19 @@ log.debug('action_open after 3 sec wait')'''
         return self._call(message="command_webview", data=dict(command=path))
 
     def volume_level(
-            self,
-            volume_level_pct: int,
-            media_stream: Literal["alarm_stream", "call_stream", "dtmf_stream", "music_stream",
-            "notification_stream", "ring_stream", "system_stream"] = None,
+        self,
+        volume_level_pct: int,
+        media_stream: Literal[
+            "alarm_stream",
+            "call_stream",
+            "dtmf_stream",
+            "music_stream",
+            "notification_stream",
+            "ring_stream",
+            "system_stream",
+        ] = None,
     ):
         return self._call(
-            message="command_volume_level", data=dict(media_stream=media_stream, command=volume_level_pct)
+            message="command_volume_level",
+            data=dict(media_stream=media_stream, command=volume_level_pct),
         )

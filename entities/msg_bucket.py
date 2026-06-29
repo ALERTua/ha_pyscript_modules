@@ -69,7 +69,9 @@ class DiscordMsgBucket(MsgBucket):
 
 # @time_trigger  # test
 # noinspection PyUnusedLocal
-def __msgbucket_test(trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs):
+def __msgbucket_test(
+    trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs
+):
     bucket = DiscordMsgBucket()
     bucket.add('msgbucket_test')
     bucket.send()

@@ -48,7 +48,9 @@ from entities.entity import Entity
 #                       **kwargs)
 
 
-def auto_vents(trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs):
+def auto_vents(
+    trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs
+):
     # log.debug(f"""{__name__}
     # trigger_type: {trigger_type}
     # var_name: {var_name}
@@ -120,24 +122,30 @@ def auto_vents(trigger_type=None, var_name=None, value=None, old_value=None, con
         if func:
             funcname = func.__name__.replace('homeassistant.', '')
             func_kwargs_str = f" with {func_kwargs}" if func_kwargs else ''
-            log.info(f"condition monitor for {wanted_entity_friendly_name} that is "
-                     f"{wanted_entity_cur_state}, triggered by {var_name}: {old_value}->{value}:"
-                     f" executing {func.__name__}{func_kwargs_str}")
-            msg = f"🪶{__name__}:\n" \
-                  f"{friendly_name}> {trigger_type}{trigger_name} triggered on {var_name} {old_value}->{value}. \n" \
-                  f"{wanted_entity_friendly_name} was {wanted_entity_cur_state} " \
-                  f"from {lc_str} \n" \
-                  f"{lc_now} \n" \
-                  f"Executing {funcname}{func_kwargs_str}"  # . \nWanted state: {wanted_state}
+            log.info(
+                f"condition monitor for {wanted_entity_friendly_name} that is "
+                f"{wanted_entity_cur_state}, triggered by {var_name}: {old_value}->{value}:"
+                f" executing {func.__name__}{func_kwargs_str}"
+            )
+            msg = (
+                f"🪶{__name__}:\n"
+                f"{friendly_name}> {trigger_type}{trigger_name} triggered on {var_name} {old_value}->{value}. \n"
+                f"{wanted_entity_friendly_name} was {wanted_entity_cur_state} "
+                f"from {lc_str} \n"
+                f"{lc_now} \n"
+                f"Executing {funcname}{func_kwargs_str}"
+            )  # . \nWanted state: {wanted_state}
             if func_kwargs:
                 func(**func_kwargs)
             else:
                 func()
         else:
-            msg = f"{friendly_name} {trigger_type}{trigger_name} triggered notification on value {value} \n" \
-                  f"{wanted_entity_friendly_name} has been {wanted_entity_cur_state} " \
-                  f"from {lc_str} \n" \
-                  f"for {lc_now}"
+            msg = (
+                f"{friendly_name} {trigger_type}{trigger_name} triggered notification on value {value} \n"
+                f"{wanted_entity_friendly_name} has been {wanted_entity_cur_state} "
+                f"from {lc_str} \n"
+                f"for {lc_now}"
+            )
 
         # if tg_kwargs:
         #     tools.telegram_message_alert_ha_private(msg=msg, **tg_kwargs)

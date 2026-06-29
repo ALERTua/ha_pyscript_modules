@@ -10,11 +10,17 @@ class MediaPlayer(Switch):
         self.init()
 
     def wait_idle(self, state_check_now=True, state_hold=2.0, timeout=None):
-        return tools.wait_speaker_idle(self.entity_id, state_check_now=state_check_now, state_hold=state_hold,
-                                       timeout=timeout)
+        return tools.wait_speaker_idle(
+            self.entity_id,
+            state_check_now=state_check_now,
+            state_hold=state_hold,
+            timeout=timeout,
+        )
 
     def volume_set(self, volume_level: float):  # 1.0
-        return media_player.volume_set(entity_id=self.entity_id, volume_level=volume_level)
+        return media_player.volume_set(
+            entity_id=self.entity_id, volume_level=volume_level
+        )
 
     def volume_up(self):
         return media_player.volume_up(entity_id=self.entity_id)
@@ -84,7 +90,6 @@ class MediaPlayer(Switch):
 
     def media_repeat(self):
         return self.state('repeat')
-
 
 
 # # off

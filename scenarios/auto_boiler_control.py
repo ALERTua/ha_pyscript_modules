@@ -4,14 +4,18 @@ from entities.water_heater import WaterHeater
 DISCORD_CHATS = ['1262407979920261161']
 
 
-def auto_boiler_control(trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs):
+def auto_boiler_control(
+    trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs
+):
     dbg = False
     discount_period_eid = kwargs.get('DISCOUNT_PERIOD_EID', None)
     boiler_eid = kwargs.get('BOILER_EID', None)
     ignore_boiler_off = kwargs.get('IGNORE_BOILER_OFF', False)
     discount_on_mode = kwargs.get('MODE_DISCOUNT', 'performance')
     discount_off_mode = kwargs.get('MODE', 'eco')
-    target_temperature_eid = kwargs.get('TARGET_TEMPERATURE_EID', 'number.boiler_target_temperature')
+    target_temperature_eid = kwargs.get(
+        'TARGET_TEMPERATURE_EID', 'number.boiler_target_temperature'
+    )
     target_temperature_discount = kwargs.get('TARGET_TEMPERATURE_DISCOUNT', 65)
     target_temperature = kwargs.get('TARGET_TEMPERATURE', 55)
     showers_eid = kwargs.get('SHOWERS_EID', 'number.boiler_expected_number_of_shower')
@@ -31,7 +35,9 @@ def auto_boiler_control(trigger_type=None, var_name=None, value=None, old_value=
     boiler_away_mode_on = boiler_e.away_mode_on()
     if not ignore_boiler_off and (boiler_is_off or boiler_away_mode_on):
         if dbg:
-            log.debug(f"{__name__}: boiler is off and ignore_boiler_off is not set. Not doing anything.")
+            log.debug(
+                f"{__name__}: boiler is off and ignore_boiler_off is not set. Not doing anything."
+            )
         return
 
     target_temperature_e = entity(target_temperature_eid)
@@ -56,7 +62,9 @@ def auto_boiler_control(trigger_type=None, var_name=None, value=None, old_value=
     boiler_mode_needed = discount_on_mode if discount_period_on else discount_off_mode
     boiler_mode_needed = discount_on_mode if force_on else boiler_mode_needed
     showers_needed = showers_discount if discount_period_on else showers
-    temperature_needed = target_temperature_discount if discount_period_on else target_temperature
+    temperature_needed = (
+        target_temperature_discount if discount_period_on else target_temperature
+    )
 
     msg = f'💧🔥{__name__}:\nforce_on: {force_on}'
     if trigger_name:

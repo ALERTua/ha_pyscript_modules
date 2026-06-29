@@ -1,9 +1,12 @@
+# noinspection PyUnusedImports
 import common_tools as tools
+# noinspection PyUnusedImports
 from action_callback import register_telegram_callback
 from imports_base import *
 
 from entities.entity import entity
 from entities.ha import HA
+# noinspection PyUnusedImports
 from entities.msg_bucket import MsgBucket, DiscordMsgBucket
 
 ha = HA()
@@ -21,7 +24,9 @@ def entity_exists_1(entity_id, debug=False):
     output = f"(hass.states.get('{entity_id}') not in {UNK_S} and {entity_id} not in {UNK_S}) "
     # output = f"{entity_id}.has_value()"
     if debug:
-        log.debug(f"entity_exists: {output} entity {entity_id} state: {hass.states.get(entity_id)}")
+        log.debug(
+            f"entity_exists: {output} entity {entity_id} state: {hass.states.get(entity_id)}"
+        )
 
     return output
 

@@ -46,12 +46,7 @@ class UISP:  # https://192.168.1.6/nms/api-docs/
         headers = self.headers
         full_url = f"{url}/{arg}"
         log.debug(f"UISP request {full_url}")
-        response = task.executor(
-            session.get,
-            full_url,
-            headers=headers,
-            verify=False
-        )
+        response = task.executor(session.get, full_url, headers=headers, verify=False)
         if not response.ok:
             log.warning(f"UISP request {arg} failed: {response.code} {response.reason}")
             return
@@ -117,14 +112,11 @@ class UISP:  # https://192.168.1.6/nms/api-docs/
         session = self.session
         headers = self.headers
         full_url = f"{url}/devices/{device_id}/interfaces/{port_name}/reset"
-        response = task.executor(
-            session.post,
-            full_url,
-            headers=headers,
-            verify=False
-        )
+        response = task.executor(session.post, full_url, headers=headers, verify=False)
         if not response.ok:
-            log.warning(f"UISP {device_id} Port {port_name} reset failed: {response.code} {response.reason}")
+            log.warning(
+                f"UISP {device_id} Port {port_name} reset failed: {response.code} {response.reason}"
+            )
             return
 
         log.info(f"UISP {device_id} Port {port_name} reset")

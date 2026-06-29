@@ -17,7 +17,10 @@ class Device:
     def disable(self):
         # homeassistant.disable_device(device_id=self.device_id)  # https://spook.boo
         registry = device_registry.async_get(hass)
-        registry.async_update_device(device_id=self.device_id, disabled_by=device_registry.DeviceEntryDisabler.USER)
+        registry.async_update_device(
+            device_id=self.device_id,
+            disabled_by=device_registry.DeviceEntryDisabler.USER,
+        )
 
     def enable(self):  # https://spook.boo
         # homeassistant.enable_device(device_id=self.device_id)  # https://spook.boo

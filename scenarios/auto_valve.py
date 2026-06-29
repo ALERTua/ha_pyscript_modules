@@ -60,7 +60,9 @@ DEBUG = False
 #                       **kwargs)
 
 
-def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs):
+def auto_valve(
+    trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs
+):
     debug = kwargs.get('debug', False) or DEBUG
     wanted_temp_entity_id = kwargs.get('wanted_temperature_entity') or None
     valve_entity_id = kwargs.get('valve_entity_id') or None
@@ -68,11 +70,15 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
     real_temp_entity_id = kwargs.get('cur_temp_entity') or None
     position_entity_id = kwargs.get('position_entity_id') or None
     allow_turning_off = kwargs.get('allow_turning_off', False) or False
-    temp_diff_factor = kwargs.get('temp_diff_factor', DEFAULT_TEMP_FACTOR) or DEFAULT_TEMP_FACTOR
+    temp_diff_factor = (
+        kwargs.get('temp_diff_factor', DEFAULT_TEMP_FACTOR) or DEFAULT_TEMP_FACTOR
+    )
     tolerance_down = kwargs.get('tolerance_down', DEFAULT_TOLERANCE_DOWN)
     tolerance_up = kwargs.get('tolerance_up', DEFAULT_TOLERANCE_UP)
     hvac_mode_on = kwargs.get('hvac_mode_on', None)
-    notification_channel = str(kwargs.get('notification_channel', DEFAULT_NOTIFICATION_CHANNEL))
+    notification_channel = str(
+        kwargs.get('notification_channel', DEFAULT_NOTIFICATION_CHANNEL)
+    )
 
     real_temp_entity = entity(real_temp_entity_id)
     real_temp = round(float(real_temp_entity.state()), 1)
@@ -88,9 +94,13 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
     valve_min_temp = valve_entity.attrs().get('min_temp', DEFAULT_MIN_TEMP)
     valve_max_temp = valve_entity.attrs().get('max_temp', DEFAULT_MAX_TEMP)
     valve_preset_mode = valve_entity.attrs().get('preset_mode')
-    valve_target_temp = round(float(valve_entity.attrs().get('temperature', real_temp) or real_temp), 1)
+    valve_target_temp = round(
+        float(valve_entity.attrs().get('temperature', real_temp) or real_temp), 1
+    )
     valve_friendly_name = valve_entity.friendly_name()
-    valve_cur_temp = float(valve_entity.attrs().get('current_temperature', real_temp) or real_temp)
+    valve_cur_temp = float(
+        valve_entity.attrs().get('current_temperature', real_temp) or real_temp
+    )
     try:
         valve_position = int(state.get(position_entity_id))
     except:
@@ -133,7 +143,9 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
             if valve_target_temp != wanted_temp:
                 msg = f"{vlv} {wanted_temp} reached. Setting Valve Temperature {valve_target_temp} to {wanted_temp}."
                 msgs.add(msg, debug=debug)
-                valve_entity.set_temperature(temperature=wanted_temp, hvac_mode=valve_state)
+                valve_entity.set_temperature(
+                    temperature=wanted_temp, hvac_mode=valve_state
+                )
             if allow_turning_off:
                 if valve_position is None or valve_position > 15:
                     msgs.add(f'position: {valve_position}. Turning off', debug=debug)
@@ -154,12 +166,16 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
                 valve_entity.set_hvac_mode(hvac_mode_on)
                 task.sleep(5)
     elif valve_cur_temp >= wanted_temp + tolerance_up + OVERTEMP_PROTECTION:  # off?
-        msg = (f':white_check_mark:  {vlv} current temp({valve_cur_temp}) >= wanted({wanted_temp}) + '
-               f'tolerance_up({tolerance_up}) + overtemp_protection({OVERTEMP_PROTECTION})')
+        msg = (
+            f':white_check_mark:  {vlv} current temp({valve_cur_temp}) >= wanted({wanted_temp}) + '
+            f'tolerance_up({tolerance_up}) + overtemp_protection({OVERTEMP_PROTECTION})'
+        )
         msgs.add(msg, debug=debug)
         if valve_target_temp != wanted_temp:
-            msg = (f"{vlv} temp({valve_cur_temp}) >= wanted_temp({wanted_temp}) + tolerance_up({tolerance_up}) "
-                   f"+ overtemp_protection({OVERTEMP_PROTECTION})")
+            msg = (
+                f"{vlv} temp({valve_cur_temp}) >= wanted_temp({wanted_temp}) + tolerance_up({tolerance_up}) "
+                f"+ overtemp_protection({OVERTEMP_PROTECTION})"
+            )
             msgs.add(msg, debug=debug)
             valve_entity.set_temperature(temperature=wanted_temp, hvac_mode=valve_state)
         if allow_turning_off and valve_state != 'off':
@@ -187,9 +203,12 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
     target_temp = min(target_temp, valve_max_temp, MAX_TEMP)
     # log.debug(f"{vlv} target_temp 3: {target_temp}")
 
-    msgs.add(f"valve_cur_temp: {valve_cur_temp},"
-             f" wanted_temp: {wanted_temp},"
-             f" target_temp: {target_temp}", debug=debug)
+    msgs.add(
+        f"valve_cur_temp: {valve_cur_temp},"
+        f" wanted_temp: {wanted_temp},"
+        f" target_temp: {target_temp}",
+        debug=debug,
+    )
 
     valve_state = valve_entity.state()
     # log.debug(f"{vlv} valve_state: {valve_state}")
@@ -202,13 +221,17 @@ def auto_valve(trigger_type=None, var_name=None, value=None, old_value=None, con
     # #         msgs.send()
     #     return
 
-    if ((temp_diff > 0 and temp_difference_abs < tolerance_up)
-            or (temp_diff < 0 and temp_difference_abs < tolerance_down)):
+    if (temp_diff > 0 and temp_difference_abs < tolerance_up) or (
+        temp_diff < 0 and temp_difference_abs < tolerance_down
+    ):
         msg = f"{vlv} Temperature difference too low. Setting Valve Temperature to {wanted_temp}."
         msgs.add(msg, debug=debug)
         valve_entity.set_temperature(temperature=wanted_temp, hvac_mode=valve_state)
     else:
-        msgs.add(f'{vlv} Setting temperature {valve_target_temp} to {target_temp}', debug=debug)
+        msgs.add(
+            f'{vlv} Setting temperature {valve_target_temp} to {target_temp}',
+            debug=debug,
+        )
         valve_entity.set_temperature(temperature=target_temp, hvac_mode=valve_state)
 
     msgs.send()

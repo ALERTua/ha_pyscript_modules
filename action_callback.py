@@ -22,7 +22,7 @@ def register_telegram_callback(actions, remove_markup=False, add_text=None):
             actions=actions,
             remove_markup=remove_markup,
             add_text=None,
-        )
+        ),
     )
 
     action_callbacks = entity(ACTION_CALLBACKS)
@@ -31,7 +31,9 @@ def register_telegram_callback(actions, remove_markup=False, add_text=None):
 
 # @state_trigger(TEST_BOOLEAN)
 @time_trigger(TIME_TRIGGER_HOURLY)
-def remove_callbacks(trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs):
+def remove_callbacks(
+    trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs
+):
     ha = HA()
     ent = entity(ACTION_CALLBACKS)
     attrs = ent.attrs()
@@ -51,6 +53,8 @@ def remove_callbacks(trigger_type=None, var_name=None, value=None, old_value=Non
 
 
 @service
-def wipe_callbacks(trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs):
-    log.info(f"Wiping action callbacks")
+def wipe_callbacks(
+    trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs
+):
+    log.info("Wiping action callbacks")
     state.set(ACTION_CALLBACKS, new_attributes=dict())
