@@ -114,6 +114,16 @@ def turn_off(ac_entity, allow_turning_off=True, ac_action_wait=4):
 def auto_ac(
     trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs
 ):
+    """Drive one AC toward wanted_temp, oscillating within
+    [wanted - tolerance_down, wanted + tolerance_up] and scaling fan speed with the
+    deviation from target.
+
+    Notes:
+    - Boost is intentionally gated by `change_fan_speed`: boost is the top of the
+      fan-speed ramp, so if fan-speed control is off, boost is off too.
+    - `FAN_MODES` intentionally excludes 'Auto': the AC's Auto mode regulates off its
+      own (inaccurate) internal sensor, so we always pick an explicit numeric speed.
+    """
     #     'entity_id': 'climate.ac_office',
     #     'state': 'cool',
     #     'attributes': {
@@ -146,10 +156,10 @@ def auto_ac(
     assert ac_entity_id, f"ac_entity_id: {ac_entity_id}, kwargs: {kwargs}"
 
     ac_entity = Climate(ac_entity_id)
-    ac_precision = float(int(ac_entity.state('target_temp_step', 1)))
+    ac_precision = float_(ac_entity.state('target_temp_step', 1), default=PRECISION) or PRECISION
 
     tolerance_up = float(kwargs.get('tolerance_up', DEFAULT_TEMP_TOLERANCE_UP))
-    tolerance_down = kwargs.get('tolerance_down', DEFAULT_TEMP_TOLERANCE_DOWN)
+    tolerance_down = float(kwargs.get('tolerance_down', DEFAULT_TEMP_TOLERANCE_DOWN))
     temp_difference_factor = float(
         kwargs.get('temp_difference_factor', DEFAULT_TEMP_DIFFERENCE_FACTOR)
     )
@@ -199,7 +209,7 @@ def auto_ac(
     temp_low_bar = wanted_temp - tolerance_down
     msgs.add(f'low bar: {wanted_temp}-{tolerance_down}={temp_low_bar}')
     temp_high_bar = wanted_temp + tolerance_up
-    msgs.add(f'high bar: {wanted_temp}+{tolerance_down}={temp_high_bar}')
+    msgs.add(f'high bar: {wanted_temp}+{tolerance_up}={temp_high_bar}')
 
     temp_difference = round(float(cur_temp - wanted_temp), 1)
     # log.debug(f"temp_difference = round(float(cur_temp {cur_temp} - wanted_temp {wanted_temp}), 1) = {temp_difference}")
@@ -233,15 +243,20 @@ def auto_ac(
         wanted_state = HVAC_MODE_HEAT
         if debug:
             log.debug(f"{cur_temp=} < {temp_low_bar=}: {wanted_state=}")
-    elif cur_temp == wanted_temp:
-        if debug:
-            log.debug(f"{cur_temp=} == {wanted_temp=}")
-        msgs.add(
-            f'{ac_friendly_name} temperature reached: {wanted_state}. Turning off.'
-        )
-        msgs.send()
-        turn_off(ac_entity, allow_turning_off, ac_action_wait)
-        return
+    # Disabled: turning off exactly at wanted_temp prevents the sine wave — it stops
+    # cooling/heating at the target instead of overshooting to the opposite tolerance
+    # bar (cur_temp is rounded to 0.1, so this hit constantly). The `else` branch below
+    # keeps the current mode latched inside the band, so the temperature swings between
+    # temp_low_bar and temp_high_bar as intended.
+    # elif cur_temp == wanted_temp:
+    #     if debug:
+    #         log.debug(f"{cur_temp=} == {wanted_temp=}")
+    #     msgs.add(
+    #         f'{ac_friendly_name} temperature reached: {wanted_state}. Turning off.'
+    #     )
+    #     msgs.send()
+    #     turn_off(ac_entity, allow_turning_off, ac_action_wait)
+    #     return
 
     else:
         wanted_state = ac_hvac_mode
@@ -278,8 +293,15 @@ def auto_ac(
         turn_off(ac_entity, allow_turning_off, ac_action_wait)
         return
 
-    # AC thinks it's 26 = but it's 24.  wanted 22.    proportion (26/24)*22
-    target_temperature = round((ac_inside_temp / cur_temp) * wanted_temp, 2)
+
+    # # AC thinks it's 26 = but it's 24.  wanted 22.    proportion (26/24)*22
+    # target_temperature = round((ac_inside_temp / cur_temp) * wanted_temp, 2)
+
+    # Compensate for the offset between the AC's own sensor and the room sensor.
+    # The AC regulates against ac_inside_temp, so to make the room (cur_temp) reach
+    # wanted_temp we shift the setpoint by the sensor gap (additive, not proportional):
+    # AC reads 26 but room is 24, wanted 22  ->  22 + (26 - 24) = 24.
+    target_temperature = round(wanted_temp + (ac_inside_temp - cur_temp), 2)
     msgs.add(
         f'{ac_friendly_name} target_temperature raw: {target_temperature}: {ac_inside_temp=} {cur_temp=} {wanted_temp=}'
     )
@@ -363,10 +385,12 @@ def auto_ac(
             if debug:
                 log.debug(f"after fan_speed_limit_min: {wanted_fan_speed}")
 
-        if wanted_fan_speed > len(FAN_MODES) - 1:
+        # Boost is decided on the physical deviation, not on the derived fan index
+        # (the `-1` + rounding on the index shifted the real trigger ~8% past boost).
+        if temp_difference_abs > boost_temp_difference:
             preset_target = PRESET_MODE_BOOST
             if debug:
-                log.debug(f"too much boost: {wanted_fan_speed} > {len(FAN_MODES) - 1}")
+                log.debug(f"boost: {temp_difference_abs} > {boost_temp_difference}")
         else:
             wanted_fan_speed = max(min(wanted_fan_speed, len(FAN_MODES) - 1), 0)
             if DEBUG:
@@ -399,15 +423,10 @@ def auto_ac(
     if (
         change_temperature
         and ac_temperature != target_temperature
-        and temp_difference_abs > 0
+        and temp_difference_abs > ac_precision
     ):
-        msgs.add(
-            f'Setting {ac_friendly_name} temperature {ac_temperature} to {target_temperature}'
-        )
-        ac_entity.set_temperature(
-            hvac_mode=wanted_state, temperature=target_temperature
-        )
-        # target_temp_high=target_temperature_max, target_temp_low=target_temperature_min)
+        msgs.add(f'Setting {ac_friendly_name} temperature {ac_temperature} to {target_temperature}')
+        ac_entity.set_temperature(hvac_mode=wanted_state, temperature=target_temperature)
         task.sleep(ac_action_wait)
     elif ac_temperature == target_temperature:
         msgs.add(f'{ac_friendly_name} temperature already set to {target_temperature}')
