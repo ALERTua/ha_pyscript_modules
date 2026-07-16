@@ -24,6 +24,12 @@ class MsgBucket:
             log.debug(msg)
         self.msgs.append(msg)
 
+    def prepend(self, msg, debug=False):
+        if self.debug or debug:
+            # log.debug(f"Adding msg to {self.__class__.__name__}: {msg}")
+            log.debug(msg)
+        self.msgs.insert(0, msg)
+
     def _str(self):
         output = ''
         first = True

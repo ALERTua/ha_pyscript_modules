@@ -72,6 +72,9 @@ def telegram_message(
     kwargs.setdefault('parse_mode', 'markdown')
     kwargs.setdefault('disable_web_page_preview', True)
     kwargs.setdefault('chat_id', [TELEGRAM_CHAT_ALERT_HA_PRIVATE])
+    if 'chat_id' in kwargs and isinstance(kwargs['chat_id'], (str, int)):
+        kwargs['chat_id'] = [kwargs['chat_id']]
+
     msg_limit = 4096
     msgs = [msg[i : i + msg_limit] for i in range(0, len(msg), msg_limit)]
     for msg in msgs:

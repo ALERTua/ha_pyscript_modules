@@ -264,9 +264,11 @@ def sun_autowindow(
 def illumination_autowindow(
     trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs
 ):
+    msgs = DiscordMsgBucket(name=f"{__name__}", target=['1223990700266356847'])
     window_entity_id = kwargs.get('window_entity_id')
     if not window_entity_id:
-        log.info("Cannot _sun_autowindow: no window_entity_id")
+        msgs.add("Cannot _sun_autowindow: no window_entity_id", debug=True)
+        msgs.send()
         return
 
     reverse = kwargs.get('reverse', False)
@@ -280,15 +282,17 @@ def illumination_autowindow(
     temperature_outside_sensor = kwargs.get('temperature_outside_sensor', None)
     temperature_limit_top = int(kwargs.get('temperature_limit_top', 28))
     window = Window(window_entity_id, reverse=reverse)
-    if debug:
-        log.debug(
-            f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}"
-        )
+
+    msgs.add(
+        f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}",
+        debug=debug
+    )
     window_fn = window.friendly_name()
 
     window_position_current: int = window.position()
     if window_position_current is None:
-        log.debug(f"{__name__}: window position is None. Breaking.")
+        msgs.add(f"{__name__}: window position is None. Breaking.", debug=debug)
+        msgs.send()
         return
 
     force_open = False
@@ -296,30 +300,29 @@ def illumination_autowindow(
     try:
         illumination = int(i_sensor.state())
     except:
-        log.debug(f"{__name__}: illumination is None. Breaking.")
+        msgs.add(f"cannot get illumination from {i_sensor.entity_id}. Breaking", debug=debug)
+        msgs.send()
         return
 
-    if debug:
-        log.debug(
-            f"{__name__}: {window_fn} illumination: {illumination_threshold_close} ~ {illumination} ~ {illumination_threshold_open}"
-        )
+    msgs.add(f"{window_fn} illumination: {illumination_threshold_close} ~ {illumination} ~ {illumination_threshold_open}", debug=debug)
 
     window_position_new = window_position_current
 
     if illumination <= illumination_threshold_open:
         window_position_new = window_position_current - 10
         force_open = True
-        if debug:
-            log.debug(
-                f"{__name__}: illumination is less than open threshold: {illumination} <= {illumination_threshold_open}. Setting {window_position_new=}. {window_position_current=}"
-            )
+        msgs.add(
+            f"illumination is less than open threshold: {illumination} <= {illumination_threshold_open}."
+            f" Setting {window_position_new=}. {window_position_current=}",
+            debug=debug
+        )
 
     elif illumination >= illumination_threshold_close:
         window_position_new = window_position_current + 10
-        if debug:
-            log.debug(
-                f"{__name__}: illumination is more than open threshold: {illumination} <= {illumination_threshold_close}. Setting {window_position_new=}. {window_position_current=}"
-            )
+        msgs.add(
+            f"illumination is more than open threshold: {illumination} <= {illumination_threshold_close}. Setting {window_position_new=}. {window_position_current=}",
+            debug=debug
+        )
 
     if temperature_sensor:
         # temperature_inside = float_(entity(temperature_sensor).state())
@@ -328,47 +331,48 @@ def illumination_autowindow(
             state.get(temperature_outside_sensor), default=temperature_limit_top - 1
         )
         if temperature_outside >= temperature_limit_top:
-            if debug:
-                log.debug(
-                    f"{__name__}: temperature outside is more than limit: {temperature_outside} > {temperature_limit_top}."
-                )
+            msgs.add(
+                f"temperature outside is more than limit: {temperature_outside} > {temperature_limit_top}.",
+                debug=debug
+            )
             window_position_new = position_close
         else:
-            if debug:
-                log.debug(
-                    f"{__name__}: temperature outside is less than limit: {temperature_outside} < {temperature_limit_top}."
-                )
+            msgs.add(
+                f"temperature outside is less than limit: {temperature_outside} < {temperature_limit_top}.",
+                debug=debug
+            )
 
-    if debug:
-        log.debug(
-            f"{__name__}: before limit {window_position_new=} {position_close=} {position_open=}"
-        )
+    msgs.add(
+        f"before limit {window_position_new=} {position_close=} {position_open=}",
+        debug=debug
+    )
     window_position_new = min(window_position_new, position_close)
     window_position_new = max(window_position_new, position_open)
-    if debug:
-        log.debug(f"{__name__}: after limit {window_position_new=}")
+    msgs.add(f"after limit {window_position_new=}", debug=debug)
 
     if window_position_current == window_position_new:
-        if debug:
-            log.debug(
-                f"{__name__}: {window_fn} position is already: {window_position_current}. Breaking."
-            )
+        msgs.add(
+            f"{window_fn} position is already: {window_position_current}. Breaking.",
+            debug=debug
+        )
+        msgs.send()
         return
-    elif window_position_current > window_position_new and not force_open:
-        if debug:
-            log.debug(
-                f"{__name__}: Won't close {window_fn}: already closed more: {window_position_current}. Breaking."
-            )
+
+    if window_position_current > window_position_new and not force_open:
+        msgs.add(
+            f"Won't close {window_fn}: already closed more: {window_position_current}. Breaking.",
+            debug=debug
+        )
+        msgs.send()
         return
-    elif force_open:
-        if debug:
-            log.debug(f"{__name__}: Force open.")
 
-    msg = f"""Illumination: {illumination}.
-Setting {window_fn} position from {window_position_current} to {window_position_new}"""
-    log.info(f"{__name__}:\n{msg}")
+    if force_open:
+        msgs.add(f"Force open.", debug=debug)
 
-    tools.discord_message(msg, target=['1223990700266356847'])
+    msgs.prepend(f"""☀️Illumination: {illumination}.""", debug=False)
+    msgs.add(f"Setting {window_fn} position from {window_position_current} to {window_position_new}", debug=debug)
+    msgs.send()
     window.position_set(window_position_new)
-    task.sleep(1.5)
-    window.stop()
+    if window_position_new not in (position_close, position_open):
+        task.sleep(1.5)
+        window.stop()
