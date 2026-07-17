@@ -7,7 +7,7 @@ DEBUG = False
 DEFAULT_BOOST_TEMP_DIFFERENCE = 1.5
 DEFAULT_TEMP_TOLERANCE_UP = 0.5
 DEFAULT_TEMP_TOLERANCE_DOWN = 0.1
-DEFAULT_TEMP_DIFFERENCE_FACTOR = 1.0
+DEFAULT_TEMP_DIFFERENCE_FACTOR = 1.0  # 1.0 = aim at target; >1 overshoots ∝ deviation
 DEFAULT_HOLD = HOLD_1M
 PRECISION = 0.1
 MIN_TEMP = 18
@@ -33,7 +33,7 @@ DEFAULT_DISCORD_TARGET = '1111696430206287892'
 # OFFICE_KWARGS = dict(
 #     ac_entity=OFFICE_AC,
 #     cur_temp_entity=OFFICE_TEMPERATURE,
-#     allowed_modes_selector=OFFICE_ALLOWED_MODES,
+#     mode_selector=OFFICE_ALLOWED_MODES,
 #     wanted_temperature_entity=OFFICE_WANTED_TEMP,
 #     boost_trigger_difference=DEFAULT_BOOST_TEMP_DIFFERENCE,
 #     tolerance_up=OFFICE_TOLERANCE_UP,
@@ -114,15 +114,26 @@ def turn_off(ac_entity, allow_turning_off=True, ac_action_wait=4):
 def auto_ac(
     trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs
 ):
-    """Drive one AC toward wanted_temp, oscillating within
-    [wanted - tolerance_down, wanted + tolerance_up] and scaling fan speed with the
-    deviation from target.
+    """Drive one AC toward wanted_temp and stop at it, so the room oscillates between
+    wanted and one tolerance bar. In cool it runs while the room is above wanted and
+    re-engages only after the room drifts up past wanted + tolerance_up (heat mirrors
+    this with wanted - tolerance_down). Fan speed scales with the deviation from wanted.
 
     Notes:
     - Boost is intentionally gated by `change_fan_speed`: boost is the top of the
       fan-speed ramp, so if fan-speed control is off, boost is off too.
     - `FAN_MODES` intentionally excludes 'Auto': the AC's Auto mode regulates off its
       own (inaccurate) internal sensor, so we always pick an explicit numeric speed.
+    - `temp_difference_factor` controls setpoint aggressiveness. The target sent to the AC
+      is pushed past `wanted` by `(temp_difference_factor - 1) * (cur_temp - wanted)`, so a
+      larger current deviation pushes the setpoint further and the AC keeps working hard
+      instead of easing off as it nears `wanted` (faster pull-in). The push shrinks to 0 as
+      the room reaches `wanted`, so it self-corrects: `1.0` aims exactly at `wanted`, `1.5`
+      overshoots by half the current deviation, `2.0` mirrors it.
+      Nuances: it sets how hard we approach `wanted`, NOT the swing amplitude (that is the
+      on/off band). Fan speed / boost is the other deviation-driven lever, and it dominates
+      "intensity" on simple on/off ACs (there a lower setpoint mostly changes run time /
+      overshoot, not compressor effort).
     """
     #     'entity_id': 'climate.ac_office',
     #     'state': 'cool',
@@ -156,7 +167,11 @@ def auto_ac(
     assert ac_entity_id, f"ac_entity_id: {ac_entity_id}, kwargs: {kwargs}"
 
     ac_entity = Climate(ac_entity_id)
-    ac_precision = float_(ac_entity.state('target_temp_step', 1), default=PRECISION) or PRECISION
+    ac_precision = (
+            kwargs.get('target_temp_step', None)
+            or float_(ac_entity.state('target_temp_step', PRECISION), default=PRECISION)
+            or PRECISION
+    )
 
     tolerance_up = float(kwargs.get('tolerance_up', DEFAULT_TEMP_TOLERANCE_UP))
     tolerance_down = float(kwargs.get('tolerance_down', DEFAULT_TEMP_TOLERANCE_DOWN))
@@ -170,7 +185,7 @@ def auto_ac(
     boost_temp_difference = float(
         kwargs.get('boost_trigger_difference', DEFAULT_BOOST_TEMP_DIFFERENCE)
     )
-    allowed_modes_selector = kwargs.get('allowed_modes_selector', None)
+    mode_selector = kwargs.get('mode_selector', None)
     fan_speed_limit = kwargs.get('fan_speed_limit', None)
     fan_speed_limit_min = kwargs.get('fan_speed_limit_min', None)
     allow_turning_off = kwargs.get('allow_turning_off', True)
@@ -201,14 +216,14 @@ def auto_ac(
     msgs = DiscordMsgBucket(
         name=f"{__name__} for {ac_friendly_name}", target=discord_target
     )
-
+    msgs.add(f"{ac_precision=}")
     wanted_temp_entity = entity(wanted_temp_entity_id)
     wanted_temp_entity_friendly_name = wanted_temp_entity.friendly_name()
     wanted_temp = float(wanted_temp_entity.state())
 
-    temp_low_bar = wanted_temp - tolerance_down
+    temp_low_bar = round(wanted_temp - tolerance_down, 2)
     msgs.add(f'low bar: {wanted_temp}-{tolerance_down}={temp_low_bar}')
-    temp_high_bar = wanted_temp + tolerance_up
+    temp_high_bar = round(wanted_temp + tolerance_up, 2)
     msgs.add(f'high bar: {wanted_temp}+{tolerance_up}={temp_high_bar}')
 
     temp_difference = round(float(cur_temp - wanted_temp), 1)
@@ -216,115 +231,63 @@ def auto_ac(
     temp_difference_abs = abs(temp_difference)
     # log.debug(f"temp_difference_abs={temp_difference_abs}")
 
-    allowed_modes = [HVAC_MODE_COOL, HVAC_MODE_HEAT]
-    if allowed_modes_selector:
-        allowed_modes_selector_entity = entity(allowed_modes_selector)
-        allowed_mode = allowed_modes_selector_entity.state()
-        allowed_modes = [_ for _ in allowed_modes if _ in allowed_mode.lower()]
-    allowed_modes.append(HVAC_MODE_FAN)
-    allowed_modes.append(HVAC_MODE_OFF)
+    # Single direction: this AC only cools OR only heats (no combined mode).
+    mode = HVAC_MODE_COOL
+    if mode_selector:
+        selected = (entity(mode_selector).state() or '').lower()
+        mode = HVAC_MODE_HEAT if HVAC_MODE_HEAT in selected else HVAC_MODE_COOL
 
-    if HVAC_MODE_COOL not in allowed_modes:
-        allow_turning_off = True
-
-    wanted_state = HVAC_MODE_OFF
     preset_target = PRESET_MODE_OFF
+    running = ac_hvac_mode == mode  # is the AC currently driving in its direction
 
     if debug:
-        log.debug(f"{temp_high_bar=} {cur_temp=} {wanted_temp=} {temp_low_bar=}")
+        log.debug(f"{temp_high_bar=} {cur_temp=} {wanted_temp=} {temp_low_bar=} {mode=} {running=}")
 
-    if cur_temp > temp_high_bar:
-        msgs.add(f'{cur_temp} > ↑{temp_high_bar}')
-        wanted_state = HVAC_MODE_COOL
-        if debug:
-            log.debug(f"{cur_temp=} > {temp_high_bar=}: {wanted_state=}")
-    elif cur_temp < temp_low_bar:  # got it
-        msgs.add(f'{cur_temp} < ↓{temp_low_bar}')
-        wanted_state = HVAC_MODE_HEAT
-        if debug:
-            log.debug(f"{cur_temp=} < {temp_low_bar=}: {wanted_state=}")
-    # Disabled: turning off exactly at wanted_temp prevents the sine wave — it stops
-    # cooling/heating at the target instead of overshooting to the opposite tolerance
-    # bar (cur_temp is rounded to 0.1, so this hit constantly). The `else` branch below
-    # keeps the current mode latched inside the band, so the temperature swings between
-    # temp_low_bar and temp_high_bar as intended.
-    # elif cur_temp == wanted_temp:
-    #     if debug:
-    #         log.debug(f"{cur_temp=} == {wanted_temp=}")
-    #     msgs.add(
-    #         f'{ac_friendly_name} temperature reached: {wanted_state}. Turning off.'
-    #     )
-    #     msgs.send()
-    #     turn_off(ac_entity, allow_turning_off, ac_action_wait)
-    #     return
+    if mode == HVAC_MODE_COOL:
+        if cur_temp <= wanted_temp:        # reached target -> stop (never cool below wanted)
+            want_on = False
+        elif cur_temp > temp_high_bar:     # went beyond the tolerance bar -> cool again
+            want_on = True
+        else:                              # between wanted and high_bar -> keep current state
+            want_on = running
+    else:  # HVAC_MODE_HEAT
+        if cur_temp >= wanted_temp:        # reached target -> stop (never heat above wanted)
+            want_on = False
+        elif cur_temp < temp_low_bar:      # went beyond the tolerance bar -> heat again
+            want_on = True
+        else:
+            want_on = running
 
-    else:
-        wanted_state = ac_hvac_mode
-        msgs.add(f'{temp_high_bar} ↑ {cur_temp} ↓ {temp_low_bar}')
+    msgs.add(f'{temp_low_bar} ↓ {cur_temp} ↑ {temp_high_bar} | mode={mode} want_on={want_on}')
 
-    if wanted_state not in allowed_modes:
-        msgs.add(
-            f'{ac_friendly_name} wanted_state unallowed: {wanted_state}. Turning off.'
-        )
-        msgs.send()
-        turn_off(ac_entity, allow_turning_off, ac_action_wait)
-        return
-    elif ac_hvac_mode != wanted_state:
-        msgs.add(f"wanted_state: {wanted_state}")
-
-    if ac_hvac_mode != HVAC_MODE_OFF and wanted_state == HVAC_MODE_OFF:
-        if debug:
-            log.debug(f"{ac_friendly_name} wanted_state off. Turning off.")
-        msgs.send()
-        turn_off(ac_entity, allow_turning_off, ac_action_wait)
-        return
-    elif ac_hvac_mode == HVAC_MODE_OFF and wanted_state == HVAC_MODE_OFF:
-        if debug:
-            log.debug(
-                f"{ac_friendly_name} ac_hvac_mode == wanted_state == {HVAC_MODE_OFF}"
-            )
+    if not want_on:
+        if running:  # only stop if we were actually driving; don't fight a manual off
+            msgs.add(f'{ac_friendly_name} reached wanted. Turning off.')
+            msgs.send()
+            turn_off(ac_entity, allow_turning_off, ac_action_wait)
         return
 
-    if ac_hvac_mode != HVAC_MODE_OFF and ac_hvac_mode not in allowed_modes:
-        msgs.add(
-            f'{ac_friendly_name} current state unallowed: {ac_hvac_mode}. Turning off.'
-        )
-        msgs.send()
-        turn_off(ac_entity, allow_turning_off, ac_action_wait)
-        return
+    wanted_state = mode
 
 
-    # # AC thinks it's 26 = but it's 24.  wanted 22.    proportion (26/24)*22
-    # target_temperature = round((ac_inside_temp / cur_temp) * wanted_temp, 2)
-
-    # Compensate for the offset between the AC's own sensor and the room sensor.
-    # The AC regulates against ac_inside_temp, so to make the room (cur_temp) reach
-    # wanted_temp we shift the setpoint by the sensor gap (additive, not proportional):
-    # AC reads 26 but room is 24, wanted 22  ->  22 + (26 - 24) = 24.
-    target_temperature = round(wanted_temp + (ac_inside_temp - cur_temp), 2)
+    # Aggressiveness = temp_difference_factor applied to the *deviation*, not to the
+    # absolute setpoint — so its effect is the same at any target. 1.0 = aim exactly at
+    # wanted; >1 overshoots past wanted proportionally to how far off we currently are.
+    #   room aim    = wanted_temp - (temp_difference_factor - 1) * (cur_temp - wanted_temp)
+    #   ac setpoint = room aim + (ac_inside_temp - cur_temp)   (sensor-offset compensation)
+    # e.g. wanted 24, room 27, factor 1.5  ->  24 - 0.5*3 = 22.5 aimed (+ sensor offset).
+    sensor_offset = round(ac_inside_temp - cur_temp, 2)
+    target_temperature = (
+        wanted_temp - (temp_difference_factor - 1) * temp_difference + sensor_offset
+    )
     msgs.add(
-        f'{ac_friendly_name} target_temperature raw: {target_temperature}: {ac_inside_temp=} {cur_temp=} {wanted_temp=}'
+        f'{ac_friendly_name} target raw: {round(target_temperature, 2)} | {temp_difference_factor=} {temp_difference=} {sensor_offset=}'
     )
 
-    msgs.add(f'temp_difference_factor: {temp_difference_factor}')
-
-    if wanted_temp > cur_temp:  # heating
-        # `+ ac_precision + tolerance_up` makes it more agressive
-        # can be just `+ tolerance_up` or just `+ ac_precision`
-        # target_temperature = target_temperature + ac_precision + tolerance_up
-        # msgs.add(f'target_temperature rounded 0: {target_temperature} {ac_precision=} {tolerance_up=}')
-        target_temperature *= temp_difference_factor
-        msgs.add(
-            f'target_temperature rounded 1: {target_temperature} {temp_difference_factor=}'
-        )
-        target_temperature = tools.round_up(target_temperature, ac_precision)
-        msgs.add(f'target_temperature rounded 2: {target_temperature} {ac_precision=}')
-    elif wanted_temp < cur_temp:  # cooling
-        target_temperature = target_temperature - ac_precision - tolerance_down
-        target_temperature /= temp_difference_factor
-        target_temperature = tools.round_down(target_temperature, ac_precision)
-    else:
-        target_temperature = ac_temperature
+    if mode == HVAC_MODE_HEAT:
+        target_temperature = tools.round_up(target_temperature, ac_precision, round_result=2)
+    else:  # cool
+        target_temperature = tools.round_down(target_temperature, ac_precision, round_result=2)
 
     msgs.add(f'target_temperature rounded: {target_temperature}')
 
@@ -346,12 +309,12 @@ def auto_ac(
         f"🎯 {wanted_temp_entity_friendly_name}: {wanted_temp}",
         f'temp_difference: {temp_difference}',
         f"hvac_mode: {ac_hvac_mode}",
-        f"allowed_modes: {allowed_modes}",
+        f"mode: {mode}",
         f"preset_mode: {ac_preset_mode}",
         f"🌬️fan_speed: {ac_fan_speed}: {index_try}/{len(FAN_MODES)}",
     ]
 
-    if ac_hvac_mode != wanted_state and wanted_state in allowed_modes:
+    if ac_hvac_mode != wanted_state:
         msgs.add(f'Setting HVAC Mode {ac_hvac_mode} to {wanted_state}')
         ac_entity.set_hvac_mode(wanted_state)
         task.sleep(ac_action_wait)
@@ -423,7 +386,7 @@ def auto_ac(
     if (
         change_temperature
         and ac_temperature != target_temperature
-        and temp_difference_abs > ac_precision
+        # and temp_difference_abs > ac_precision
     ):
         msgs.add(f'Setting {ac_friendly_name} temperature {ac_temperature} to {target_temperature}')
         ac_entity.set_temperature(hvac_mode=wanted_state, temperature=target_temperature)
