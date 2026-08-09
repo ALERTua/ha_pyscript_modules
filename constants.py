@@ -124,6 +124,7 @@ KITCHEN_COUNTERTOP_LED = 'light.kitchen_led'
 PROJECTOR = 'switch.projector'
 LIGHT_HALLWAY = 'light.hallway'
 LIGHT_ENTRANCE = 'light.entrance'
+CAT_FOUNTAIN = 'switch.cat_fountain_l1'
 
 LAUNDRY_HUMIDITY = 'sensor.laundry_humidity_latest'
 LAUNDRY_TEMPERATURE = 'sensor.laundry_temperature_latest'

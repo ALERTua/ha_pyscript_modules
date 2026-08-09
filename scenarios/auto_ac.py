@@ -8,6 +8,7 @@ DEFAULT_BOOST_TEMP_DIFFERENCE = 1.5
 DEFAULT_TEMP_TOLERANCE_UP = 0.5
 DEFAULT_TEMP_TOLERANCE_DOWN = 0.1
 DEFAULT_TEMP_DIFFERENCE_FACTOR = 1.0  # 1.0 = aim at target; >1 overshoots ∝ deviation
+DEFAULT_MIN_MARGIN_STEPS = 2.0  # min setpoint gap past wanted, in AC steps (min_margin = this * step)
 DEFAULT_HOLD = HOLD_1M
 PRECISION = 0.1
 MIN_TEMP = 18
@@ -121,7 +122,8 @@ def auto_ac(
 
     Notes:
     - Boost is intentionally gated by `change_fan_speed`: boost is the top of the
-      fan-speed ramp, so if fan-speed control is off, boost is off too.
+      fan-speed ramp, so if fan-speed control is off, boost is off too. A set
+      `fan_speed_limit` likewise suppresses boost — the limit is a declared ceiling.
     - `FAN_MODES` intentionally excludes 'Auto': the AC's Auto mode regulates off its
       own (inaccurate) internal sensor, so we always pick an explicit numeric speed.
     - `temp_difference_factor` controls setpoint aggressiveness. The target sent to the AC
@@ -129,11 +131,18 @@ def auto_ac(
       larger current deviation pushes the setpoint further and the AC keeps working hard
       instead of easing off as it nears `wanted` (faster pull-in). The push shrinks to 0 as
       the room reaches `wanted`, so it self-corrects: `1.0` aims exactly at `wanted`, `1.5`
-      overshoots by half the current deviation, `2.0` mirrors it.
+      overshoots by half the current deviation, `2.0` mirrors it. The push is floored by
+      `min_margin` (below), so near `wanted` it eases toward — but never above — that floor.
       Nuances: it sets how hard we approach `wanted`, NOT the swing amplitude (that is the
       on/off band). Fan speed / boost is the other deviation-driven lever, and it dominates
       "intensity" on simple on/off ACs (there a lower setpoint mostly changes run time /
       overshoot, not compressor effort).
+    - `min_margin_steps` floors how far past `wanted` the setpoint sits while running, as a
+      multiple of the AC's temperature step (`min_margin = min_margin_steps * target_temp_step`).
+      It guarantees a real gap so the compressor actually runs and the room reaches `wanted`
+      instead of stalling short; the script stops the AC at `wanted`. Bigger = reaches the
+      target more reliably but may overshoot slightly past it. Coarser ACs (bigger step) get
+      a wider gap automatically.
     """
     #     'entity_id': 'climate.ac_office',
     #     'state': 'cool',
@@ -178,6 +187,7 @@ def auto_ac(
     temp_difference_factor = float(
         kwargs.get('temp_difference_factor', DEFAULT_TEMP_DIFFERENCE_FACTOR)
     )
+    min_margin_steps = float(kwargs.get('min_margin_steps', DEFAULT_MIN_MARGIN_STEPS))
 
     cur_temp_entity_id = kwargs.get('cur_temp_entity')
     change_temperature = kwargs.get('change_temperature', True)
@@ -270,24 +280,25 @@ def auto_ac(
     wanted_state = mode
 
 
-    # Aggressiveness = temp_difference_factor applied to the *deviation*, not to the
-    # absolute setpoint — so its effect is the same at any target. 1.0 = aim exactly at
-    # wanted; >1 overshoots past wanted proportionally to how far off we currently are.
-    #   room aim    = wanted_temp - (temp_difference_factor - 1) * (cur_temp - wanted_temp)
-    #   ac setpoint = room aim + (ac_inside_temp - cur_temp)   (sensor-offset compensation)
-    # e.g. wanted 24, room 27, factor 1.5  ->  24 - 0.5*3 = 22.5 aimed (+ sensor offset).
+    # Setpoint = proportional push toward `wanted` (temp_difference_factor on the
+    # deviation) floored by a minimum drive margin, so the AC always keeps a real gap to
+    # work on and doesn't stall short of `wanted`; the script itself stops it at `wanted`.
+    #   prop = wanted - (temp_difference_factor - 1) * (cur_temp - wanted)
+    #   cool: room_aim = min(prop, wanted - min_margin);  heat: max(prop, wanted + min_margin)
+    #   ac setpoint = room_aim + (ac_inside_temp - cur_temp)   (sensor-offset compensation)
+    # min_margin = min_margin_steps * ac_precision (coarser ACs need a wider gap to run).
+    min_margin = ac_precision * min_margin_steps
     sensor_offset = round(ac_inside_temp - cur_temp, 2)
-    target_temperature = (
-        wanted_temp - (temp_difference_factor - 1) * temp_difference + sensor_offset
-    )
-    msgs.add(
-        f'{ac_friendly_name} target raw: {round(target_temperature, 2)} | {temp_difference_factor=} {temp_difference=} {sensor_offset=}'
-    )
-
+    prop_room = wanted_temp - (temp_difference_factor - 1) * temp_difference
     if mode == HVAC_MODE_HEAT:
-        target_temperature = tools.round_up(target_temperature, ac_precision, round_result=2)
+        room_aim = max(prop_room, wanted_temp + min_margin)
+        target_temperature = tools.round_up(room_aim + sensor_offset, ac_precision, round_result=2)
     else:  # cool
-        target_temperature = tools.round_down(target_temperature, ac_precision, round_result=2)
+        room_aim = min(prop_room, wanted_temp - min_margin)
+        target_temperature = tools.round_down(room_aim + sensor_offset, ac_precision, round_result=2)
+    msgs.add(
+        f'{ac_friendly_name} target: {target_temperature} | room_aim={round(room_aim, 2)} {temp_difference_factor=} {temp_difference=} {min_margin=} {sensor_offset=}'
+    )
 
     msgs.add(f'target_temperature rounded: {target_temperature}')
 
@@ -350,7 +361,9 @@ def auto_ac(
 
         # Boost is decided on the physical deviation, not on the derived fan index
         # (the `-1` + rounding on the index shifted the real trigger ~8% past boost).
-        if temp_difference_abs > boost_temp_difference:
+        # A set fan_speed_limit is a declared ceiling, so it overrides (suppresses) boost.
+        boost_allowed = fan_speed_limit is None
+        if boost_allowed and temp_difference_abs > boost_temp_difference:
             preset_target = PRESET_MODE_BOOST
             if debug:
                 log.debug(f"boost: {temp_difference_abs} > {boost_temp_difference}")
