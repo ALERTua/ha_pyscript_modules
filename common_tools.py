@@ -683,6 +683,18 @@ def check_image_file(url):
         return False, f"Request failed: {type(e)} {e}"
 
 
+def request_get_json(url, timeout=15):
+    try:
+        response = task.executor(requests.get, url=url, verify=False, timeout=timeout)
+
+        if response.status_code != 200:
+            return None, f"Error: Received HTTP {response.status_code} for {url}"
+
+        return response.json(), "Success: URL returned json."
+    except Exception as e:
+        return None, f"Request failed: {type(e)} {e}"
+
+
 def get_weekday_ukrainian():
     weekdays = [
         'понеділок',
