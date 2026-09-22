@@ -42,9 +42,6 @@ BATHROOM_HUMIDITY = 'sensor.bathroom_humidity_latest'
 
 BEDROOM_TEMPERATURE = 'sensor.bedroom_temperature_latest'
 BEDROOM_HUMIDITY = 'sensor.bedroom_humidity_latest'
-BEDROOM_TVOC = 'sensor.bedroom_tvoc_latest'
-BEDROOM_PM25 = 'sensor.bedroom_pm25_latest'
-BEDROOM_PM10 = 'sensor.bedroom_pm10_latest'
 BEDROOM_CO2 = 'sensor.bedroom_co2_latest'
 BEDROOM_AC = 'climate.ac_bedroom'
 BEDROOM_AUTO_AC = 'input_boolean.bedroom_auto_ac'
@@ -77,7 +74,6 @@ OFFICE_WINDOW = 'cover.office_window_tl'
 # OFFICE_WINDOW_CLOUD = 'cover.office_window_cloud'
 OFFICE_AUDIO = 'media_player.mass_office_audio'
 OFFICE_SPEAKER = 'media_player.mass_office_speaker'
-# OFFICE_SPEAKER = 'media_player.mass_office_audio'
 OFFICE_AC = 'climate.ac_office'
 OFFICE_AUTO_AC = 'input_boolean.office_auto_ac'
 OFFICE_LIGHTS = 'light.office'
@@ -96,7 +92,6 @@ ROOM_WINDOW = 'cover.room_window_tl'
 ROOM_WINDOW_REED = 'binary_sensor.room_window_reed_contact'
 ROOM_WINDOW_CLOUD = 'cover.room_window_cloud'
 ROOM_AUDIO = 'media_player.mass_room_audio'
-# ROOM_SPEAKER = 'media_player.mass_room_speaker'
 ROOM_SPEAKER = ROOM_AUDIO
 ROOM_AC = 'climate.ac_room'
 ROOM_AUTO_AC = 'input_boolean.room_auto_ac'
@@ -139,9 +134,7 @@ SERVER_RAM_USED_PERCENT = 'sensor.alert_server_ram'
 MINI_RAM_USED_PERCENT = 'sensor.mini_ram'
 BOILER = 'water_heater.boiler'
 BOILER_CONTROL_MODE = 'input_select.boiler_control_mode'
-LAUNDRY_SPEAKER = 'media_player.mass_laundry_speaker'
-LAUNDRY_SPEAKER_CAST = 'media_player.laundry_speaker'
-LAUNDRY_SPEAKER_SS = 'media_player.mass_laundry_speaker'
+LAUNDRY_SPEAKER = 'media_player.mass_mini'
 LAUNDRY_DELTA_2_PLUG = 'switch.delta_2_plug_4'
 
 LIGHT_SHOWER_TOP = 'light.shower'
@@ -170,11 +163,11 @@ EVENING = 'binary_sensor.evening'
 
 # https://github.com/adrgumula/HomeAssitantBluetoothSpeaker?tab=readme-ov-file
 # LAUNDRY_BT_SPEAKER = 'media_player.bs_3'  # 15:08:01:24:08:1A
-MUSIC_SPEAKER = 'media_player.mass_music_speakers'
+MUSIC_SPEAKER = 'media_player.mass_music'
 RELAX_SPEAKER = 'media_player.mass_relax'
 HA_SPEAKER = 'media_player.mass_mini'
-CHROMECAST_BROADCAST = 'media_player.mass_broadcast'
-CHROMECAST_ALL_SPEAKERS = 'media_player.mass_all_speakers'
+CHROMECAST_BROADCAST = MUSIC_SPEAKER
+CHROMECAST_ALL_SPEAKERS = MUSIC_SPEAKER
 LIST_BROADCAST_SPEAKERS = [
     LAUNDRY_SPEAKER,
     OFFICE_SPEAKER,
@@ -256,7 +249,7 @@ POWER_OUTAGE_IB = 'input_boolean.power_outage_calendar'
 ELECTRICITY_SENSOR = 'sensor.dtek_electricity'
 POWER = POWER_SENSOR = 'input_boolean.power'
 INTERNET = INTERNET_SENSOR = 'binary_sensor.internet'
-ALARM_SENSOR_ID = 'binary_sensor.m_kiyiv_air'
+ALARM_SENSOR_ID = 'binary_sensor.m_kiiv_air_alert'
 LLM_STANDARD = "conversation.openrouter_free"
 # SENSOR_DATETIME = 'sensor.datetime_full'
 
@@ -265,6 +258,7 @@ COMPANION_TABLET = 'notify.mobile_app_alert_s_redmi_pad_pro'
 COMPANION_CATBIRD = 'notify.mobile_app_kateryna_drozd'
 GUESTS_IB = 'input_boolean.guests'
 
+WEATHER_EID = 'weather.google'
 RAIN_INCOMING = 'input_boolean.rain_incoming'
 
 IN_VOLTAGE = 'sensor.ecoflow_input_voltage_combi'

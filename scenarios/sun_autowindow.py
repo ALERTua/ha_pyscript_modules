@@ -2,7 +2,7 @@ from imports import *
 from entities.window import Window
 
 
-WEATHER_ENTITY_ID = 'weather.home'
+WEATHER_ENTITY_ID = WEATHER_EID
 AZIMUTH_LOW = 210
 AZIMUTH_HIGH = 298
 ELEVATION_LOW = 0.3

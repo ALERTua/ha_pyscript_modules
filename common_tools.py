@@ -665,6 +665,24 @@ def check_mp4_file(url):
         return False, f"Request failed: {type(e)} {e}"
 
 
+def check_image_file(url):
+    try:
+        response = task.executor(
+            requests.get, url=url, verify=False, stream=True, timeout=10
+        )
+
+        if response.status_code != 200:
+            return False, f"Error: Received HTTP {response.status_code} for {url}"
+
+        content_type = response.headers.get("Content-Type", "")
+        if not content_type.startswith("image/"):
+            return False, f"Error: Content-Type {content_type} is not an image"
+
+        return True, "Success: URL contains an image."
+    except Exception as e:
+        return False, f"Request failed: {type(e)} {e}"
+
+
 def get_weekday_ukrainian():
     weekdays = [
         'понеділок',
