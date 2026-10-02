@@ -13,3 +13,11 @@ class Light(Switch):
         brightness_value = self.state('brightness', 0)
         brightness_value = brightness_value or 0
         return int(round(brightness_to_value((1, 100), int(brightness_value)), 0))
+
+    def turn_on(self, **kwargs):
+        # noinspection PyUnresolvedReferences
+        return light.turn_on(entity_id=self.entity_id, **kwargs)
+
+    def turn_off(self, **kwargs):
+        # noinspection PyUnresolvedReferences
+        return light.turn_off(entity_id=self.entity_id, **kwargs)
