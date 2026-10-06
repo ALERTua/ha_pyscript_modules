@@ -314,17 +314,33 @@ def friendly_name(entity_id):
 #     log.debug(f"Connected to PyCharm Debugger @ {ip}:{port}")
 
 
+@pyscript_compile
+def _humanize_in_locale(func, locale, *args, **kwargs):
+    # humanize keeps the active locale per thread, so the switch and the
+    # formatting must run in the same thread.
+    import humanize
+
+    if locale == 'en':
+        humanize.i18n.deactivate()
+    else:
+        humanize.i18n.activate(locale)
+    return func(*args, **kwargs)
+
+
 def timedelta_words(
     value: timedelta | float,
     months: bool = True,
     minimum_unit: str = "seconds",
     locale: str = 'uk_UA',
 ) -> str:
-    if locale == 'en':
-        task.executor(humanize.i18n.deactivate)
-    else:
-        task.executor(humanize.i18n.activate, locale)
-    return humanize.naturaldelta(value, months=months, minimum_unit=minimum_unit)
+    return task.executor(
+        _humanize_in_locale,
+        humanize.naturaldelta,
+        locale,
+        value,
+        months=months,
+        minimum_unit=minimum_unit,
+    )
 
 
 def dt_words(
@@ -335,12 +351,15 @@ def dt_words(
     when: datetime | None = None,
     locale: str = 'uk_UA',
 ) -> str:
-    if locale == 'en':
-        task.executor(humanize.i18n.deactivate)
-    else:
-        task.executor(humanize.i18n.activate, locale)
-    return humanize.naturaltime(
-        value, future=future, months=months, minimum_unit=minimum_unit, when=when
+    return task.executor(
+        _humanize_in_locale,
+        humanize.naturaltime,
+        locale,
+        value,
+        future=future,
+        months=months,
+        minimum_unit=minimum_unit,
+        when=when,
     )
 
 
