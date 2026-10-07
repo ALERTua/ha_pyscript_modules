@@ -25,10 +25,11 @@ class Window(Switch):
 
     def position_set(self, value):
         value = position_normalize(value)
-        if self.reverse:
-            value = 100 - int(value)
+        # position() already applies reverse, so compare before reversing the target
         if self.position() == value:
             return
+        if self.reverse:
+            value = 100 - int(value)
 
         log.debug(f"Setting {self.ha_state} {self.friendly_name()} position to {value}")
         # noinspection PyUnresolvedReferences
