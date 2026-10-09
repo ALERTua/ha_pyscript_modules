@@ -1,378 +1,329 @@
+import math
+
 from imports import *
 from entities.window import Window
+from scenarios.sun_illum_autowindow import (
+    END,
+    ILLUM_SWITCHES,
+    RANGE,
+    illum_enabled,
+    is_cloudy,
+    is_hot,
+    number_or_none,
+    state_of,
+)
 
-
-WEATHER_ENTITY_ID = WEATHER_EID
-AZIMUTH_LOW = 210
-AZIMUTH_HIGH = 298
-ELEVATION_LOW = 0.3
-ELEVATION_HIGH = 59
-DEBUG = False
-
-
-# # EXAMPLE
-# ELEVATION = 'sun.sun.elevation'
-# AZIMUTH = 'sun.sun.azimuth'
-# INPUT_BOOLEAN_OFFICE = 'input_boolean.sun_office_autowindow'
+# HOW THE COVERS FOLLOW THE SUN
 #
-# @state_trigger(
-#     AZIMUTH,
-#     ELEVATION,
-#     INPUT_BOOLEAN_OFFICE,
-#     OFFICE_WINDOW,
-#     state_check_now=True,
-#     # state_hold=60,
-#     kwargs={
-#         'window_entity_id': OFFICE_WINDOW,
-#         'reverse': True,
-#         'input_boolean': INPUT_BOOLEAN_OFFICE,
-#         'position_limit': 90,
-#         'position_open': 10,
-#     },
-# )
-# @conditional(
-#     entity_on(INPUT_BOOLEAN_OFFICE),
-#     entity_exists(OFFICE_WINDOW),
-# )
-# @time_active("range(8:00, 22:00)")
-# def func_sun_office_autowindow(trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs):
-#     return sun_autowindow(trigger_type=trigger_type, var_name=var_name, value=value, old_value=old_value,
-#                           context=context, **kwargs)
+# Geometry
+# - The windows of the bedroom, the room, the office and the kitchen are on one facade
+#   of the 25-storey building at Yevhena Sverstiuka 6-A, Kyiv (OSM way 776097579).
+#   Window point: 50.4455, 30.6035, about 72 m above the ground.
+# - The facade faces azimuth 267.2 deg (the outward normal of the west edge of OSM way 776097579).
+#   A flat wall sees the sun from 177.2 to 357.2 deg.
+# - Window openings from the floor plan (opening height / sill height):
+#   bedroom 2.055 m / 0.645 m, room 2.04 m / 0.66 m, office 2.055 m / 0.645 m,
+#   kitchen 1.725 m / 0.975 m.
+#
+# Sun limits
+# - AZIMUTH_LOW = 210: the sun first reaches the glass at azimuth 210 deg, which the user saw
+#   on 2026-10-07 at 14:31 local time. The window reveal blocks 177..210 deg.
+# - AZIMUTH_HIGH = 316: the summer sunset is at azimuth up to 309 deg. A 75 m building
+#   (OSM way 161955952, 168 m away, azimuth 289..316 deg) hides the sun below 1.0 deg elevation.
+# - ELEVATION_LOW = 0.5: below this elevation the covers open (decision of the user).
+#
+# Sun in the window sector (azimuth >= 210, elevation > 0), 15th day of the month, local time:
+#   Jan 15:15..17:20 max el 13 | Apr 14:25..19:50 max el 46 | Jun 14:05..21:05 max el 60
+#   Oct 14:35..18:00 max el 26 | Dec 15:05..16:50 max el 11
+#
+# Decision order in target_position()
+#   0. The sun is before AZIMUTH_LOW: leave the cover alone.
+#   1. The sun is past AZIMUTH_HIGH or below ELEVATION_LOW: open (forced), except while a
+#      sunset_not_on entity is on (someone asleep).
+#   2. No direct sun (sun_illum_autowindow.is_cloudy) and the light switch of the window
+#      (sun_illum_autowindow.ILLUM_SWITCHES) is on: open (forced).
+#   3. Hot outside (sun_illum_autowindow.is_hot): close to the limit of the window.
+#   4. Otherwise the adaptive-cover formula, then the limit of the window.
+# A forced decision may open a cover, and it is sent once per change of the decision, so a cover
+# closed by hand stays closed. Other decisions only close a cover further, so that the cover
+# does not move back and forth during the afternoon.
+#
+# The adaptive-cover formula (https://github.com/basbruss/adaptive-cover, AdaptiveVerticalCover)
+# gives the open height of a vertical cover from the sill:
+#   gamma = (window_azimuth - sun_azimuth + 180) % 360 - 180
+#   open_height = clip(glare_depth / cos(gamma) * tan(elevation), 0, window_height)
+#   closed_percent = 100 - open_height / window_height * 100
+# glare_depth is how far direct sun may reach into the room at sill height. The user chose 0.5 m.
+# The closed percentage is rounded up to POSITION_STEP (10 %) so that the cover moves rarely.
+# On this facade the closed percentage only grows during the afternoon (checked for the 1st and
+# the 15th of every month).
+#
+# Closed % with glare_depth 0.5 m and the limit of each window
+# (old elevation step table -> formula before rounding):
+#   Apr 15 14:30 el 45: bedroom 70->58, room 70->58, kitchen 70->50
+#   Apr 15 15:30 el 39: bedroom 90->76, room 80->76, kitchen 80->71
+#   Jun 15 14:30 el 58: bedroom 50->46, room 50->45, kitchen 50->35
+#   Jun 15 15:30 el 50: bedroom 50->68, room 50->68, kitchen 50->62
+#   Aug 15 15:30 el 43: bedroom 80->73, room 80->72, kitchen 80->67
+#   Oct 15 15:30 el 21: bedroom 90->87, room 80->80, kitchen 80->80
+# After about 16:30 the limit (80 or 90) decides.
+#
+# How to recompute
+# - Sun positions: astral.sun.azimuth / astral.sun.elevation for Observer(50.4455, 30.6035, 72 m).
+# - Facade azimuth and obstacles: Overpass query
+#   [out:json];way(around:900,50.4455,30.6035)[building]["building:levels"];out tags geom;
+#   Building height = height tag, else building:levels * 3 m. The eye height is 72 m.
+#
+# Files
+# - This module holds the window table, the decision and the sun, pause and sunset triggers.
+# - scenarios/sun_illum_autowindow.py holds the light and heat conditions, the light triggers,
+#   END and RANGE.
+# - pyscript/sun_autowindow.py only imports both modules, because pyscript loads a module and
+#   its triggers only when a script imports it.
+#
+# pyscript limits met here: state.get raises NameError for a missing entity (use state_of),
+# generator expressions do not run, and methods bind by weak reference (keep an instance in a
+# variable before calling a method on it).
+
+AZIMUTH_LOW = 210
+AZIMUTH_HIGH = 316
+ELEVATION_LOW = 0.5
+WINDOW_AZIMUTH = 267.2  # outward normal of the facade
+GLARE_DEPTH = 0.5  # metres of direct sun allowed into the room at sill height
+POSITION_STEP = 10  # the closed percentage is rounded up to this step to move the cover rarely
+POSITION_OPEN = 0
+
+AZIMUTH = 'sun.sun.azimuth'
+ELEVATION = 'sun.sun.elevation'
+PAUSE_SWITCH = 'input_boolean.sun_autowindow_pause'
+DISCORD_TARGET = ['1223990700266356847']
+DEBUG = False
+REASON_SUN_LEFT = 'the sun left the window'
+
+# limit: max closed %; height: opening, m; not_on: skip while any is on;
+# sunset_not_on: no opening at sunset while any is on; closed_window_reed: skip unless 'off';
+# reed_max_silence_hours: skip when the reed sent nothing for longer.
+WINDOWS = {
+    'office': {
+        'cover': OFFICE_WINDOW,
+        'switch': 'input_boolean.sun_office_autowindow',
+        'limit': 80,
+        'height': 2.055,
+    },
+    'kitchen': {
+        'cover': KITCHEN_WINDOW,
+        'switch': 'input_boolean.sun_kitchen_autowindow',
+        'limit': 80,
+        'height': 1.725,
+        'not_on': [PROJECTOR],
+    },
+    'bedroom': {
+        'cover': BEDROOM_WINDOW,
+        'switch': 'input_boolean.sun_bedroom_autowindow',
+        'limit': 90,
+        'height': 2.055,
+        'closed_window_reed': BEDROOM_WINDOW_REED,
+        'reed_max_silence_hours': 24,
+        'sunset_not_on': [SOMEONE_ASLEEP],
+    },
+    'room': {
+        'cover': ROOM_WINDOW,
+        'switch': 'input_boolean.sun_room_autowindow',
+        'limit': 80,
+        'height': 2.04,
+        'closed_window_reed': ROOM_WINDOW_REED,
+    },
+}
+
+# Last forced decision sent to each cover: (position, reason)
+_forced_sent = {}
 
 
-def sun_autowindow(
-    trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs
-):
-    window_entity_id = kwargs.get('window_entity_id')
-    if not window_entity_id:
-        log.info("Cannot _sun_autowindow: no window_entity_id")
+def adaptive_closed_percent(azimuth, elevation, window_height, glare_depth, window_azimuth):
+    """Closed percentage that lets direct sun reach at most glare_depth into the room."""
+    gamma = (window_azimuth - azimuth + 180) % 360 - 180
+    cos_gamma = math.cos(math.radians(gamma))
+    if cos_gamma <= 0.01:
+        return 0
+    open_height = glare_depth / cos_gamma * math.tan(math.radians(elevation))
+    open_height = min(max(open_height, 0), window_height)
+    closed = 100 - open_height / window_height * 100
+    return min(int(math.ceil(closed / POSITION_STEP) * POSITION_STEP), 100)
+
+
+def target_position(key, azimuth, elevation):
+    """Return (closed percentage, forced, reason), or None to leave the cover alone."""
+    window = WINDOWS[key]
+    if azimuth < AZIMUTH_LOW:
+        return None
+    if azimuth > AZIMUTH_HIGH or elevation < ELEVATION_LOW:
+        return POSITION_OPEN, True, REASON_SUN_LEFT
+    # is_cloudy() runs first, because it keeps the light hysteresis up to date for all windows
+    if is_cloudy() and illum_enabled(key):
+        return POSITION_OPEN, True, 'no direct sun'
+    if is_hot():
+        return window['limit'], False, 'hot outside'
+    closed = adaptive_closed_percent(azimuth, elevation, window['height'], GLARE_DEPTH, WINDOW_AZIMUTH)
+    return min(closed, window['limit']), False, 'sun formula'
+
+
+def is_on(entity_id):
+    return state_of(entity_id) in ('on', 'home')
+
+
+def any_on(entity_ids):
+    # pyscript does not run generator expressions
+    for entity_id in entity_ids:
+        if is_on(entity_id):
+            return True
+    return False
+
+
+def may_move(window):
+    """The switch of the window is on and its cover exists."""
+    return is_on(window['switch']) and state_of(window['cover']) not in UNK_O
+
+
+def window_enabled(window):
+    """True when the automation may move this cover now."""
+    if not may_move(window) or is_on(PAUSE_SWITCH) or any_on(window.get('not_on', [])):
+        return False
+    reed = window.get('closed_window_reed')
+    if reed and state_of(reed) != 'off':
+        return False
+    silence = window.get('reed_max_silence_hours')
+    if reed and silence:
+        reed_entity = entity(reed)
+        reed_silent, _ = reed_entity.last_active_older_than(hours=silence)
+        if reed_silent:
+            return False
+    return True
+
+
+def update_window(key):
+    """Move the cover of WINDOWS[key] to the position that the sun and the light ask for."""
+    window = WINDOWS[key]
+    if not window_enabled(window):
         return
 
-    reverse = kwargs.get('reverse', False)
-    sun_control = kwargs.get('sun_control', True)
-    position_limit = int(kwargs.get('position_limit', 95))
-    position_open = int(kwargs.get('position_open', 0))
-    cloud_coverage_limit = int(kwargs.get('cloud_coverage_limit', 90))
-    uv_index_limit = int(kwargs.get('uv_index_limit', 0))
-    illumination_sensor = kwargs.get('illumination_sensor', None)
-    illumination_threshold_open = int(kwargs.get('illumination_threshold_open', 200))
-    illumination_threshold_close = int(kwargs.get('illumination_threshold_close', 200))
-    window = Window(window_entity_id, reverse=reverse)
-    if DEBUG:
-        log.debug(
-            f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}"
-        )
-    window_fn = window.friendly_name()
-
-    sun_state = state.getattr('sun.sun')
-    azimuth = float(sun_state.get('azimuth') or -9999)
-    elevation = float(sun_state.get('elevation') or -9999)
-
-    weather_e = entity(WEATHER_ENTITY_ID)
-    """
-{'apparent_temperature': 21.1,
- 'cloud_coverage': 90,
- 'dew_point': 10.2,
- 'humidity': 50,
- 'precipitation_unit': 'mm',
- 'pressure': 1016.5,
- 'pressure_unit': 'hPa',
- 'temperature': 20.9,
- 'temperature_unit': '°C',
- 'uv_index': 1,
- 'visibility': 24.1,
- 'visibility_unit': 'km',
- 'wind_bearing': 180,
- 'wind_gust_speed': 28.4,
- 'wind_speed': 14.7,
- 'wind_speed_unit': 'km/h'}
-"""
-    max_azimuth = AZIMUTH_HIGH
-    min_azimuth = AZIMUTH_LOW
-
-    if azimuth < min_azimuth or elevation > ELEVATION_HIGH:  # before noon
-        if DEBUG:
-            log.debug(f"""{__name__}: before noon:
-            azimuth: {azimuth} < {min_azimuth}
-            elevation: {elevation} > {ELEVATION_HIGH}
-            Breaking.""")
+    sun = state.getattr('sun.sun') or {}
+    azimuth = number_or_none(sun.get('azimuth'))
+    elevation = number_or_none(sun.get('elevation'))
+    if azimuth is None or elevation is None:
         return
 
-    # window_position = 100 - window_position
-    # log.debug(f"window position: {window_position}")
-    window_position_current = window.position()
+    target = target_position(key, azimuth, elevation)
+    if target is None:
+        return
+    position, forced, reason = target
+    if reason == REASON_SUN_LEFT and any_on(window.get('sunset_not_on', [])):
+        return
 
-    if illumination_sensor:
-        i_sensor = entity(illumination_sensor)
-        illumination = 1000
-        try:
-            illumination = int(i_sensor.state())
-        except:
-            pass
-
-        if illumination <= illumination_threshold_open:
-            slightly_less_open_position = max(
-                window_position_current - 10, position_open
-            )
-            window.position_set(slightly_less_open_position)
-            if DEBUG:
-                log.debug(
-                    f"{__name__}: illumination is less than threshold: {illumination} <= {illumination_threshold_close}. Setting {slightly_less_open_position=}. {window_position_current=}"
-                )
+    blind = Window(window['cover'], reverse=True)
+    current = number_or_none(blind.position())
+    if forced:
+        if _forced_sent.get(key) == (position, reason):
             return
-
-    cloud_coverage = int(weather_e.attrs().get('cloud_coverage', 0))
-    if (
-        elevation > 5
-        and cloud_coverage_limit
-        and cloud_coverage
-        and cloud_coverage > cloud_coverage_limit
-    ):
-        window.position_set(position_open)
-        if DEBUG:
-            log.debug(
-                f"{__name__}: cloud_coverage is too high: {cloud_coverage}. Breaking."
-            )
-        return
-
-    uv_index = int(weather_e.attrs().get('uv_index', 0))
-    if elevation > 5 and uv_index_limit and uv_index and uv_index < uv_index_limit:
-        window.position_set(position_open)
-        if DEBUG:
-            log.debug(f"{__name__}: uv_index is too low: {uv_index}. Breaking.")
-        return
-
-    # p = ha.datetime_p()
-    # month = p.month
-    # if 4 <= month <= 8:  # [april,august]
-    steps = [
-        # window_position_, step_high, step_low, step_force
-        (
-            50,
-            ELEVATION_HIGH,
-            48,
-            False,
-        ),  # {step_high (or previous step_low)} >= {elevation} > {step_low}
-        (60, None, 46, False),
-        (70, None, 44, False),
-        (80, None, 39, False),
-        (90, None, 25, False),
-        (100, None, 1.0, False),
-        (60, None, 0.7, True),
-        (position_open, None, ELEVATION_LOW, True),
-    ]
-
-    window_position = prev_high = position_open
-    force = False
-    if DEBUG:
-        log.debug(
-            f"Sun position: azimuth {azimuth}/{max_azimuth} elevation {elevation}/{ELEVATION_LOW}"
-        )
-
-    if sun_control:
-        if azimuth > max_azimuth or elevation < ELEVATION_LOW:
-            window_position = position_open
-            force = True
-            if DEBUG:
-                log.debug(f'''{min_azimuth} < azimuth {azimuth} > {max_azimuth}
-                          {ELEVATION_LOW} > elevation {elevation} > {ELEVATION_HIGH}''')
-        elif (cloud_coverage_limit and cloud_coverage > cloud_coverage_limit) or (
-            uv_index_limit and uv_index < uv_index_limit
-        ):
-            window_position = position_open
-            force = True
-            if DEBUG:
-                log.debug(f'''cloud_coverage {cloud_coverage} > limit {cloud_coverage_limit}
-                          uv_index: {uv_index} < limit {uv_index_limit}''')
-        else:
-            for window_position_, step_high, step_low, step_force in steps:
-                step_high = step_high or prev_high
-                prev_high = copy(step_high)
-                if step_high >= elevation > step_low:
-                    window_position = window_position_
-                    force = step_force
-                    window_position_current = window.position()
-                    real_wanted_window_position = min(window_position, position_limit)
-                    if (
-                        window_position_current != real_wanted_window_position
-                    ):  # print only if a change needs to be made
-                        if DEBUG:
-                            log.debug(f'''{window_fn}:
-                                      step: {window_position_}, {step_high}, {step_low}, {step_force}
-                                      {step_high} >= {elevation} > {step_low}: {window_position} {real_wanted_window_position} vs {window_position_current}''')
-                    break
-
-    window_position = min(window_position, position_limit)
-
-    if (
-        window_position_current is not None
-        and int_(window_position_current) == window_position
-    ):
-        # log.debug(f"{__name__}: {window_fn} position is already: {window_position_current}. Breaking.")
-        return
-
-    if (
-        not force
-        and window_position_current is not None
-        and int_(window_position_current) > window_position
-    ):
-        # log.debug(f"{__name__}: Won't close({window_position}) {window_fn} that is already "
-        #           f"closed({window_position_current}).")
-        return
-
-    illumination = None
-    if illumination_sensor is not None:
-        i_sensor = entity(illumination_sensor)
-        illumination = int_(i_sensor.state())
-        if (
-            illumination <= illumination_threshold_close
-            and int_(window_position_current) > window_position
-        ):
-            window.position_set(position_open)
-            if DEBUG:
-                log.debug(
-                    f"{__name__}: illumination is less than threshold: {illumination} <= {illumination_threshold_close}."
-                )
+        _forced_sent[key] = (position, reason)
+    else:
+        _forced_sent.pop(key, None)
+        if current is not None and current >= position:
             return
-        elif illumination >= illumination_threshold_close:
-            window_position_current = window.position()
-            slightly_less_open_position = max(
-                window_position_current - 10, position_open
-            )
-            window.position_set(slightly_less_open_position)
+    if current == position:
+        return
 
-    msg = f"""Azimuth: {azimuth} Elevation: {elevation}
-{f' Illumination: {illumination}\n' if illumination_sensor is not None else ''}Setting {window_fn} position from {window_position_current} to {window_position}"""
+    msg = (
+        f"Azimuth: {azimuth} Elevation: {elevation}\n"
+        f"{reason}: setting {blind.friendly_name()} position from {current} to {position}"
+    )
     log.info(f"{__name__}:\n{msg}")
-
-    # input_boolean_ = kwargs.get('input_boolean')
-    # action_turn_off = f"input_boolean.turn_off(entity_id='{input_boolean_}')"
-    # cb_turn_off = register_telegram_callback(action_turn_off)
-    # action_open_cover = f"cover.set_cover_position(entity_id='{window.entity_id}', position={position_open})"
-    # cb_open_cover = register_telegram_callback(action_open_cover)
-    # inline = [
-    #     [
-    #         [f"Turn Off Automation", cb_turn_off],
-    #         [f"Open {window_fn}", cb_open_cover],
-    #     ],
-    # ]
-    # tools.telegram_message(msg, inline_keyboard=inline, disable_notification=True)
-    tools.discord_message(msg, target=['1223990700266356847'])
-    window.position_set(window_position)
+    tools.discord_message(msg, target=DISCORD_TARGET)
+    blind.position_set(position)
 
 
-def illumination_autowindow(
-    trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs
-):
-    msgs = DiscordMsgBucket(name=f"{__name__}", target=['1223990700266356847'])
-    window_entity_id = kwargs.get('window_entity_id')
-    if not window_entity_id:
-        msgs.add("Cannot _sun_autowindow: no window_entity_id", debug=True)
-        msgs.send()
+def for_each_window(action):
+    """Run action(key) for every window; one failing cover does not stop the others."""
+    for key in WINDOWS:
+        try:
+            action(key)
+        except Exception as e:
+            log.error(f"{__name__}: {key}: {e!r}")
+
+
+def update_all():
+    for_each_window(update_window)
+
+
+def open_at_sunset(key):
+    window = WINDOWS[key]
+    if not may_move(window):
         return
-
-    reverse = kwargs.get('reverse', False)
-    debug = kwargs.get('debug', DEBUG)
-    position_close = int(kwargs.get('position_limit', 95))
-    position_open = int(kwargs.get('position_open', 0))
-    illumination_sensor = kwargs.get('illumination_sensor', None)
-    illumination_threshold_open = int(kwargs.get('illumination_threshold_open', 200))
-    illumination_threshold_close = int(kwargs.get('illumination_threshold_close', 200))
-    temperature_sensor = kwargs.get('temperature_sensor', None)
-    temperature_outside_sensor = kwargs.get('temperature_outside_sensor', None)
-    temperature_limit_top = int(kwargs.get('temperature_limit_top', 28))
-    window = Window(window_entity_id, reverse=reverse)
-
-    msgs.add(
-        f"{__name__}: using window entity: {window.entity_id} {window.friendly_name()}",
-        debug=debug
-    )
-    window_fn = window.friendly_name()
-
-    window_position_current: int = window.position()
-    if window_position_current is None:
-        msgs.add(f"{__name__}: window position is None. Breaking.", debug=debug)
-        msgs.send()
+    if any_on(window.get('not_on', []) + window.get('sunset_not_on', [])):
         return
+    blind = Window(window['cover'], reverse=True)
+    blind.open()
 
-    force_open = False
-    i_sensor = entity(illumination_sensor)
-    try:
-        illumination = int(i_sensor.state())
-    except:
-        msgs.add(f"cannot get illumination from {i_sensor.entity_id}. Breaking", debug=debug)
-        msgs.send()
-        return
 
-    msgs.add(f"{window_fn} illumination: {illumination_threshold_close} ~ {illumination} ~ {illumination_threshold_open}", debug=debug)
+def open_on_pause(key):
+    window = WINDOWS[key]
+    if may_move(window):
+        blind = Window(window['cover'], reverse=True)
+        blind.open()
 
-    window_position_new = window_position_current
 
-    if illumination <= illumination_threshold_open:
-        window_position_new = window_position_current - 10
-        force_open = True
-        msgs.add(
-            f"illumination is less than open threshold: {illumination} <= {illumination_threshold_open}."
-            f" Setting {window_position_new=}. {window_position_current=}",
-            debug=debug
-        )
+@state_trigger(f"{PAUSE_SWITCH} == 'on'", state_hold=3)
+def sun_autowindow_pause(**kwargs):
+    log.debug("Sun AutoWindow pause: opening the covers")
+    for_each_window(open_on_pause)
 
-    elif illumination >= illumination_threshold_close:
-        window_position_new = window_position_current + 10
-        msgs.add(
-            f"illumination is more than open threshold: {illumination} <= {illumination_threshold_close}. Setting {window_position_new=}. {window_position_current=}",
-            debug=debug
-        )
 
-    if temperature_sensor:
-        # temperature_inside = float_(entity(temperature_sensor).state())
+@time_trigger(f'once({END})', 'once(09:00)', 'once(11:00)')
+@state_active(f"{PAUSE_SWITCH} == 'on'")
+def sun_autowindow_pause_reset():
+    log.debug("Resetting Sun AutoWindow Pause")
+    input_boolean.turn_off(entity_id=PAUSE_SWITCH)
 
-        temperature_outside = float_(
-            state.get(temperature_outside_sensor), default=temperature_limit_top - 1
-        )
-        if temperature_outside >= temperature_limit_top:
-            msgs.add(
-                f"temperature outside is more than limit: {temperature_outside} > {temperature_limit_top}.",
-                debug=debug
-            )
-            window_position_new = position_close
-        else:
-            msgs.add(
-                f"temperature outside is less than limit: {temperature_outside} < {temperature_limit_top}.",
-                debug=debug
-            )
 
-    msgs.add(
-        f"before limit {window_position_new=} {position_close=} {position_open=}",
-        debug=debug
-    )
-    window_position_new = min(window_position_new, position_close)
-    window_position_new = max(window_position_new, position_open)
-    msgs.add(f"after limit {window_position_new=}", debug=debug)
+@task_unique('sun_office_autowindow', kill_me=True)
+@state_trigger(AZIMUTH, ELEVATION, WINDOWS['office']['switch'], ILLUM_SWITCHES['office'], PAUSE_SWITCH)
+@time_active(RANGE)
+def func_sun_office_autowindow(**kwargs):
+    update_window('office')
 
-    if window_position_current == window_position_new:
-        msgs.add(
-            f"{window_fn} position is already: {window_position_current}. Breaking.",
-            debug=debug
-        )
-        msgs.send()
-        return
 
-    if window_position_current > window_position_new and not force_open:
-        msgs.add(
-            f"Won't close {window_fn}: already closed more: {window_position_current}. Breaking.",
-            debug=debug
-        )
-        msgs.send()
-        return
+@task_unique('sun_kitchen_autowindow', kill_me=True)
+@state_trigger(AZIMUTH, ELEVATION, WINDOWS['kitchen']['switch'], ILLUM_SWITCHES['kitchen'], PAUSE_SWITCH, PROJECTOR)
+@time_active(RANGE)
+def func_sun_kitchen_autowindow(**kwargs):
+    update_window('kitchen')
 
-    if force_open:
-        msgs.add(f"Force open.", debug=debug)
 
-    msgs.prepend(f"""☀️Illumination: {illumination}.""", debug=False)
-    msgs.add(f"Setting {window_fn} position from {window_position_current} to {window_position_new}", debug=debug)
-    msgs.send()
-    window.position_set(window_position_new)
-    if window_position_new not in (position_close, position_open):
-        task.sleep(1.5)
-        window.stop()
+@task_unique('sun_bedroom_autowindow', kill_me=True)
+@state_trigger(
+    AZIMUTH, ELEVATION, WINDOWS['bedroom']['switch'], ILLUM_SWITCHES['bedroom'], PAUSE_SWITCH, BEDROOM_WINDOW_REED
+)
+@time_active(RANGE)
+def func_sun_bedroom_autowindow(**kwargs):
+    update_window('bedroom')
+
+
+@task_unique('sun_room_autowindow', kill_me=True)
+@state_trigger(AZIMUTH, ELEVATION, WINDOWS['room']['switch'], ILLUM_SWITCHES['room'], PAUSE_SWITCH, ROOM_WINDOW_REED)
+@time_active(RANGE)
+def func_sun_room_autowindow(**kwargs):
+    update_window('room')
+
+
+@time_trigger('once(sunset)')
+def sun_autowindow_open_at_sunset():
+    for_each_window(open_at_sunset)
+
+
+@service()
+def sun_autowindow_disable(**kwargs):
+    for window in WINDOWS.values():
+        _switch = window['switch']
+        if state_of(_switch) in ['off', *UNK_O]:
+            continue
+        log.info(f"Turning {_switch} off")
+        input_boolean.turn_off(entity_id=_switch)

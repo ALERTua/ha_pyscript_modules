@@ -250,6 +250,8 @@ ELECTRICITY_SENSOR = 'sensor.dtek_electricity'
 POWER = POWER_SENSOR = 'input_boolean.power'
 INTERNET = INTERNET_SENSOR = 'binary_sensor.internet'
 ALARM_SENSOR_ID = 'binary_sensor.m_kiiv_air_alert'
+ALARM_RED_ID = 'binary_sensor.m_kiiv_air_red'
+ALARM_YELLOW_ID = 'binary_sensor.m_kiiv_air_yellow'
 LLM_STANDARD = "conversation.openrouter_free"
 # SENSOR_DATETIME = 'sensor.datetime_full'
 
