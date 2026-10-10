@@ -89,7 +89,7 @@ AZIMUTH_LOW = 210
 AZIMUTH_HIGH = 316
 ELEVATION_LOW = 0.5
 WINDOW_AZIMUTH = 267.2  # outward normal of the facade
-GLARE_DEPTH = 0.5  # metres of direct sun allowed into the room at sill height
+GLARE_DEPTH = 1.0  # metres of direct sun allowed into the room at sill height
 POSITION_STEP = 10  # the closed percentage is rounded up to this step to move the cover rarely
 POSITION_OPEN = 0
 
