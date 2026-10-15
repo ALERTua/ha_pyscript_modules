@@ -90,7 +90,7 @@ ROOM_VALVE_POSITION = 'sensor.valve_room_position'
 ROOM_WANTED_TEMP = 'input_number.room_wanted_temperature'
 ROOM_WINDOW = 'cover.room_window_tl'
 ROOM_WINDOW_REED = 'binary_sensor.room_window_reed_contact'
-ROOM_WINDOW_CLOUD = 'cover.room_window_cloud'
+ROOM_WINDOW_CLOUD = 'cover.room_window_tuya'
 ROOM_AUDIO = 'media_player.mass_room_audio'
 ROOM_SPEAKER = ROOM_AUDIO
 ROOM_AC = 'climate.ac_room'
@@ -164,9 +164,11 @@ EVENING = 'binary_sensor.evening'
 # https://github.com/adrgumula/HomeAssitantBluetoothSpeaker?tab=readme-ov-file
 # LAUNDRY_BT_SPEAKER = 'media_player.bs_3'  # 15:08:01:24:08:1A
 MUSIC_SPEAKER = 'media_player.mass_music'
+# Google Home cast group: announcements go over native Cast, not Sendspin
+MUSIC_CAST_GROUP = 'media_player.mass_music_speakers'
 RELAX_SPEAKER = 'media_player.mass_relax'
 HA_SPEAKER = 'media_player.mass_mini'
-CHROMECAST_BROADCAST = MUSIC_SPEAKER
+CHROMECAST_BROADCAST = MUSIC_CAST_GROUP
 CHROMECAST_ALL_SPEAKERS = MUSIC_SPEAKER
 LIST_BROADCAST_SPEAKERS = [
     LAUNDRY_SPEAKER,
