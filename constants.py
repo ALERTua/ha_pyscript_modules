@@ -246,7 +246,6 @@ XIAOMI_HUB_MAC = SECRET('xiaomi_hub_mac')
 
 OUTAGE_CALENDAR_EID = 'calendar.dtek_planned_outages'
 OUTAGE_CALENDAR_UPDATE_EID = 'sensor.dtek_schedule_data_changed_on'
-NEXT_OUTAGE_DATETIME_EID = 'sensor.dtek_next_planned_outage'
 POWER_OUTAGE_IB = 'input_boolean.power_outage_calendar'
 ELECTRICITY_SENSOR = 'sensor.dtek_electricity'
 POWER = POWER_SENSOR = 'input_boolean.power'
