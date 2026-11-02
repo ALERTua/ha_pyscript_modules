@@ -49,7 +49,7 @@ BEDROOM_SPEAKER = 'media_player.mass_bedroom_speaker'
 BEDROOM_HUMIDIFIER = 'switch.bedroom_humidifier'
 BEDROOM_HUMIDIFIER_POWER = 'sensor.bedroom_humidifier_power'
 BEDROOM_LED_BOTTOM = 'light.bedroom_led_bottom'
-LED_MIN_PCT = 21
+LED_MIN_PCT = 19
 BEDROOM_LED_TOP = 'light.bedroom_led_top'
 
 BEDROOM_WINDOW = 'cover.bedroom_window_tl'
