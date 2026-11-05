@@ -159,6 +159,7 @@ GATEWAY_V2_MAC = '04:CF:8C:9D:06:61'
 SERVER_AVAILABLE_SENSOR = 'binary_sensor.alert_server_web'
 
 LOCK = 'lock.door'
+DAHUA_VTO = 'sensor.dahua_vto'
 EVENING = 'binary_sensor.evening'
 
 # https://github.com/adrgumula/HomeAssitantBluetoothSpeaker?tab=readme-ov-file
