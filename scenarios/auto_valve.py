@@ -81,7 +81,12 @@ def auto_valve(
     )
 
     real_temp_entity = entity(real_temp_entity_id)
-    real_temp = round(float(real_temp_entity.state()), 1)
+    try:
+        real_temp = round(float(real_temp_entity.state()), 1)
+    except Exception:
+        if debug:
+            log.debug(f"{real_temp_entity_id} is not a number. Breaking")
+        return
     real_temp_friendly_name = real_temp_entity.friendly_name()
 
     valve_entity = entity(valve_entity_id)
@@ -110,7 +115,12 @@ def auto_valve(
     vlv = valve_friendly_name
     wanted_temp_entity = entity(wanted_temp_entity_id)
     wanted_temp_entity_friendly_name = wanted_temp_entity.friendly_name()
-    wanted_temp = round(float(wanted_temp_entity.state()), 1)
+    try:
+        wanted_temp = round(float(wanted_temp_entity.state()), 1)
+    except Exception:
+        if debug:
+            log.debug(f"{wanted_temp_entity_id} is not a number. Breaking")
+        return
 
     msgs = DiscordMsgBucket(name=f"{__name__} for {vlv}", target=notification_channel)
     msgs_init = [
@@ -136,8 +146,8 @@ def auto_valve(
     temp_difference_abs = abs(temp_diff)
     # log.debug(f"temp_difference_abs={temp_difference_abs}")
 
-    if temp_diff >= 0 or real_temp >= wanted_temp + tolerance_up:  # off
-        msg = f':white_check_mark: temp_diff({temp_diff}) real({real_temp}) >= wanted({wanted_temp}) + tolerance_up({tolerance_up})'
+    if temp_diff >= 0:  # off
+        msg = f':white_check_mark: temp_diff({temp_diff}) real({real_temp}) >= wanted({wanted_temp})'
         msgs.add(msg, debug=debug)
         if valve_state != 'off':
             if valve_target_temp != wanted_temp:
@@ -165,6 +175,9 @@ def auto_valve(
             if hvac_mode_on:
                 valve_entity.set_hvac_mode(hvac_mode_on)
                 task.sleep(5)
+    # Reached only when real_temp is in [wanted - tolerance_down, wanted). While the room is colder
+    # than that, the valve own sensor is expected to be far above wanted: target = valve_cur + factor * diff.
+    # Do not check overtemp before the "on" branch above: it would stop heating of a cold room.
     elif valve_cur_temp >= wanted_temp + tolerance_up + OVERTEMP_PROTECTION:  # off?
         msg = (
             f':white_check_mark:  {vlv} current temp({valve_cur_temp}) >= wanted({wanted_temp}) + '
@@ -224,14 +237,17 @@ def auto_valve(
     if (temp_diff > 0 and temp_difference_abs < tolerance_up) or (
         temp_diff < 0 and temp_difference_abs < tolerance_down
     ):
+        new_target_temp = wanted_temp
         msg = f"{vlv} Temperature difference too low. Setting Valve Temperature to {wanted_temp}."
-        msgs.add(msg, debug=debug)
-        valve_entity.set_temperature(temperature=wanted_temp, hvac_mode=valve_state)
     else:
-        msgs.add(
-            f'{vlv} Setting temperature {valve_target_temp} to {target_temp}',
-            debug=debug,
-        )
-        valve_entity.set_temperature(temperature=target_temp, hvac_mode=valve_state)
+        new_target_temp = target_temp
+        msg = f'{vlv} Setting temperature {valve_target_temp} to {target_temp}'
 
+    if new_target_temp == valve_target_temp:
+        if debug:
+            log.debug(f"{vlv} target already {valve_target_temp}. Breaking")
+        return
+
+    msgs.add(msg, debug=debug)
+    valve_entity.set_temperature(temperature=new_target_temp, hvac_mode=valve_state)
     msgs.send()
