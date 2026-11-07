@@ -198,12 +198,12 @@ def auto_valve(
         msgs.send()
         return
     elif real_temp <= wanted_temp:
-        msg = f'{vlv} real {real_temp} <= {wanted_temp} wanted, but not below tolerance {tolerance_down}. Breaking'
-        if debug:
-            log.debug(msg)
-            msgs.add(msg, debug=debug)
-            msgs.send()
-        return
+        # Inside [wanted - tolerance_down, wanted): recompute the target from the current difference
+        # below, so the boosted target set while the room was colder does not stay until wanted is reached.
+        msgs.add(
+            f'{vlv} real {real_temp} < {wanted_temp} wanted, within tolerance {tolerance_down}. Recomputing target',
+            debug=debug,
+        )
     else:
         msgs.add(f'{vlv} real {real_temp} <> {wanted_temp} wanted', debug=debug)
 
