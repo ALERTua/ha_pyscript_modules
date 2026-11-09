@@ -76,6 +76,8 @@ def auto_valve(
     tolerance_down = kwargs.get('tolerance_down', DEFAULT_TOLERANCE_DOWN)
     tolerance_up = kwargs.get('tolerance_up', DEFAULT_TOLERANCE_UP)
     hvac_mode_on = kwargs.get('hvac_mode_on', None)
+    # When wanted is reached, set this fixed target instead of wanted, so the valve closes for sure.
+    closed_temp = kwargs.get('closed_temp', None)
     notification_channel = str(
         kwargs.get('notification_channel', DEFAULT_NOTIFICATION_CHANNEL)
     )
@@ -130,6 +132,7 @@ def auto_valve(
         f"current position: {valve_position}",
     ]
     msgs.msgs = msgs_init
+    reached_temp = closed_temp if closed_temp is not None else wanted_temp
 
     temp_diff = float(real_temp - wanted_temp)
     temp_diff = round(temp_diff, 1)
@@ -150,11 +153,11 @@ def auto_valve(
         msg = f':white_check_mark: temp_diff({temp_diff}) real({real_temp}) >= wanted({wanted_temp})'
         msgs.add(msg, debug=debug)
         if valve_state != 'off':
-            if valve_target_temp != wanted_temp:
-                msg = f"{vlv} {wanted_temp} reached. Setting Valve Temperature {valve_target_temp} to {wanted_temp}."
+            if valve_target_temp != reached_temp:
+                msg = f"{vlv} {wanted_temp} reached. Setting Valve Temperature {valve_target_temp} to {reached_temp}."
                 msgs.add(msg, debug=debug)
                 valve_entity.set_temperature(
-                    temperature=wanted_temp, hvac_mode=valve_state
+                    temperature=reached_temp, hvac_mode=valve_state
                 )
             if allow_turning_off:
                 if valve_position is None or valve_position > 15:
@@ -184,13 +187,13 @@ def auto_valve(
             f'tolerance_up({tolerance_up}) + overtemp_protection({OVERTEMP_PROTECTION})'
         )
         msgs.add(msg, debug=debug)
-        if valve_target_temp != wanted_temp:
+        if valve_target_temp != reached_temp:
             msg = (
                 f"{vlv} temp({valve_cur_temp}) >= wanted_temp({wanted_temp}) + tolerance_up({tolerance_up}) "
                 f"+ overtemp_protection({OVERTEMP_PROTECTION})"
             )
             msgs.add(msg, debug=debug)
-            valve_entity.set_temperature(temperature=wanted_temp, hvac_mode=valve_state)
+            valve_entity.set_temperature(temperature=reached_temp, hvac_mode=valve_state)
         if allow_turning_off and valve_state != 'off':
             if valve_position is None or valve_position > 15:
                 msgs.add(f'position: {valve_position}. Turning off', debug=debug)
