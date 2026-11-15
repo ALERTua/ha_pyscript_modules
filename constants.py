@@ -165,12 +165,10 @@ EVENING = 'binary_sensor.evening'
 
 # https://github.com/adrgumula/HomeAssitantBluetoothSpeaker?tab=readme-ov-file
 # LAUNDRY_BT_SPEAKER = 'media_player.bs_3'  # 15:08:01:24:08:1A
-MUSIC_SPEAKER = 'media_player.mass_music'
-# Google Home cast group: announcements go over native Cast, not Sendspin
-MUSIC_CAST_GROUP = 'media_player.mass_music_speakers'
+MUSIC_CAST_GROUP = MUSIC_SPEAKER = 'media_player.mass_music_speakers'
 RELAX_SPEAKER = 'media_player.mass_relax'
 HA_SPEAKER = 'media_player.mass_mini'
-CHROMECAST_BROADCAST = MUSIC_CAST_GROUP
+CHROMECAST_BROADCAST = 'media_player.mass_cast_broadcast'
 CHROMECAST_ALL_SPEAKERS = MUSIC_SPEAKER
 LIST_BROADCAST_SPEAKERS = [
     LAUNDRY_SPEAKER,
