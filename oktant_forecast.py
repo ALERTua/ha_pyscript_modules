@@ -91,10 +91,18 @@ The result has `mode`, `off_intervals` (list of (start, end) without city power,
 | grid_on                                          | `on`            | calendar outages after now, only in follow_schedule |
 | dtek `planned_outage`, next_connectivity > now   | `schedule`      | [now, next_connectivity] + later calendar outages (follow_schedule) |
 | dtek `planned_outage`, no known end              | `default_hours` | [now, now + optimistic_outage_hours] + later outages (follow_schedule) |
+| not `emergency`, less than `grace_minutes` after `planned_end` | `late` | [now, planned_end + grace] + later outages (follow_schedule) |
 | dtek `emergency`, `normal` (outage outside the schedule), or any other state | `pessimistic` | [now, forecast end] |
+
+The `late` mode never hides an urgent advice: the script also runs the pessimistic forecast, and when its
+advice is urgent (`is_urgent`: start_now or outside_hours), the script uses the pessimistic one.
 
 The decision of the user: an emergency or an unknown outage is pessimistic, a planned outage without a known
 end is optimistic (a constant number of hours, counted from now).
+
+The script passes the calendar through `schedule_outages` first. It drops each event longer than
+`DTEK_OUTAGE_MAX_HOURS`: DTEK marks an emergency regime with one event for whole days, and with the grid on
+that event made the forecast count the whole night without power (2026-11-20).
 
 7. STEP 3: BATTERY FORECAST (`make_battery`, `simulate`, `hours_until_empty`)
 =============================================================================
@@ -183,6 +191,7 @@ GRID_MODE_ON = 'on'
 GRID_MODE_SCHEDULE = 'schedule'
 GRID_MODE_DEFAULT_HOURS = 'default_hours'
 GRID_MODE_PESSIMISTIC = 'pessimistic'
+GRID_MODE_LATE = 'late'
 
 ADVICE_NOT_NEEDED = 'not_needed'
 ADVICE_NEEDED_LATER = 'needed_later'
@@ -257,6 +266,19 @@ def forecast_end(now, window_start_minutes):
     return next_time_of_day(now, window_start_minutes)
 
 
+def schedule_outages(outages, max_hours):
+    """The calendar outages of the hourly schedule: drop each event longer than `max_hours`.
+
+    In an emergency, DTEK puts one event on the calendar for whole days (2026-11-20: "Emergency Outage",
+    20-22 Nov). That event marks the emergency regime, not an outage of the schedule: the power can be on.
+    """
+    found = []
+    for start, stop in outages:
+        if (stop - start).total_seconds() <= max_hours * 3600:
+            found.append((start, stop))
+    return found
+
+
 def _future_outages(outages, after, end, follow):
     """The calendar outages after `after`, cut at `end`. None of them when DTEK applies no schedule."""
     found = []
@@ -277,10 +299,14 @@ def grid_forecast(
     mode_of_city,
     end,
     optimistic_outage_hours,
+    planned_end=None,
+    grace_minutes=0,
 ):
     """Forecast of the city power from now to `end`.
 
     `outages` is a list of (start, end) pairs from the DTEK calendar.
+    `planned_end` is the end of the last planned outage (the script keeps it in its memory), `grace_minutes`
+    the time after it during which a late power is still expected.
     Returns a dict: `mode`, `off_intervals` (list of (start, end)), `expected_at` (None when unknown), `hours_until`, `at_least`.
     """
     follow = mode_of_city == CITY_MODE_FOLLOW
@@ -313,6 +339,26 @@ def grid_forecast(
         at_least = back_at >= end
         return {
             'mode': mode,
+            'off_intervals': off_intervals,
+            'expected_at': None if at_least else back_at,
+            'hours_until': (back_at - now).total_seconds() / 3600,
+            'at_least': at_least,
+        }
+
+    # The planned outage ended, DTEK left `planned_outage`, but the power is late (2026-11-20: end 07:30, power 08:12).
+    # During the grace time the power is still expected at the end of the grace.
+    if (
+        dtek_state != DTEK_EMERGENCY
+        and planned_end is not None
+        and planned_end <= now < planned_end + timedelta(minutes=grace_minutes)
+    ):
+        back_at = min(end, planned_end + timedelta(minutes=grace_minutes))
+        off_intervals = [(now, back_at)] + _future_outages(
+            outages, back_at, end, follow
+        )
+        at_least = back_at >= end
+        return {
+            'mode': GRID_MODE_LATE,
             'off_intervals': off_intervals,
             'expected_at': None if at_least else back_at,
             'hours_until': (back_at - now).total_seconds() / 3600,
@@ -565,6 +611,37 @@ def advise(
     else:
         result['state'] = ADVICE_NEEDED_LATER
     return result
+
+
+def is_urgent(advice):
+    """True when the advice cannot wait: start the generator now, or the battery can go empty in the night."""
+    return advice['state'] in (ADVICE_START_NOW, ADVICE_OUTSIDE_HOURS)
+
+
+def is_repeat(
+    state,
+    latest_start,
+    now,
+    sent_state,
+    sent_latest_start,
+    sent_at,
+    repeat_minutes,
+    shift_minutes,
+):
+    """True when the advice repeats the one sent not long ago, so Telegram does not get it again.
+
+    2026-11-20: a short blip of the city power made the advice `needed_later` -> `not_needed` -> `needed_later`,
+    and the script sent the same advice twice in 28 minutes. A repeat has the same state, came less than
+    `repeat_minutes` after the last message, and its latest start moved by less than `shift_minutes`.
+    """
+    if not sent_state or state != sent_state or sent_at is None:
+        return False
+    if now - sent_at >= timedelta(minutes=repeat_minutes):
+        return False
+    if latest_start is None or sent_latest_start is None:
+        return latest_start is None and sent_latest_start is None
+    shift = abs((latest_start - sent_latest_start).total_seconds())
+    return shift < shift_minutes * 60
 
 
 def hhmm(moment):

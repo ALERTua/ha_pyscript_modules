@@ -136,6 +136,8 @@ MINI_RAM_USED_PERCENT = 'sensor.mini_ram'
 BOILER = 'water_heater.boiler'
 BOILER_CONTROL_MODE = 'input_select.boiler_control_mode'
 LAUNDRY_SPEAKER = 'media_player.mass_mini'
+# VLC on the server mini (vlc_telnet). It plays local files and needs no internet.
+MINI_VLC_SPEAKER = 'media_player.mini'
 LAUNDRY_DELTA_2_PLUG = 'switch.delta_2_plug_4'
 
 LIGHT_SHOWER_TOP = 'light.shower'
@@ -221,12 +223,6 @@ TELEGRAM_CHAT_ALERT_VIDEO_SNAPSHOTS = SECRET('telegram_chat_alert_video_snapshot
 DISCORD_CHANNEL_HA = SECRET('discord_channel_ha')
 SERVER_URL_EXTERNAL = SECRET('server_url_external')
 SERVER_URL_INTERNAL = SECRET('server_url_internal')
-
-ROUTER_USERNAME = SECRET('router_username')
-ROUTER_PASSWORD = SECRET('router_password')
-ROUTER_URL = SECRET('router_url')
-UISP_URL = SECRET('uisp_url')
-UISP_TOKEN = SECRET('uisp_token')
 
 UNRAID_SSH_HOST = SECRET('unraid_ssh_host')
 UNRAID_SSH_PORT = SECRET('unraid_ssh_port')

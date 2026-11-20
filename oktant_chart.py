@@ -325,9 +325,20 @@ def draw(data, path, font_paths):
         d.ellipse([xe - 8, ye - 8, xe + 8, ye + 8], fill=RED)
         label = f"Світло зникне ≈ {_hhmm(data['empty_at'])}"
         width = d.textlength(label, font=f_label_bold)
-        d.text(
-            (max(LEFT, xe - width - 16), ye + 12), label, fill=RED, font=f_label_bold
-        )
+        # the text of the red zone takes the first row under the red line, so this label takes the second row;
+        # a thin red zone has no second row, so the label goes above the red line
+        if y_of(0) - ye >= 60:
+            ly, right = ye + 34, xe - 16
+        else:
+            # above the red line the orange line comes down from the left: move the label to the left
+            # until the orange line at its right end runs above the top of the label
+            ly, right = ye - 40, xe - 16
+            while right - width > LEFT:
+                moment = now + timedelta(seconds=total * (right - LEFT) / plot_w)
+                if y_of(_value_at(data['points_base'], moment)) < ly - 6:
+                    break
+                right -= 8
+        d.text((max(LEFT, right - width), ly), label, fill=RED, font=f_label_bold)
 
     # how to read
     d.text(
