@@ -81,12 +81,11 @@ def auto_vents(
             wanted_entity_friendly_name = wanted_entity.friendly_name()
             if trigger_name:
                 trigger_name = f" {trigger_name}"
-            if wanted_entity_id and wanted_state:
-                current_state = wanted_entity.state()
-                # log.debug(f"Current {wanted_entity_id} state: {current_state}")
-                if wanted_state == current_state:
-                    # log.debug(f"Nothing to do for {wanted_entity_friendly_name}")
-                    continue
+
+        # skip the action when each wanted entity already has the wanted state;
+        # a `continue` inside the loop above ends only that inner loop
+        if wanted_state and all(Entity(e).state() == wanted_state for e in wanted_entity_id):
+            continue
 
         tg_kwargs = {}
         chat_id = action.get('telegram_chat_id')

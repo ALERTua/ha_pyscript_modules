@@ -1,5 +1,6 @@
 # https://hacs-pyscript.readthedocs.io/en/stable/reference.html
 from imports_base import *
+import html
 import math
 import requests
 import unicodedata as ud
@@ -69,7 +70,10 @@ def telegram_message(
         log.error("Couldn't send telegram message: msg is None or empty")
         return
 
-    kwargs.setdefault('parse_mode', 'markdown')
+    # HTML by default: Markdown drops each message with one "_" in it (valve_bedroom)
+    if 'parse_mode' not in kwargs:
+        kwargs['parse_mode'] = 'html'
+        msg = html.escape(str(msg), quote=False)
     kwargs.setdefault('disable_web_page_preview', True)
     kwargs.setdefault('chat_id', [TELEGRAM_CHAT_ALERT_HA_PRIVATE])
     if 'chat_id' in kwargs and isinstance(kwargs['chat_id'], (str, int)):
@@ -390,13 +394,11 @@ def timestamp_to_date(
 def dt_from_timestamp(timestamp, replace_microseconds=True):
     if isinstance(timestamp, str):
         timestamp = float(timestamp)
-    if isinstance(timestamp, float):
-        timestamp = timestamp
-    else:
+    if not isinstance(timestamp, (int, float)):
         timestamp = timestamp.timestamp()
     output = datetime.fromtimestamp(timestamp, tz=ha.time_zone())
     if replace_microseconds:
-        output.replace(microsecond=0)
+        output = output.replace(microsecond=0)
     return output
 
 
@@ -657,26 +659,27 @@ def try_except(func):
     return wrapper
 
 
+@pyscript_executor
+def _probe_url(url, timeout=10):
+    # the whole request runs in a thread, and `with` closes the connection
+    import requests
+
+    with requests.get(url, verify=False, stream=True, timeout=timeout) as r:
+        head = next(r.iter_content(8), b'') if r.status_code == 200 else b''
+        return r.status_code, r.headers.get('Content-Type', ''), head
+
+
 def check_mp4_file(url):
     try:
-        # Send a GET request with streaming to avoid downloading the entire file
-        response = task.executor(
-            requests.get, url=url, verify=False, stream=True, timeout=10
-        )
+        status, content_type, head = _probe_url(url)
+        if status != 200:
+            return False, f"Error: Received HTTP {status} for {url}"
 
-        # Check HTTP status code
-        if response.status_code != 200:
-            return False, f"Error: Received HTTP {response.status_code} for {url}"
-
-        # Check Content-Type
-        content_type = response.headers.get("Content-Type", "")
         if "video/mp4" not in content_type:
             return False, f"Error: Content-Type {content_type} is not video/mp4"
 
-        # Check the content signature (first few bytes of the file)
-        # Reading the first 8 bytes to verify MP4 signature
-        file_signature = next(response.iter_content(8))
-        if file_signature[:4] != b'\x00\x00\x00\x18' and file_signature[4:8] != b'ftyp':
+        # an MP4 file starts with a box size (4 bytes) and the box type 'ftyp'
+        if head[4:8] != b'ftyp':
             return False, "Error: File does not have a valid MP4 signature."
 
         return True, "Success: URL contains a valid MP4 file."
@@ -686,14 +689,10 @@ def check_mp4_file(url):
 
 def check_image_file(url):
     try:
-        response = task.executor(
-            requests.get, url=url, verify=False, stream=True, timeout=10
-        )
+        status, content_type, _head = _probe_url(url)
+        if status != 200:
+            return False, f"Error: Received HTTP {status} for {url}"
 
-        if response.status_code != 200:
-            return False, f"Error: Received HTTP {response.status_code} for {url}"
-
-        content_type = response.headers.get("Content-Type", "")
         if not content_type.startswith("image/"):
             return False, f"Error: Content-Type {content_type} is not an image"
 

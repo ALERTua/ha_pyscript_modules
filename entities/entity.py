@@ -115,7 +115,7 @@ def entity(entity_id, debug=False):
 
 
 def entity_latest_changed(*entity_ids, debug=True):
-    entities = list([entity(_) for _ in entity_ids])
+    entities = [entity(_) for _ in entity_ids]
     output = {}
     for e in entities:
         output[e.entity_id] = e.last_changed()
@@ -131,7 +131,7 @@ def entity_latest_changed(*entity_ids, debug=True):
 
 
 def entity_latest_updated(*entity_ids, debug=False):
-    entities = list([entity(_) for _ in entity_ids])
+    entities = [entity(_) for _ in entity_ids]
     output = {}
     for e in entities:
         output[e.entity_id] = e.last_changed()

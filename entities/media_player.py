@@ -4,11 +4,6 @@ from entities.switch import Switch
 
 
 class MediaPlayer(Switch):
-    # noinspection PyMissingConstructor
-    def __init__(self, entity_id):
-        self.entity_id = entity_id
-        self.init()
-
     def wait_idle(self, state_check_now=True, state_hold=2.0, timeout=None):
         return tools.wait_speaker_idle(
             self.entity_id,
@@ -29,7 +24,8 @@ class MediaPlayer(Switch):
         return media_player.volume_down(entity_id=self.entity_id)
 
     def volume(self):
-        return self.state(attr='volume_level', default=None) or None
+        # 0.0 is a valid volume; `or None` turned it into None
+        return self.state(attr='volume_level', default=None)
 
     def volume_limit(self, lower=0.0, upper=1.0):
         current_volume = self.volume()
@@ -48,17 +44,16 @@ class MediaPlayer(Switch):
         homeassistant.turn_on(entity_id=self.entity_id)
         task.sleep(0.5)
         volume = self.volume()
-        i = 0
         delay = 0.25
-        max_i = 10 * (1 / delay)
-        while volume is None:
-            if i >= max_i:
+        # wait at most 10 s for the speaker to report its volume
+        for _ in range(int(10 / delay)):
+            if volume is not None:
                 break
-
+            task.sleep(delay)
             volume = self.volume()
-            if volume is None:
-                task.sleep(delay)
-                i += delay
+
+        if volume is None:
+            return
 
         self.volume_set(0)
         task.sleep(0.5)

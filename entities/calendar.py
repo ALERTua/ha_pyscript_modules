@@ -5,18 +5,14 @@ from homeassistant.components.calendar import CalendarEvent
 
 
 class Calendar(Entity):
-    # noinspection PyMissingConstructor
-    def __init__(self, entity_id):
-        self.entity_id = entity_id
-        self.init()
-
     def get_events(
         self,
         range_start: datetime | None = None,
         range_end: datetime | None = None,
     ) -> list[CalendarEvent]:
-        range_start = range_start or dt_util.as_local(datetime.now())
-        range_end = range_end or dt_util.as_local(datetime.now() + timedelta(days=1))
+        # dt_util.now() is aware in the HA time zone, whatever the container time zone is
+        range_start = range_start or dt_util.now()
+        range_end = range_end or dt_util.now() + timedelta(days=1)
 
         events = calendar.get_events(
             entity_id=self.entity_id,

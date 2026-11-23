@@ -10,10 +10,8 @@ def position_normalize(value):
 
 
 class Window(Switch):
-    # noinspection PyMissingConstructor
     def __init__(self, entity_id, reverse=False):
-        self.entity_id = entity_id
-        self.init()
+        super().__init__(entity_id)
         self.reverse = reverse
 
     def position(self):
@@ -54,8 +52,4 @@ class Window(Switch):
 
 
 class Cover(Window):
-    # noinspection PyMissingConstructor
-    def __init__(self, entity_id, reverse=False):
-        self.entity_id = entity_id
-        self.reverse = reverse
-        self.init()
+    pass

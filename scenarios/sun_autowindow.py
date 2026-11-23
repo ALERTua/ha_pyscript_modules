@@ -81,9 +81,7 @@ from scenarios.sun_illum_autowindow import (
 # - pyscript/sun_autowindow.py only imports both modules, because pyscript loads a module and
 #   its triggers only when a script imports it.
 #
-# pyscript limits met here: state.get raises NameError for a missing entity (use state_of),
-# generator expressions do not run, and methods bind by weak reference (keep an instance in a
-# variable before calling a method on it).
+# pyscript limit met here: state.get raises NameError for a missing entity (use state_of).
 
 AZIMUTH_LOW = 210
 AZIMUTH_HIGH = 316
@@ -172,11 +170,7 @@ def is_on(entity_id):
 
 
 def any_on(entity_ids):
-    # pyscript does not run generator expressions
-    for entity_id in entity_ids:
-        if is_on(entity_id):
-            return True
-    return False
+    return any(is_on(entity_id) for entity_id in entity_ids)
 
 
 def may_move(window):

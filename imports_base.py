@@ -54,9 +54,10 @@ def conditional(*conditions, and_=True, debug=False):
     if not conditions:
 
         def decorator(fn):
+            # pyscript runs the body of a functools.wraps wrapper, so pass on each trigger argument
             @functools.wraps(fn)
-            def wrapper():
-                return fn()
+            def wrapper(*args, **kwargs):
+                return fn(*args, **kwargs)
 
             return wrapper
 
@@ -69,16 +70,18 @@ def conditional(*conditions, and_=True, debug=False):
             if expr:
                 expr += f" {joint} "
 
-            expr += f"{condition}"
+            # each condition in parentheses, so an `or` inside one condition cannot break the `and` between them
+            expr += f"({condition})"
 
         if debug:
             log.debug(f"conditional: {expr}")
         expr = expr.strip()
 
+        # pyscript runs the body of a functools.wraps wrapper, so pass on each trigger argument
         @functools.wraps(fn)
         @state_active(expr)
-        def wrapper():
-            return fn()
+        def wrapper(*args, **kwargs):
+            return fn(*args, **kwargs)
 
         return wrapper
 

@@ -137,7 +137,7 @@ BOILER_CONTROL_MODE = 'input_select.boiler_control_mode'
 LAUNDRY_SPEAKER = 'media_player.mass_mini'
 # VLC on the server mini (vlc_telnet). It plays local files and needs no internet.
 MINI_VLC_SPEAKER = 'media_player.mini'
-LAUNDRY_DELTA_2_PLUG = 'switch.delta_2_plug_4'
+# LAUNDRY_DELTA_2_PLUG = 'switch.delta_2_plug_4'  # does not exist: the delta_2_plug device has switch.mop_socket now
 
 LIGHT_SHOWER_TOP = 'light.shower'
 LIGHT_SHOWER_LED = 'light.shower_led'
@@ -189,12 +189,13 @@ LIST_AUTO_AC = [
     ROOM_AUTO_AC,
 ]
 
+# empty: no humidifier switch exists in HA; humidifiers.py and humidity_notification.py are off ("#")
 HUMIDIFIERS = [
-    OFFICE_HUMIDIFIER,
+    # OFFICE_HUMIDIFIER,
     # OFFICE_HUMIDIFIER_CLOUD,
-    ROOM_HUMIDIFIER,
+    # ROOM_HUMIDIFIER,
     # ROOM_HUMIDIFIER_CLOUD,
-    BEDROOM_HUMIDIFIER,
+    # BEDROOM_HUMIDIFIER,
     # BEDROOM_HUMIDIFIER_CLOUD,
 ]
 
@@ -228,6 +229,9 @@ UNRAID_SSH_PORT = SECRET('unraid_ssh_port')
 UNRAID_SSH_USERNAME = SECRET('unraid_ssh_username')
 UNRAID_SSH_PASSWORD = SECRET('unraid_ssh_password')
 UNRAID_SSH_KEY_PATH = SECRET('unraid_ssh_key_path')
+# Tailscale SSH: the full MagicDNS name, because the short name resolves to the LAN address, where sshd wants a key
+UNRAID_TAILSCALE_HOST = 'alert-server.emu-carp.ts.net'
+UNRAID_MINI_TAILSCALE_HOST = 'mini.emu-carp.ts.net'
 
 UNRAID_MINI_SSH_HOST = SECRET('unraid_mini_ssh_host')
 UNRAID_MINI_SSH_PORT = SECRET('unraid_mini_ssh_port')

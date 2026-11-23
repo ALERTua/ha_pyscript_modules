@@ -53,19 +53,11 @@ class MsgBucket:
 
 
 class TelegramMsgBucket(MsgBucket):
-    # noinspection PyMissingConstructor
-    def __init__(self, *args, **kwargs):
-        self._init_(*args, **kwargs)
-
     def _send(self):
         tools.telegram_message(msg=self._str(), *self.args, **self.kwargs)
 
 
 class DiscordMsgBucket(MsgBucket):
-    # noinspection PyMissingConstructor
-    def __init__(self, *args, **kwargs):
-        self._init_(*args, **kwargs)
-
     def _send(self):
         dt_str = tools.dt_to_datetime_string()
         msg = f"{dt_str}\n{self._str()}"

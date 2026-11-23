@@ -21,7 +21,7 @@ def register_telegram_callback(actions, remove_markup=False, add_text=None):
             timestamp=tstamp,
             actions=actions,
             remove_markup=remove_markup,
-            add_text=None,
+            add_text=add_text,
         ),
     )
 

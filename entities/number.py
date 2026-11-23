@@ -4,10 +4,8 @@ from entities.entity import Entity
 
 
 class Number(Entity):
-    # noinspection PyMissingConstructor
     def __init__(self, entity_id):
-        self.entity_id = entity_id
-        self.init()
+        super().__init__(entity_id)
         self._old_toggle_state = None
 
     def set_value(self, value):
@@ -31,7 +29,13 @@ class Number(Entity):
             self._old_toggle_state = None
             return
 
-        _state = self._old_toggle_state = float(self.state())
+        try:
+            _state = float(self.state())
+        except (TypeError, ValueError):
+            log.warning(f"toggle: {self.entity_id} has no number: {self.state()}")
+            return
+
+        self._old_toggle_state = _state
         _min = float(self.min())
         _max = float(self.max())
 

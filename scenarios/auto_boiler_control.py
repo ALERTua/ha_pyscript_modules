@@ -24,7 +24,7 @@ def auto_boiler_control(
     force_on = kwargs.get('FORCE_ON', False)
     trigger_name = kwargs.get('TRIGGER')
 
-    if any([_ for _ in (discount_period_eid, boiler_eid) if _ is None]):
+    if discount_period_eid is None or boiler_eid is None:
         log.error(f"{__name__} not all args are set:\n{pformat(locals())}")
         return
 
@@ -44,6 +44,13 @@ def auto_boiler_control(
     target_temperature_current = float_(target_temperature_e.state())
     showers_e = entity(showers_eid)
     showers_current = int_(showers_e.state())
+
+    # the boiler drops off the network often; an unavailable value reads as -666 and would be "set"
+    if boiler_mode_current in UNK_O or not (
+        target_temperature_e.is_available() and showers_e.is_available()
+    ):
+        log.debug(f"{__name__}: boiler entities unavailable, skip")
+        return
 
     e_checks = (
         (discount_period_eid, discount_period_e),

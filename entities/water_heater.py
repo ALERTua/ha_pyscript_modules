@@ -32,11 +32,6 @@ class WaterHeater(Switch):
     }
     """
 
-    # noinspection PyMissingConstructor
-    def __init__(self, entity_id):
-        self.entity_id = entity_id
-        self.init()
-
     def operation_mode(self):
         return self.state()
 

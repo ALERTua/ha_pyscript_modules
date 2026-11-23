@@ -36,7 +36,6 @@ class Companion(Entity):
     RingerMode = RingerMode
     companion_actions_dict = companion_actions_dict
 
-    # noinspection PyMissingConstructor
     def __init__(
         self,
         entity_id: str,
@@ -50,7 +49,7 @@ class Companion(Entity):
         wifi_ssid_eid: str = None,
         wifi_ip_eid: str = None,
     ):
-        self.entity_id = entity_id
+        super().__init__(entity_id)
 
         self.ringer_mode_eid = ringer_mode_eid
         self.battery_level_eid = battery_level_eid
@@ -61,8 +60,6 @@ class Companion(Entity):
         self.wifi_bssid_eid = wifi_bssid_eid
         self.wifi_ssid_eid = wifi_ssid_eid
         self.wifi_ip_eid = wifi_ip_eid
-
-        self.init()
 
     def _call(self, **kwargs):
         # noinspection PyUnresolvedReferences

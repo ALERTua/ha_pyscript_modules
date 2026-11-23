@@ -51,7 +51,7 @@ class AtlanticWaterHeater:
         return self.execute_command(cmd)
 
     def set_boost_mode(self, value: bool):
-        value = 'on' if bool else 'off'
+        value = 'on' if value else 'off'
         cmd = Command(OverkizCommand.SET_BOOST_MODE, [value])
         return self.execute_command(cmd)
 

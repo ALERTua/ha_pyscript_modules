@@ -87,7 +87,8 @@ class HA:
         # duplicates = [_ for __, _ in devices.devices.items() if 'duplicates' in _.labels]
         # duplicates = ha.devices(filter_func=lambda device: 'duplicates' in device.labels)
         registry = self._device_registry()
-        output = registry.devices.values()
+        # iterate the devices directly: using registry.devices as a mapping breaks in HA 2027.9
+        output = list(registry.devices)
         if filter_func:
             output = filter(filter_func, output)
         return list(output)

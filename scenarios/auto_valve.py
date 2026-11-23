@@ -93,6 +93,11 @@ def auto_valve(
 
     valve_entity = entity(valve_entity_id)
     valve_state = valve_entity.state()
+    # an unavailable valve takes no command, and its state is no valid hvac_mode
+    if valve_state in UNK_O:
+        if debug:
+            log.debug(f"{valve_entity_id} is {valve_state}. Breaking")
+        return
     if not allow_turning_off and valve_state == 'off':
         if debug:
             log.debug("valve_state == 'off'. Breaking")

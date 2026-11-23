@@ -3,11 +3,6 @@ from entities.entity import Entity
 
 
 class Lock(Entity):
-    # noinspection PyMissingConstructor
-    def __init__(self, entity_id):
-        self.entity_id = entity_id
-        self.init()
-
     def locked(self):
         return self.state() == 'locked'
 
