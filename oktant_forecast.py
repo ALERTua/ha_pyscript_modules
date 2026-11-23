@@ -80,7 +80,8 @@ Only `sensor.dtek_electricity` = `emergency` means an emergency.
 =======================================================
 
 Input `grid_on`: the script reads `binary_sensor.oktant_a_invertor_grid`, the grid state that the inverter measures.
-Only while that sensor is not `on` or `off`, it takes `input_boolean.power` or `input_boolean.power_2_line`.
+Only while that sensor is not `on` or `off`, it takes `input_boolean.power` (the second line) or
+`input_boolean.power_1_line` (the first line).
 The inverter has city power from either input.
 
 The result has `mode`, `off_intervals` (list of (start, end) without city power, cut at the forecast end),

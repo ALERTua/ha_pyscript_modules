@@ -645,16 +645,16 @@ def got_internet():
     return inet != 'off'
 
 
-# create a decorator that try-excepts the function and if it fails, it will call the function again
+# A decorator: when the function raises, write the error to the log and return None.
+# It does not call the function again. A traceback is of no use here: in pyscript it shows
+# only the frames of the pyscript interpreter, not the line of the script.
 def try_except(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            try:
-                log.warning(f"{func.__name__} failed: {type(e)} {e}")
-            except:
-                log.warning(f"{func} failed: {type(e)} {e}")
+            name = getattr(func, '__name__', func)
+            log.warning(f"{name} failed: {type(e)} {e}")
 
     return wrapper
 
