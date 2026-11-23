@@ -100,6 +100,13 @@ The result has `mode`, `off_intervals` (list of (start, end) without city power,
 The `late` mode never hides an urgent advice: the script also runs the pessimistic forecast, and when its
 advice is urgent (`is_urgent`: start_now or outside_hours), the script uses the pessimistic one.
 
+With `grid_on`, the calendar outage that covers now stays in `off_intervals` only while the power stayed on
+since its start: DTEK often cuts the power 1–3 hours after the start of the schedule. When the script saw no
+power after its start (`grid_off_at`, kept in the memory of the script), that outage already happened and the
+power came back early, so the forecast drops the rest of it (2026-11-23: the power came at 19:04, the calendar
+said 20:00, and the caption said «Світла з міста немає»). The caption and `advise` take "the power is on now"
+from the mode `on`, not from `off_intervals`.
+
 The decision of the user: an emergency or an unknown outage is pessimistic, a planned outage without a known
 end is optimistic (a constant number of hours, counted from now).
 
@@ -337,19 +344,31 @@ def grid_forecast(
     optimistic_outage_hours,
     planned_end=None,
     grace_minutes=0,
+    grid_off_at=None,
 ):
     """Forecast of the city power from now to `end`.
 
     `outages` is a list of (start, end) pairs from the DTEK calendar.
     `planned_end` is the end of the last planned outage (the script keeps it in its memory), `grace_minutes`
     the time after it during which a late power is still expected.
+    `grid_off_at` is the last moment at which the script saw no city power (None: unknown). With the power on,
+    a calendar outage that covers now is over when the power went away after its start and came back: then the
+    forecast drops it. When the power stayed on since its start, DTEK can still cut it, so the forecast keeps it.
     Returns a dict: `mode`, `off_intervals` (list of (start, end)), `expected_at` (None when unknown), `hours_until`, `at_least`.
     """
     follow = mode_of_city == CITY_MODE_FOLLOW
     off_intervals = []
 
     if grid_on:
-        off_intervals = _future_outages(outages, now, end, follow)
+        current = _current_outage(outages, now)
+        later = outages
+        if (
+            current is not None
+            and grid_off_at is not None
+            and grid_off_at >= current[0]
+        ):
+            later = [outage for outage in outages if outage != current]
+        off_intervals = _future_outages(later, now, end, follow)
         return {
             'mode': GRID_MODE_ON,
             'off_intervals': off_intervals,
@@ -735,11 +754,10 @@ def advise(
 
     if generator_running:
         result['state'] = ADVICE_RUNNING
-        if not is_off(now, off_intervals) or deficit <= 0:
+        grid_now = grid['mode'] == GRID_MODE_ON or not is_off(now, off_intervals)
+        if grid_now or deficit <= 0:
             result['stop_at'] = now
-            result['stop_reason'] = (
-                'grid' if not is_off(now, off_intervals) else 'enough'
-            )
+            result['stop_reason'] = 'grid' if grid_now else 'enough'
             return result
         if not generator_allowed_now:
             result['enough'] = False
@@ -916,8 +934,15 @@ def chart_headline(data):
     return 'Генератор не потрібен', 'Все гаразд', 'ok'
 
 
+def _grid_on_now(data):
+    """True when the city power is on now (grid mode `on`), also while a calendar outage still covers now."""
+    return data.get('grid_mode') == GRID_MODE_ON
+
+
 def _power_back(data):
     """When the city power comes back, or None: the end of the outage that covers now, before the forecast end."""
+    if _grid_on_now(data):
+        return None
     for start, stop in data['off_intervals']:
         if start <= data['now'] < stop < data['forecast_end']:
             return stop
@@ -925,6 +950,8 @@ def _power_back(data):
 
 
 def _power_off_now(data):
+    if _grid_on_now(data):
+        return False
     for start, stop in data['off_intervals']:
         if start <= data['now'] < stop:
             return True
@@ -1044,6 +1071,12 @@ def caption_lines(data, headlines=None):
     else:
         text = '⚡ Світло з міста є.'
         for start, stop in data['off_intervals']:
+            if start <= now < stop:
+                # the power stayed on since the start of this calendar outage: DTEK can still cut it
+                text = (
+                    f'⚡ Світло з міста є, але за графіком відключення до {hhmm(stop)}.'
+                )
+                break
             if now < start < forecast_end:
                 text = text + f' Відключення за графіком {hhmm(start)}–{hhmm(stop)}.'
                 break
