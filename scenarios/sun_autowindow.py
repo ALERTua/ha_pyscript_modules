@@ -41,7 +41,9 @@ from scenarios.sun_illum_autowindow import (
 #   1. The sun is past AZIMUTH_HIGH or below ELEVATION_LOW: open (forced), except while a
 #      sunset_not_on entity is on (someone asleep).
 #   2. No direct sun (sun_illum_autowindow.is_cloudy) and the light switch of the window
-#      (sun_illum_autowindow.ILLUM_SWITCHES) is on: open (forced).
+#      (sun_illum_autowindow.ILLUM_SWITCHES) is on: open by the step of the window (OPEN_STEP
+#      when absent) per update (forced). The sun triggers come every 2 to 4 minutes, so a full
+#      opening takes 20 to 40 minutes with 10 % steps, and hours with 1 % steps.
 #   3. Hot outside (sun_illum_autowindow.is_hot): close to the limit of the window.
 #   4. Otherwise the adaptive-cover formula, then the limit of the window.
 # A forced decision may open a cover, and it is sent once per change of the decision, so a cover
@@ -90,6 +92,7 @@ WINDOW_AZIMUTH = 267.2  # outward normal of the facade
 GLARE_DEPTH = 1.0  # metres of direct sun allowed into the room at sill height
 POSITION_STEP = 10  # the closed percentage is rounded up to this step to move the cover rarely
 POSITION_OPEN = 0
+OPEN_STEP = 10  # closed % that one update removes while there is no direct sun
 
 AZIMUTH = 'sun.sun.azimuth'
 ELEVATION = 'sun.sun.elevation'
@@ -97,16 +100,19 @@ PAUSE_SWITCH = 'input_boolean.sun_autowindow_pause'
 DISCORD_TARGET = ['1223990700266356847']
 DEBUG = False
 REASON_SUN_LEFT = 'the sun left the window'
+REASON_NO_SUN = 'no direct sun'
 
-# limit: max closed %; height: opening, m; not_on: skip while any is on;
+# limit: max closed %; height: opening, m; step: rounding of the sun formula and the opening step
+# while there is no direct sun, % (POSITION_STEP and OPEN_STEP when absent); not_on: skip while any is on;
 # sunset_not_on: no opening at sunset while any is on; closed_window_reed: skip unless 'off';
 # reed_max_silence_hours: skip when the reed sent nothing for longer.
 WINDOWS = {
     'office': {
         'cover': OFFICE_WINDOW,
         'switch': 'input_boolean.sun_office_autowindow',
-        'limit': 80,
+        'limit': 100,
         'height': 2.055,
+        'step': 1,  # this cover moves in 1 % steps
     },
     'kitchen': {
         'cover': KITCHEN_WINDOW,
@@ -137,8 +143,8 @@ WINDOWS = {
 _forced_sent = {}
 
 
-def adaptive_closed_percent(azimuth, elevation, window_height, glare_depth, window_azimuth):
-    """Closed percentage that lets direct sun reach at most glare_depth into the room."""
+def adaptive_closed_percent(azimuth, elevation, window_height, glare_depth, window_azimuth, step=POSITION_STEP):
+    """Closed percentage that lets direct sun reach at most glare_depth into the room, rounded up to step."""
     gamma = (window_azimuth - azimuth + 180) % 360 - 180
     cos_gamma = math.cos(math.radians(gamma))
     if cos_gamma <= 0.01:
@@ -146,7 +152,7 @@ def adaptive_closed_percent(azimuth, elevation, window_height, glare_depth, wind
     open_height = glare_depth / cos_gamma * math.tan(math.radians(elevation))
     open_height = min(max(open_height, 0), window_height)
     closed = 100 - open_height / window_height * 100
-    return min(int(math.ceil(closed / POSITION_STEP) * POSITION_STEP), 100)
+    return min(int(math.ceil(closed / step) * step), 100)
 
 
 def target_position(key, azimuth, elevation):
@@ -156,13 +162,21 @@ def target_position(key, azimuth, elevation):
         return None
     if azimuth > AZIMUTH_HIGH or elevation < ELEVATION_LOW:
         return POSITION_OPEN, True, REASON_SUN_LEFT
-    # is_cloudy() runs first, because it keeps the light hysteresis up to date for all windows
     if is_cloudy() and illum_enabled(key):
-        return POSITION_OPEN, True, 'no direct sun'
+        return POSITION_OPEN, True, REASON_NO_SUN
     if is_hot():
         return window['limit'], False, 'hot outside'
-    closed = adaptive_closed_percent(azimuth, elevation, window['height'], GLARE_DEPTH, WINDOW_AZIMUTH)
+    closed = adaptive_closed_percent(
+        azimuth, elevation, window['height'], GLARE_DEPTH, WINDOW_AZIMUTH, window.get('step', POSITION_STEP)
+    )
     return min(closed, window['limit']), False, 'sun formula'
+
+
+def step_open(current, step=OPEN_STEP):
+    """Closed % one step more open than current, on the step grid; None opens fully."""
+    if current is None:
+        return POSITION_OPEN
+    return max((int(math.ceil(current / step)) - 1) * step, POSITION_OPEN)
 
 
 def is_on(entity_id):
@@ -215,6 +229,13 @@ def update_window(key):
 
     blind = Window(window['cover'], reverse=True)
     current = number_or_none(blind.position())
+    if reason == REASON_NO_SUN:
+        # The cover opens one step per update. A cover that someone closed by hand after the
+        # last step (more closed than that step plus one OPEN_STEP of travel) stays as it is.
+        last = _forced_sent.get(key)
+        if last and last[1] == REASON_NO_SUN and current is not None and current > last[0] + OPEN_STEP:
+            return
+        position = step_open(current, window.get('step', OPEN_STEP))
     if forced:
         if _forced_sent.get(key) == (position, reason):
             return

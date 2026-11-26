@@ -60,6 +60,47 @@ DEBUG = False
 #                       **kwargs)
 
 
+CLOSE_VALVE_TIMEOUT = 120
+CLOSE_VALVE_SETTLE = 60
+
+
+def _read_number(entity_id):
+    try:
+        return float(state.get(entity_id))
+    except Exception:
+        return None
+
+
+def close_valve(
+    valve_entity_id,
+    position_entity_id,
+    restore_state=None,
+    timeout=CLOSE_VALVE_TIMEOUT,
+    settle=CLOSE_VALVE_SETTLE,
+):
+    """
+    Switch the valve off until its position sensor shows 0, but not longer than `timeout` seconds.
+    Then give the valve back its mode and wait `settle` seconds for a new position report.
+    The valve reports a stale position after a mode cycle, for example 15% while the room is warm.
+    Returns the position after the restore, or None when the valve is off, unavailable or silent.
+    """
+    valve_entity = entity(valve_entity_id)
+    restore_state = restore_state or valve_entity.state()
+    if restore_state in UNK_O or restore_state == 'off':
+        return None
+
+    valve_entity.set_hvac_mode('off')
+    task.wait_until(
+        state_trigger=f"float_({position_entity_id}, default=-1) == 0",
+        timeout=timeout,
+        state_check_now=True,
+    )
+    valve_entity.set_hvac_mode(restore_state)
+    task.sleep(settle)
+    position = _read_number(position_entity_id)
+    return None if position is None else int(position)
+
+
 def auto_valve(
     trigger_type=None, var_name=None, value=None, old_value=None, context=None, **kwargs
 ):

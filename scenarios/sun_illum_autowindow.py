@@ -5,8 +5,13 @@ from imports import *
 # only while WEATHER_SWITCH is on.
 
 ILLUMINATION_SENSOR = OFFICE_ILLUMINATION_SENSOR
-ILLUMINATION_CLOUDY = 2400  # lux at or below this value: no direct sun
+ILLUMINATION_CLOUDY = 2521  # lux at or below this value: no direct sun
 ILLUMINATION_SUNNY = 2850  # lux at or above this value: direct sun
+# Seconds the light must stay past a limit before the light state changes. The sensor sends
+# one reading a minute, so CLOUDY_HOLD = 150 needs three low readings in a row, and one short
+# shadow does not open the covers.
+CLOUDY_HOLD = 10
+SUNNY_HOLD = 5
 WEATHER_SWITCH = 'input_boolean.sun_autowindow_weather'
 WEATHER_CLOUD_COVERAGE = f'{WEATHER_EID}.cloud_coverage'
 CLOUD_COVERAGE_LIMIT = 90  # percent of forecast cloud coverage above which it is cloudy
@@ -23,10 +28,12 @@ ILLUM_SWITCHES = {
 }
 
 # Active time of all cover triggers. END is after the latest summer sunset in the window (21:05).
+START = "13:30"
 END = "21:30"
-RANGE = f"range(13:30, {END})"
+RANGE = f"range({START}, {END})"
 
-# Hysteresis state; a reload starts "sunny", so the covers stay closed.
+# Light state with hysteresis. Only the light triggers below change it, after their hold time.
+# A reload takes it from the current reading in sun_light_state_on_load.
 _light = {'sunny': True}
 
 
@@ -46,15 +53,9 @@ def number_or_none(value):
         return None
 
 
-def sunny_by_illumination(lux, sunny_before):
-    """Hysteresis between ILLUMINATION_CLOUDY and ILLUMINATION_SUNNY; no reading keeps the state."""
-    if lux is None:
-        return sunny_before
-    if lux <= ILLUMINATION_CLOUDY:
-        return False
-    if lux >= ILLUMINATION_SUNNY:
-        return True
-    return sunny_before
+def in_range():
+    """True between START and END, the same time as RANGE."""
+    return START <= datetime.now().strftime('%H:%M') < END
 
 
 def cloudy_by_weather():
@@ -67,8 +68,6 @@ def cloudy_by_weather():
 
 def is_cloudy():
     """True when no direct sun hits the facade."""
-    lux = number_or_none(state_of(ILLUMINATION_SENSOR))
-    _light['sunny'] = sunny_by_illumination(lux, _light['sunny'])
     return not _light['sunny'] or cloudy_by_weather()
 
 
@@ -83,25 +82,56 @@ def is_hot():
     return temperature is not None and temperature >= HOT_TEMPERATURE
 
 
+def update_covers():
+    # imported here because scenarios.sun_autowindow imports this module
+    from scenarios.sun_autowindow import update_all
+
+    update_all()
+
+
+def set_light(sunny):
+    """Store a new light state and, between START and END, update every cover at once."""
+    if _light['sunny'] == sunny:
+        return
+    _light['sunny'] = sunny
+    log.debug(f"sun_illum_autowindow: light is now {'sunny' if sunny else 'cloudy'}")
+    if in_range():
+        update_covers()
+
+
+@time_trigger('startup')
+def sun_light_state_on_load():
+    """Take the light state from the current reading; a reading between the limits counts as sunny."""
+    lux = number_or_none(state_of(ILLUMINATION_SENSOR))
+    _light['sunny'] = lux is None or lux > ILLUMINATION_CLOUDY
+
+
 # A cloud or the sun coming out changes the light faster than the sun moves, so these
-# triggers update every cover at once. state_hold_false=0 fires a trigger only when its
-# condition becomes true, not on every new reading while it stays true.
+# triggers update every cover at once. They run all day, so that the light state is right
+# at START. state_hold_false=0 fires a trigger only when its condition becomes true, not on
+# every new reading while it stays true. A reading past the limit before the hold time ends
+# cancels the trigger.
 @state_trigger(
     f"float_({ILLUMINATION_SENSOR}, default={ILLUMINATION_CLOUDY} + 1) <= {ILLUMINATION_CLOUDY}",
-    state_hold=30,
+    state_hold=CLOUDY_HOLD,
     state_hold_false=0,
 )
+def sun_light_cloudy(**kwargs):
+    set_light(False)
+
+
 @state_trigger(
     f"float_({ILLUMINATION_SENSOR}, default={ILLUMINATION_SUNNY} - 1) >= {ILLUMINATION_SUNNY}",
-    state_hold=30,
+    state_hold=SUNNY_HOLD,
     state_hold_false=0,
 )
+def sun_light_sunny(**kwargs):
+    set_light(True)
+
+
 @state_trigger(WEATHER_SWITCH)
 @state_trigger(WEATHER_CLOUD_COVERAGE)
 @time_active(RANGE)
 def sun_illum_autowindow(var_name=None, value=None, old_value=None, **kwargs):
-    # imported here because scenarios.sun_autowindow imports this module
-    from scenarios.sun_autowindow import update_all
-
     log.debug(f"sun_illum_autowindow: {var_name}: {old_value} -> {value}, updating the covers")
-    update_all()
+    update_covers()
