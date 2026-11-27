@@ -63,7 +63,8 @@ class Companion(Entity):
 
     def _call(self, **kwargs):
         # noinspection PyUnresolvedReferences
-        return service.call(domain=self.entity_domain, name=self.entity_name, **kwargs)
+        # pyscript takes the domain and the service name only as positional arguments
+        return service.call(self.entity_domain, self.entity_name, **kwargs)
 
     def ringer_mode(self, ringer_mode: RingerMode = None):
         if ringer_mode is None and self.ringer_mode_eid:
